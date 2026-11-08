@@ -3,6 +3,7 @@ import type { TestStandLiveApi } from "@teststand/contracts/desktop";
 import type {
   LiveFrame, RunStreamWindow, StreamPoint, StreamRead, StreamReadQuery, StreamRecord, StreamWindow
 } from "@teststand/contracts/observability";
+import { everyFrame } from "./frame-timer.js";
 import type { TimeRange } from "./stream-model.js";
 
 /**
@@ -98,6 +99,8 @@ export function useStreamsPoints(source: StreamSource, keys: readonly string[], 
     const unsubscribe = subscribe({ keys: wanted, width: columns, windowMs }, (frame: LiveFrame) => {
       if (frozen()) return;
       buffers = mergeFrame(buffers, frame);
+      // Trimmed here too: while the window draws no frames the tick does not run.
+      if (shown.current.follow) buffers = trimBuffers(buffers, Date.now() - windowMs);
       dirty = true;
     }, () => { if (!frozen()) { buffers = {}; dirty = true; } });
     const tick = () => {
@@ -113,9 +116,9 @@ export function useStreamsPoints(source: StreamSource, keys: readonly string[], 
       setState({ reads: buffers, range, errors: {} });
     };
     tick();
-    const timer = window.setInterval(tick, TICK_MS);
+    const stop = everyFrame(TICK_MS, tick);
     return () => {
-      window.clearInterval(timer);
+      stop();
       unsubscribe();
       setState(EMPTY);
     };

@@ -5,6 +5,7 @@ import {
   BIT_LANE, clockTime, formatNumber, relativeTime, type OverlayTone, type ScopeData, type ScopeOverlays, type TimeRange
 } from "./stream-model.js";
 import { divisionSplits, tickText, verticalRange, type VerticalScale } from "./scope-controls.js";
+import { everyFrame } from "./frame-timer.js";
 import { resolveColor, tokenColor, tokenFont, useThemeVersion } from "./theme-colors.js";
 
 const TONE_TOKEN: Record<OverlayTone, string> = {
@@ -490,8 +491,7 @@ export function StreamScope({
       applyRange(instance, next);
     };
     slide();
-    const timer = window.setInterval(slide, FOLLOW_TICK_MS);
-    return () => window.clearInterval(timer);
+    return everyFrame(FOLLOW_TICK_MS, slide);
   }, [following]);
 
   useEffect(() => { plot.current?.redraw(false, false); }, [overlays, marker]);
