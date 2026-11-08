@@ -381,6 +381,8 @@ export interface DeviceStream {
   type: StreamType | string;
   /** A protocol field: decoded by a project protocol binding from a raw stream of the same device. */
   derived?: { icd: string; alias: string; sourceStreamId: string; message?: string; field?: string };
+  /** A single-bit protocol field (0/1): dropped on the canvas it becomes a lamp. */
+  flag?: boolean;
   [key: string]: unknown;
 }
 

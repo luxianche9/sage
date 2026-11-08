@@ -50,6 +50,8 @@ class DerivedStream:
     field: str | None = None
     unit: str | None = None
     label: str | None = None
+    flag: bool = False
+    """A single-bit field (``bits: "3"``): 0/1, shown as an indicator lamp."""
 
 
 @dataclass(frozen=True)
@@ -72,6 +74,7 @@ def derived_streams(icd: Icd, alias: str) -> list[DerivedStream]:
                 item.name,
                 item.unit,
                 item.description,
+                item.bit_range is not None and item.bit_range[0] == item.bit_range[1],
             )
             for item in message.fields
             if item.numeric
