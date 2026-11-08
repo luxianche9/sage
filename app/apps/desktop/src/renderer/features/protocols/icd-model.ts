@@ -52,7 +52,11 @@ export interface TrialRow {
 }
 
 function valueText(value: unknown, unit: string | undefined): string {
-  const text = typeof value === "string" ? value : JSON.stringify(value);
+  // A scaled value carries float noise (2.51 → 2.5100000000000002): 12 significant digits drop it.
+  const text = typeof value === "string" ? value
+    : typeof value === "number" && Number.isFinite(value) && !Number.isInteger(value)
+      ? String(Number(value.toPrecision(12)))
+      : JSON.stringify(value);
   return unit && typeof value === "number" ? `${text} ${unit}` : text;
 }
 

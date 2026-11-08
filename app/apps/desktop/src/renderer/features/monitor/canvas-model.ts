@@ -11,6 +11,9 @@ export function moved(frame: Frame, dx: number, dy: number): Frame {
   return { ...frame, x, y: Math.max(0, frame.y + Math.round(dy / GRID_PX)) };
 }
 
+/** The smallest a panel can be resized to, in cells (a one-row button or lamp). */
+export const MIN_CELLS: readonly [number, number] = [2, 1];
+
 /** A frame resized by a drag of its corner, snapped to the grid, at least `min` cells each way. */
 export function resized(frame: Frame, dx: number, dy: number, min: readonly [number, number] = [2, 2]): Frame {
   return {
@@ -25,16 +28,6 @@ export function canvasExtent(frames: readonly Frame[], margin = 8): { width: num
   const right = Math.max(0, ...frames.map((frame) => frame.x + frame.w));
   const bottom = Math.max(0, ...frames.map((frame) => frame.y + frame.h));
   return { width: (right + margin) * GRID_PX, height: (bottom + margin) * GRID_PX };
-}
-
-/** The widget a variable dropped on an empty spot of the canvas becomes. */
-export function widgetForStream(type: string | undefined, declaration?: Readonly<Record<string, unknown>>): PanelType {
-  const width = typeof declaration?.width === "number" ? declaration.width : 1;
-  if (type === "bits") return width > 1 ? "digital" : "lamp";
-  if (type === "block") return "scope";
-  if (type === "bytes" || type === "frames") return "trace";
-  if (type === "events") return "terminal";
-  return "number";
 }
 
 /** Widgets that are small enough to need no title bar of their own. */

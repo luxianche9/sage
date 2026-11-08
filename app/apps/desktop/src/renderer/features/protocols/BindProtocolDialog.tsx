@@ -50,7 +50,7 @@ export function BindProtocolDialog({ hardwareId, streamId, streamType, aliases, 
         <DialogBody className="grid gap-3">
           <p className="text-xs text-fg-2">
             选一份协议（ICD），它规定这条{streamType === "frames" ? "报文" : "字节"}流怎么切成帧、每个字段在哪几个字节。
-            绑定后每个数值字段都是一个变量，带实时值，可以拖到面板上，测试步骤也能直接引用。
+            绑定后每个数值字段都是一个信号，带实时值，显示在设备列表里；画布控件和测试步骤都能直接引用。
           </p>
           <Field label="协议（ICD）" error={icds.error ? errorMessage(icds.error) : undefined}
             hint={usable.length ? undefined : `项目里还没有能解码 ${streamType} 流的 ICD，先新建一份`}>
@@ -70,7 +70,7 @@ export function BindProtocolDialog({ hardwareId, streamId, streamType, aliases, 
             </div>
           </Field>
           <Field label="别名" error={aliasError}
-            hint={`字段变量命名为「${name || "别名"}.报文.字段」，在整个项目里唯一。`}>
+            hint={`字段信号命名为「${name || "别名"}.报文.字段」，在整个项目里唯一。`}>
             <Input aria-label="别名" className="font-mono" value={name}
               onChange={(event) => setAlias(event.target.value)} />
           </Field>

@@ -138,7 +138,7 @@ function PlanInspector({ plan, hardware, mutate }: { plan: TestPlan; hardware: H
         任一步骤失败时停止
       </label>
       <p className="text-2xs text-fg-3">
-        被测件报文按「变量」侧栏里的协议绑定解码；步骤以「别名.报文.字段」引用解出的数据流。
+        被测件报文按设备管理里字节流上的协议绑定解码；步骤以「别名.报文.字段」引用解出的数据流。
       </p>
       <Field label="设备绑定" hint="步骤可用绑定名代替设备；${参数} 取运行参数，批量运行时按工位展开。">
         <DeviceBindingsEditor

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  LayoutDashboardIcon, ListChecksIcon, PencilRulerIcon, RadioIcon, ShieldCheckIcon, TimerResetIcon
+  LayoutDashboardIcon, ListChecksIcon, PencilRulerIcon, RadioIcon, ShieldCheckIcon, TimerResetIcon, XIcon
 } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { queryKeys } from "../../lib/query-keys.js";
@@ -33,7 +33,8 @@ import { setFocusedPanel, useMonitorWorkspace, type MonitorWorkspace } from "./u
  * words, terminals, bus traces, frame details, switches, sliders, buttons and control panels, labels, the
  * run's results and decoded messages — each showing the device streams (or protocol fields) dropped on it, all
  * on one time axis. The canvas is the project's (the Agent builds it too); 编辑布局 moves, resizes and
- * configures panels. Without a run it shows the devices' live data; a run that starts takes over at once, with
+ * configures panels. Without a run it shows the devices' live data; a run that starts
+ * takes over at once, with
  * its event timeline under the canvas; a finished run picked from the history is replayed the same way.
  * Devices can be controlled by hand from the displays and controls, except those a running test holds.
  */
@@ -143,10 +144,11 @@ export function MonitorPane({ bench, toolbar }: {
       <IconButton label="复位时间轴" size="icon-sm" variant="ghost" disabled={time.follow} onClick={time.reset}>
         <TimerResetIcon />
       </IconButton>
-      <IconButton label="编辑布局" size="icon-sm" variant="ghost" aria-pressed={editing}
-        title={editing ? "完成编辑：控件恢复可操作" : "编辑布局：拖动、改大小、设置和删除控件"}
+      <IconButton label="编辑布局" size="icon-sm" variant="ghost" aria-pressed={editing} disabled={control.running}
+        title={control.running ? "测试运行中，布局锁定"
+          : editing ? "完成编辑：控件恢复可操作" : "编辑布局：拖动、改大小、设置和删除控件"}
         className={editing ? "bg-signal/15 text-signal" : undefined}
-        onClick={() => setEditing((current) => !current)}>
+        onClick={() => { setEditing((current) => !current); focus(undefined); }}>
         <PencilRulerIcon />
       </IconButton>
       <LayoutMenu workspace={workspace} onError={(message) => toast.error(message)}
@@ -190,16 +192,19 @@ export function MonitorPane({ bench, toolbar }: {
       <MonitorTimeContext.Provider value={time}>
         <MonitorContext.Provider value={context}>
           <div className="flex min-h-0 flex-1">
-            <Canvas key={workspace.projectId ?? "none"} workspace={workspace} editing={editing}
+            <Canvas key={workspace.projectId ?? "none"} workspace={workspace} editing={editing && !control.running}
               selected={activePanelId} onSelect={focus}
               empty={<LayoutMenu workspace={workspace} labelled onError={(message) => toast.error(message)}
                 onDone={(message) => toast.success(message)} />} />
-            {editing && (
+            {editing && selectedPanel && (
               <aside aria-label="属性" className="flex w-64 shrink-0 flex-col border-l border-line bg-surface-1">
-                <PanelHeader title="属性" />
+                <PanelHeader title="属性" actions={(
+                  <IconButton label="关闭属性" size="icon-sm" variant="ghost" onClick={() => focus(undefined)}>
+                    <XIcon />
+                  </IconButton>
+                )} />
                 <div className="min-h-0 flex-1 overflow-y-auto">
-                  {selectedPanel ? <PanelProperties panel={selectedPanel} />
-                    : <p className="p-3 text-2xs text-fg-3">点画布上的一个控件，这里显示它的设置。</p>}
+                  <PanelProperties panel={selectedPanel} />
                 </div>
               </aside>
             )}

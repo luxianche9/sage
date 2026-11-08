@@ -5,15 +5,12 @@ import {
 } from "@teststand/contracts/monitor";
 import { cn, IconButton } from "../../ui/index.js";
 import { useLatestValues } from "../variables/use-latest-values.js";
-import { BARE_TYPES, canvasExtent, cells, moved, resized, widgetForStream } from "./canvas-model.js";
+import { BARE_TYPES, canvasExtent, cells, MIN_CELLS, moved, resized } from "./canvas-model.js";
 import { CONTROL_MIME, newControlPanelId, requestControl } from "./control-requests.js";
 import { PANEL_COMPONENTS } from "./MonitorPanels.js";
 import { PANEL_ICONS } from "./panel-icons.js";
-import { useStreamDrag } from "./panel-kit.js";
 import { LatestValuesContext, latestKeys } from "./panels/Widgets.js";
-import {
-  draggedStreamType, PANEL_LABELS, PANEL_MIME, panelTitle, readDraggedStream, type MonitorWorkspace
-} from "./use-monitor-workspace.js";
+import { PANEL_LABELS, PANEL_MIME, panelTitle, type MonitorWorkspace } from "./use-monitor-workspace.js";
 
 /** A control dropped from the component bar becomes this widget (presets live in a control panel). */
 const CONTROL_WIDGETS: Record<ControlWidget, PanelType> = {
@@ -28,11 +25,13 @@ const GRID_BACKGROUND = {
 
 /**
  * 运行监控's canvas: one page on which every panel sits where it was put, like a host-computer front panel.
- * In 编辑 mode panels are dragged, resized on their corner, selected for the property panel and removed;
- * components and variables dropped on an empty spot make a panel there. Otherwise the panels are live.
+ * Outside 编辑布局 the panels are live and operated. In 编辑布局 a panel is moved by dragging it, resized on
+ * its corner, removed with × and picked for the property panel by a click; it is not operated meanwhile.
+ * Components dropped on an empty spot make a panel there.
  */
 export function Canvas({ workspace, editing, selected, onSelect, empty }: {
   workspace: MonitorWorkspace;
+  /** 编辑布局: panels are arranged, not operated. */
   editing: boolean;
   selected: string | undefined;
   onSelect: (id: string | undefined) => void;
@@ -43,14 +42,15 @@ export function Canvas({ workspace, editing, selected, onSelect, empty }: {
   const values = useLatestValues(latestKeys(panels), true);
   const extent = useMemo(() => canvasExtent(panels.map((panel) => panel.frame)), [panels]);
   const surface = useRef<HTMLDivElement>(null);
-  const dragging = useStreamDrag();
+  const [arranging, setArranging] = useState(false);
+  const [dropping, setDropping] = useState(false);
 
   useEffect(() => {
     if (!editing || !selected) return undefined;
     const remove = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
-      if (target?.closest("input, textarea, select, [contenteditable]")) return;
-      if (event.key !== "Delete" && event.key !== "Backspace") return;
+      if (target?.closest("input, textarea, select, [contenteditable], [role=dialog]")) return;
+      if (event.key !== "Delete") return;
       workspace.removePanel(selected);
       onSelect(undefined);
     };
@@ -75,18 +75,20 @@ export function Canvas({ workspace, editing, selected, onSelect, empty }: {
         <div ref={surface} data-testid="canvas-surface" className="relative"
           style={{
             width: extent.width, height: extent.height, minWidth: "100%", minHeight: "100%",
-            ...(editing ? GRID_BACKGROUND : {})
+            ...(editing || arranging || dropping ? GRID_BACKGROUND : {})
           }}
           onDragOver={(event) => {
             const types = [...event.dataTransfer.types];
-            const known = types.includes(PANEL_MIME) || types.includes(CONTROL_MIME)
-              || draggedStreamType(types) !== undefined;
-            if (!known) return;
-            if ((event.target as HTMLElement).closest("[data-canvas-item]")) return;
+            if (!types.includes(PANEL_MIME) && !types.includes(CONTROL_MIME)) return;
             event.preventDefault();
             event.dataTransfer.dropEffect = "copy";
+            setDropping(true);
+          }}
+          onDragLeave={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDropping(false);
           }}
           onDrop={(event) => {
+            setDropping(false);
             const onto = (event.target as HTMLElement).closest<HTMLElement>("[data-canvas-item]");
             const point = at(event.clientX, event.clientY);
             const widget = event.dataTransfer.getData(CONTROL_MIME) as ControlWidget | "";
@@ -104,24 +106,16 @@ export function Canvas({ workspace, editing, selected, onSelect, empty }: {
               }
               return;
             }
-            if (onto) return; // a panel that takes the stream handled it; others do not make a new one
             const type = event.dataTransfer.getData(PANEL_MIME) as PanelType | "";
             if (type && PANEL_LABELS[type]) {
               event.preventDefault();
               workspace.addPanel(type, [], frameAt(type, point));
-              return;
             }
-            const ref = readDraggedStream(event.dataTransfer);
-            if (!ref) return;
-            event.preventDefault();
-            // The device's declaration when it is known, else the type the drag carries.
-            const streamType = workspace.typeOf(ref) ?? (draggedStreamType([...event.dataTransfer.types]) || undefined);
-            const kind = widgetForStream(streamType, workspace.declarationOf(ref));
-            workspace.addPanel(kind, [ref], frameAt(kind, point));
           }}>
           {panels.map((panel) => (
-            <CanvasItem key={panel.id} panel={panel} editing={editing} streamDrag={dragging !== undefined}
+            <CanvasItem key={panel.id} panel={panel} editing={editing}
               selected={selected === panel.id} onSelect={() => onSelect(panel.id)}
+              onArrange={setArranging}
               onMove={(frame) => workspace.move(panel.id, frame)}
               onRemove={() => { workspace.removePanel(panel.id); if (selected === panel.id) onSelect(undefined); }} />
           ))}
@@ -130,7 +124,7 @@ export function Canvas({ workspace, editing, selected, onSelect, empty }: {
           <div className="pointer-events-none absolute inset-0 grid place-items-center p-6 text-center">
             <div className="pointer-events-auto grid max-w-md justify-items-center gap-2 text-xs text-fg-3">
               <p className="text-sm text-fg-2">这是一整页画布，像上位机界面一样自由摆放</p>
-              <p>从活动栏「组件」把显示组件、开关、按钮拖到这里；或从「变量」把变量直接拖到空白处，自动生成合适的控件。</p>
+              <p>从活动栏「组件」把显示组件、开关、按钮拖到这里，再在属性面板里选它显示的信号或调用的设备动作；也可以让 AI 助手来搭。</p>
               {empty}
             </div>
           </div>
@@ -142,13 +136,13 @@ export function Canvas({ workspace, editing, selected, onSelect, empty }: {
 
 type Gesture = { kind: "move" | "resize"; x: number; y: number; frame: Frame; travelled: boolean };
 
-function CanvasItem({ panel, editing, selected, streamDrag, onSelect, onMove, onRemove }: {
+function CanvasItem({ panel, editing, selected, onSelect, onArrange, onMove, onRemove }: {
   panel: MonitorPanel & { frame: Frame };
   editing: boolean;
   selected: boolean;
-  /** A stream is being dragged: the panel itself must get the drop, not the edit overlay. */
-  streamDrag: boolean;
   onSelect: () => void;
+  /** A move or resize is under way (the grid shows meanwhile). */
+  onArrange: (arranging: boolean) => void;
   onMove: (frame: Frame) => void;
   onRemove: () => void;
 }) {
@@ -158,64 +152,85 @@ function CanvasItem({ panel, editing, selected, streamDrag, onSelect, onMove, on
   const Component = PANEL_COMPONENTS[panel.type];
   const TypeIcon = PANEL_ICONS[panel.type];
   const bare = BARE_TYPES.has(panel.type);
+  const title = panelTitle(panel);
 
   const start = (kind: Gesture["kind"]) => (event: ReactPointerEvent) => {
     if (!editing || event.button !== 0) return;
     event.stopPropagation();
+    onSelect();
+    event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     setGesture({ kind, x: event.clientX, y: event.clientY, frame: panel.frame, travelled: false });
-    onSelect();
   };
   const follow = (event: ReactPointerEvent) => {
     if (!gesture) return;
     const dx = event.clientX - gesture.x;
     const dy = event.clientY - gesture.y;
     if (!gesture.travelled && Math.hypot(dx, dy) < 3) return;
-    if (!gesture.travelled) setGesture({ ...gesture, travelled: true });
-    setPreview(gesture.kind === "move" ? moved(gesture.frame, dx, dy) : resized(gesture.frame, dx, dy));
+    if (!gesture.travelled) { setGesture({ ...gesture, travelled: true }); onArrange(true); }
+    setPreview(gesture.kind === "move" ? moved(gesture.frame, dx, dy) : resized(gesture.frame, dx, dy, MIN_CELLS));
   };
-  const finish = () => {
+  const finish = (event: ReactPointerEvent) => {
+    const target = event.currentTarget;
+    if (target.hasPointerCapture(event.pointerId)) target.releasePointerCapture(event.pointerId);
     if (preview && (preview.x !== panel.frame.x || preview.y !== panel.frame.y
       || preview.w !== panel.frame.w || preview.h !== panel.frame.h)) onMove(preview);
+    if (gesture?.travelled) onArrange(false);
     setGesture(undefined);
     setPreview(undefined);
   };
+  const handlers = (kind: Gesture["kind"]) => ({
+    onPointerDown: start(kind), onPointerMove: follow, onPointerUp: finish, onPointerCancel: finish
+  });
+  const active = Boolean(gesture?.travelled);
 
   return (
     // The frame is the panel's grid box; the card sits a few pixels inside it, so neighbours keep a gap.
-    <div data-canvas-item={panel.id} role="group" aria-label={panelTitle(panel)} className="absolute p-[3px]"
+    <div data-canvas-item={panel.id} role="group" aria-label={title}
+      className={cn("group/item absolute p-[3px]", active && "z-30")}
       style={{ left: frame.x * GRID_PX, top: frame.y * GRID_PX, width: frame.w * GRID_PX, height: frame.h * GRID_PX }}>
       <div className={cn("relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-md border bg-surface-1",
-          "shadow-[0_1px_2px_rgb(0_0_0/0.06)]", editing ? "border-line-strong" : "border-line",
-          selected && editing && "ring-2 ring-signal", preview && "opacity-80 shadow-overlay")}>
+          "border-line shadow-[0_1px_2px_rgb(0_0_0/0.06)] transition-[box-shadow,border-color] duration-120",
+          editing && "border-line-strong group-hover/item:border-signal/60",
+          selected && "border-signal ring-1 ring-signal", active && "opacity-85 shadow-overlay")}>
         {!bare && (
-          <header className={cn("flex h-7 shrink-0 items-center gap-1.5 border-b border-line bg-surface-1 px-2 text-xs",
-            editing && "cursor-move")}
-            onPointerDown={start("move")} onPointerMove={follow} onPointerUp={finish}>
-            {editing ? <GripIcon className="size-3.5 text-fg-3" /> : <TypeIcon className="size-3.5 text-fg-3" />}
-            <span className="truncate font-medium text-fg">{panelTitle(panel)}</span>
+          <header className={cn("flex h-6 shrink-0 items-center gap-1.5 border-b border-line bg-surface-1 px-2 text-xs",
+            editing && "cursor-move")} {...handlers("move")}>
+            <TypeIcon className="size-3.5 text-fg-3" />
+            <span className="truncate font-medium text-fg">{title}</span>
           </header>
         )}
         <div className="relative min-h-0 flex-1">
           <Component api={{ id: panel.id }} />
-          {editing && !streamDrag && (
+          {editing && (
             // While editing, the panel is moved and picked, not operated.
-            <div aria-label={`移动 ${panelTitle(panel)}`} className="absolute inset-0 z-30 cursor-move"
-              onPointerDown={start("move")} onPointerMove={follow} onPointerUp={finish} />
+            <div aria-label={`移动 ${title}`} className="absolute inset-0 z-30 cursor-move" {...handlers("move")} />
           )}
         </div>
-        {editing && (
-          <>
-            <IconButton label={`删除 ${panelTitle(panel)}`} size="icon-xs" variant="ghost"
-              className="absolute top-0.5 right-0.5 z-40 bg-surface-1/80" onClick={onRemove}>
-              <XIcon />
-            </IconButton>
-            <div aria-label={`调整 ${panelTitle(panel)} 的大小`} role="separator"
-              className="absolute right-0 bottom-0 z-40 size-3 cursor-nwse-resize border-r-2 border-b-2 border-signal"
-              onPointerDown={start("resize")} onPointerMove={follow} onPointerUp={finish} />
-          </>
-        )}
       </div>
+      {editing && (
+        <>
+          <span aria-label={`移动 ${title}`} role="button" tabIndex={-1} title="拖动移动；单击选中，在属性面板里设置"
+            className={cn("absolute top-0 left-0 z-40 grid size-4 cursor-move place-items-center",
+              "rounded-tl-md rounded-br-sm",
+              "bg-signal text-signal-fg opacity-0 transition-opacity duration-120 group-hover/item:opacity-100",
+              (selected || active) && "opacity-100")}
+            {...handlers("move")}>
+            <GripIcon className="size-3" />
+          </span>
+          <IconButton label={`删除 ${title}`} size="icon-xs" variant="ghost"
+            className={cn("absolute top-0 right-0 z-40 size-4 rounded-tr-md rounded-bl-sm bg-surface-1/90 opacity-0",
+              "transition-opacity duration-120 group-hover/item:opacity-100 [&_svg]:size-3", selected && "opacity-100")}
+            onPointerDown={(event) => event.stopPropagation()} onClick={onRemove}>
+            <XIcon />
+          </IconButton>
+          <span aria-label={`调整 ${title} 的大小`} role="separator"
+            className={cn("absolute right-0 bottom-0 z-40 size-3.5 cursor-nwse-resize rounded-br-md",
+              "border-r-[3px] border-b-[3px] border-signal opacity-0 transition-opacity duration-120",
+              "group-hover/item:opacity-100", (selected || active) && "opacity-100")}
+            {...handlers("resize")} />
+        </>
+      )}
     </div>
   );
 }

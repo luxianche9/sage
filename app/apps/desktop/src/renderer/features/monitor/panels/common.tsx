@@ -66,8 +66,8 @@ export function StreamTitle({ stream, color, onRemove, children }: {
   );
 }
 
-export function PanelEmpty({ icon, text }: { icon: ReactNode; text: string }) {
-  return <EmptyState compact className="h-full" icon={icon} title={text} />;
+export function PanelEmpty({ icon, text, children }: { icon: ReactNode; text: string; children?: ReactNode }) {
+  return <EmptyState compact className="h-full" icon={icon} title={text} action={children} />;
 }
 
 /** The value a panel reads now: at the picked instant while stopped, else the newest. */

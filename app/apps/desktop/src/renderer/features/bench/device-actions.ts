@@ -18,10 +18,12 @@ export function actionName(tool: ToolCatalogItem, siblings: ToolCatalogItem[]): 
 
 type Semantics = { label: string; tone: "signal" | "neutral" | "pass" };
 
-/** `actuate` changes outputs; `read` only reads; `safe` drives outputs to their safe values. */
+/** `actuate` changes outputs; `configure` sets the device up (opens a port, picks a range) without driving
+ *  outputs; `read` only reads; `safe` drives outputs to their safe values. */
 export function actionKind(tool: ToolCatalogItem): Semantics {
   const kind = tool.contractMetadata?.operationSemantics?.kind;
   if (kind === "actuate") return { label: "动作", tone: "signal" };
   if (kind === "safe") return { label: "安全", tone: "pass" };
+  if (kind === "configure") return { label: "配置", tone: "neutral" };
   return { label: "读取", tone: "neutral" };
 }

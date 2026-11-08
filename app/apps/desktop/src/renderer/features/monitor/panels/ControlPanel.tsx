@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CheckIcon, PlayIcon, PlusIcon, SlidersHorizontalIcon, XIcon } from "lucide-react";
+import { PlusIcon, SlidersHorizontalIcon, XIcon } from "lucide-react";
 import type { ToolCatalogItem } from "@teststand/contracts/devices";
 import { CONTROL_WIDGETS, type ControlWidget, type MonitorControl } from "@teststand/contracts/monitor";
 import { errorMessage } from "../../../lib/errors.js";
@@ -10,7 +10,7 @@ import { actionKind, actionName } from "../../bench/device-actions.js";
 import { SchemaArgumentsForm } from "../../manual/SchemaForm.js";
 import { initialSchemaValue, stripSchemaProperties, type JsonSchema } from "../../manual/schema-form-model.js";
 import { widgetFor } from "../../manual/widget-model.js";
-import { NumberControl, Segmented, ToggleSwitch, ToolFieldContext } from "../../manual/widgets.js";
+import { ToolFieldContext } from "../../manual/widgets.js";
 import { deviceName } from "../../streams/stream-model.js";
 import { useControlRequest } from "../control-requests.js";
 import { PanelFrame, useMonitorStatic, usePanel, type PanelProps } from "../panel-kit.js";
@@ -41,23 +41,36 @@ function presetValues(text: string): (string | number)[] {
   return text.split(/[,，\s]+/).filter(Boolean).map((item) => (Number.isFinite(Number(item)) ? Number(item) : item));
 }
 
-type Outcome = { ok: boolean; message: string } | undefined;
+type Outcome = { ok: boolean; message: string; at: number } | undefined;
 const SETTLE_MS = 1500;
+/** How long a call's outcome tints the control. */
+const FLASH_MS = 900;
+/** Keys that step a slider: it calls its tool when they are released. */
+const STEP_KEYS: ReadonlySet<string> = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"]);
 
-/** One control: calls its tool with the fixed arguments and the operator's value. */
-export function Control({ control, onRemove, readback }: {
+/**
+ * One control in the compact host-computer style (WinCC Unified / Ignition): only what the operator needs —
+ * a button with its text, a switch with its name, a slider with its name, value and track, preset keys. The
+ * device, tool and fixed arguments are in its tooltip and the property panel; a call that fails tints it red
+ * and keeps the reason in the tooltip; one that succeeds flashes green.
+ */
+export function Control({ control, onRemove, readback, framed = false }: {
   control: MonitorControl;
   onRemove?: (() => void) | undefined;
   /** The value read back from the device; shown unless the operator just set one. */
   readback?: unknown;
+  /** Drawn as a cell of a control panel (its own outline), not filling a widget of its own. */
+  framed?: boolean;
 }) {
   const { control: manual } = useMonitorStatic();
   const [own, setOwn] = useState<{ value: unknown; at: number }>();
+  const [draft, setDraft] = useState<number>();
   // What the operator set wins for a moment, until the device's own value has had time to follow.
   const value = own && (readback === undefined || Date.now() - own.at < SETTLE_MS) ? own.value : readback;
   const setValue = (next: unknown) => setOwn({ value: next, at: Date.now() });
   const [busy, setBusy] = useState(false);
   const [outcome, setOutcome] = useState<Outcome>();
+  const [, setTick] = useState(0);
   const tool = manual.findTool(control.hardwareId, control.tool);
   const locked = manual.lockOf(control.hardwareId);
   const schema = control.param ? propertiesOf(tool)[control.param] : undefined;
@@ -67,11 +80,12 @@ export function Control({ control, onRemove, readback }: {
     try {
       const args = { ...control.fixed, ...(control.param && next !== undefined ? { [control.param]: next } : {}) };
       const result = await manual.call(control.hardwareId, control.tool, args);
-      setOutcome({ ok: true, message: JSON.stringify(result.output) });
+      setOutcome({ ok: true, message: JSON.stringify(result.output), at: Date.now() });
     } catch (cause) {
-      setOutcome({ ok: false, message: errorMessage(cause) });
+      setOutcome({ ok: false, message: errorMessage(cause), at: Date.now() });
     } finally {
       setBusy(false);
+      setTimeout(() => setTick((tick) => tick + 1), FLASH_MS);
     }
   };
   const widget = schema ? widgetFor(control.param ?? "", schema) : undefined;
@@ -79,60 +93,107 @@ export function Control({ control, onRemove, readback }: {
   const kind = tool ? actionKind(tool) : undefined;
   const name = control.label || (tool ? actionName(tool, manual.toolsOf(control.hardwareId)) : control.tool);
   const fixedText = Object.entries(control.fixed).map(([key, item]) => `${key}=${JSON.stringify(item)}`).join(" ");
-  const numbers = control.presets?.every((item) => typeof item === "number") ? control.presets as number[] : undefined;
+  const problem = locked ? `${locked}，不能手动控制` : !tool ? `设备离线或没有工具 ${control.tool}` : undefined;
+  const failed = outcome && !outcome.ok ? outcome.message : undefined;
+  const flash = outcome?.ok && Date.now() - outcome.at < FLASH_MS;
+  const tip = [name, `${deviceName(control.hardwareId)} · ${control.tool}${fixedText ? ` · ${fixedText}` : ""}`,
+    problem, failed ? `上次失败：${failed}` : outcome?.ok ? `上次结果：${outcome.message}` : undefined]
+    .filter(Boolean).join("\n");
+  const on = value === true || (typeof value === "number" && value !== 0);
+  // An integer parameter (a channel or line number) gets whole steps whatever widget its schema suggests.
+  const integer = numeric?.integer ?? schema?.type === "integer";
+  const bound = (key: "minimum" | "maximum") => (typeof schema?.[key] === "number" ? schema[key] as number : undefined);
+  const min = control.min ?? numeric?.min ?? bound("minimum") ?? 0;
+  const max = control.max ?? numeric?.max ?? bound("maximum") ?? 10;
+  const step = integer ? Math.max(1, Math.round(numeric?.step ?? 1)) : numeric?.step ?? (max - min) / 200;
+  const shown = draft ?? (typeof value === "number" ? value : undefined);
+  const unit = numeric?.unit ? ` ${numeric.unit}` : "";
+  const digits = integer ? 0 : step >= 1 ? 0 : step >= 0.1 ? 1 : step >= 0.01 ? 2 : 3;
+  const options = (control.presets ?? []).filter((item): item is string | number =>
+    typeof item === "string" || typeof item === "number");
+
   return (
-    <figure className={cn("m-0 grid content-start gap-1.5 rounded-sm border bg-surface-1 p-2",
-      kind?.tone === "signal" ? "border-signal/40" : "border-line")}>
-      <figcaption className="group/control flex items-center gap-1.5">
-        <span className="truncate text-xs text-fg">{name}</span>
-        <span className="truncate text-2xs text-fg-3">{deviceName(control.hardwareId)}</span>
-        {busy && <Spinner />}
-        {onRemove && (
-          <IconButton label={`删除控件 ${name}`} size="icon-xs" variant="ghost"
-            className="ml-auto opacity-0 group-hover/control:opacity-100 focus-visible:opacity-100" onClick={onRemove}>
-            <XIcon />
-          </IconButton>
-        )}
-      </figcaption>
-      {fixedText && <span className="truncate font-mono text-2xs text-fg-3" title={fixedText}>{fixedText}</span>}
+    <div title={tip} data-control={control.id}
+      className={cn("group/control relative flex h-full min-h-0 min-w-0 flex-col justify-center gap-1 px-2 py-1",
+        framed && "rounded-sm border border-line bg-surface-1",
+        failed && "ring-1 ring-fail ring-inset", flash && "ring-1 ring-pass ring-inset",
+        (problem || !tool) && "opacity-55")}>
       {control.widget === "button" && (
-        <Button size="xs" variant={kind?.tone === "signal" ? "primary" : "outline"} disabled={disabled}
-          onClick={() => void run()}>
-          <PlayIcon />执行
-        </Button>
+        <button type="button" disabled={disabled} onClick={() => void run()} aria-label={name}
+          className={cn("relative flex h-full max-h-12 min-h-6 w-full items-center justify-center gap-1.5 rounded-sm",
+            "px-2 text-xs font-medium transition-colors duration-120 select-none",
+            "disabled:cursor-not-allowed",
+            "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-signal",
+            kind?.tone === "signal"
+              ? "bg-signal text-signal-fg hover:bg-signal/90 active:bg-signal/80"
+              : "border border-line-strong bg-surface-2 text-fg hover:bg-surface-3 active:bg-surface-3/80")}>
+          {busy ? <Spinner /> : <span className="truncate">{name}</span>}
+        </button>
       )}
       {control.widget === "toggle" && (
-        <ToggleSwitch checked={value === true || (typeof value === "number" && value !== 0)} label={name}
-          disabled={disabled}
-          {...(widget?.kind === "toggle" ? { on: widget.on, off: widget.off } : {})}
-          onChange={(next) => { setValue(next); void run(next); }} />
+        <label className="flex min-w-0 items-center gap-2 text-xs">
+          <span className="min-w-0 flex-1 truncate text-fg">{name}</span>
+          {busy && <Spinner />}
+          <button type="button" role="switch" aria-checked={on} aria-label={name} disabled={disabled}
+            onClick={() => { setValue(!on); void run(!on); }}
+            className={cn("relative h-4 w-8 shrink-0 rounded-full border transition-colors duration-120",
+              "disabled:cursor-not-allowed",
+              "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-signal",
+              on ? "border-pass bg-pass" : "border-line-strong bg-surface-3")}>
+            <span className={cn("absolute top-1/2 size-3 -translate-y-1/2 rounded-full bg-white shadow-sm",
+              "transition-[left]",
+              "duration-120", on ? "left-[17px]" : "left-[1px]")} />
+          </button>
+        </label>
       )}
       {control.widget === "slider" && (
-        <NumberControl value={typeof value === "number" ? value : undefined} label={name} disabled={disabled}
-          widget={{
-            kind: "number", slider: true, integer: numeric?.integer ?? false, step: numeric?.step ?? 0.01,
-            min: control.min ?? numeric?.min, max: control.max ?? numeric?.max,
-            ...(numeric?.unit ? { unit: numeric.unit } : {})
-          }}
-          {...(numbers ? { presets: numbers } : {})}
-          onChange={setValue} onCommit={(next) => void run(next)} />
+        <>
+          <div className="flex min-w-0 items-baseline gap-2 text-xs">
+            <span className="min-w-0 flex-1 truncate text-fg-2">{name}</span>
+            {busy && <Spinner />}
+            <span className="shrink-0 font-mono text-fg tabular-nums">
+              {shown === undefined ? "—" : shown.toFixed(digits)}<span className="text-fg-3">{unit}</span>
+            </span>
+          </div>
+          <input type="range" aria-label={name} disabled={disabled} min={min} max={max} step={step}
+            value={shown ?? min} className="tf-hmi-range w-full"
+            onChange={(event) => setDraft(Number(event.target.value))}
+            onPointerUp={() => { if (draft !== undefined) { setValue(draft); void run(draft); setDraft(undefined); } }}
+            onKeyUp={(event) => {
+              if (draft === undefined || !STEP_KEYS.has(event.key)) return;
+              setValue(draft); void run(draft); setDraft(undefined);
+            }} />
+        </>
       )}
       {control.widget === "presets" && (
-        <Segmented label={name} value={value} disabled={disabled}
-          options={(control.presets ?? []).filter((item): item is string | number =>
-            typeof item === "string" || typeof item === "number")}
-          onChange={(next) => { setValue(next); void run(next); }} />
+        <div className="flex min-w-0 flex-col gap-1">
+          <span className="truncate text-xs text-fg-2">{name}</span>
+          <div role="radiogroup" aria-label={name} className="flex min-w-0 gap-0.5">
+            {options.map((item) => (
+              <button key={String(item)} type="button" role="radio" aria-checked={value === item} disabled={disabled}
+                onClick={() => { setValue(item); void run(item); }}
+                className={cn("h-6 min-w-0 flex-1 truncate rounded-sm border px-1 font-mono text-2xs",
+                  "transition-colors duration-120 disabled:cursor-not-allowed",
+                  value === item ? "border-signal bg-signal text-signal-fg"
+                    : "border-line bg-surface-2 text-fg hover:bg-surface-3")}>
+                {String(item)}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
-      {locked && <span className="text-2xs text-fail">{locked}，不能手动控制</span>}
-      {!tool && !locked && <span className="text-2xs text-fail">设备离线或没有工具 {control.tool}</span>}
-      {outcome && (
-        <span title={outcome.message}
-          className={cn("flex items-start gap-1 truncate font-mono text-2xs", outcome.ok ? "text-pass" : "text-fail")}>
-          {outcome.ok ? <CheckIcon className="size-3 shrink-0" /> : <XIcon className="size-3 shrink-0" />}
-          <span className="truncate">{outcome.message}</span>
-        </span>
+      {(problem || failed) && (
+        <span aria-label={problem ?? failed} className="absolute top-1 right-1 size-1.5 rounded-full bg-fail" />
       )}
-    </figure>
+      {onRemove && (
+        <IconButton label={`删除控件 ${name}`} size="icon-xs" variant="ghost"
+          className={cn("absolute -top-0.5 -right-0.5 size-4 bg-surface-1 opacity-0 [&_svg]:size-3",
+            "group-hover/control:opacity-100 focus-visible:opacity-100")}
+          onClick={onRemove}>
+          <XIcon />
+        </IconButton>
+      )}
+    </div>
   );
 }
 
@@ -268,9 +329,9 @@ export function AddControlDialog({ open, widgetWanted, onClose, onAdd }: {
 }
 
 /**
- * The operator's own front panel (CANoe Panel Designer, FUXA): buttons, switches, sliders and
- * preset buttons bound to device tools with some arguments fixed, e.g. "AO0 = slider" or
- * "K5 closed / open". Disabled for a device a test run holds. The Agent can build it too.
+ * The operator's own front panel (CANoe Panel Designer, FUXA): a dense grid of buttons, switches, sliders
+ * and preset keys bound to device tools with some arguments fixed, e.g. "AO0 = slider" or "K5 closed / open".
+ * Disabled for a device a test run holds. The Agent can build it too.
  */
 export function ControlPanel({ api }: PanelProps) {
   const [{ workspace, control }, panel] = usePanel(api.id);
@@ -280,25 +341,34 @@ export function ControlPanel({ api }: PanelProps) {
   const controls = controlsOf(panel.settings);
   return (
     <PanelFrame panel={panel} className="flex flex-col">
-      <div className="flex h-6 shrink-0 items-center gap-2 border-b border-line bg-surface-1 px-2 text-2xs text-fg-3">
-        <Button size="xs" variant="ghost" onClick={() => setAdding(true)}><PlusIcon />添加控件</Button>
-        {control.running && <span className="text-fail">测试运行中：运行占用的设备不能手动控制</span>}
-      </div>
-      <div className="min-h-0 flex-1 overflow-auto p-1.5">
+      <div className="min-h-0 flex-1 overflow-auto p-1">
         {!controls.length ? (
-          <PanelEmpty icon={<SlidersHorizontalIcon />} text="添加控件：把常用的设备动作做成按钮、开关或滑块" />
+          <PanelEmpty icon={<SlidersHorizontalIcon />} text="添加按钮、开关或滑块">
+            <Button size="xs" variant="outline" onClick={() => setAdding(true)}><PlusIcon />添加控件</Button>
+          </PanelEmpty>
         ) : (
-          <div className="grid gap-1.5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))" }}>
+          <div className="grid auto-rows-[40px] gap-1"
+            style={{ gridTemplateColumns: "repeat(auto-fill, minmax(116px, 1fr))" }}>
             {controls.map((item) => (
-              <Control key={item.id} control={item} onRemove={() => workspace.removeControl(panel.id, item.id)} />
+              <div key={item.id} className={item.widget === "slider" || item.widget === "presets" ? "col-span-2" : ""}>
+                <Control control={item} framed onRemove={() => workspace.removeControl(panel.id, item.id)} />
+              </div>
             ))}
+            <button type="button" onClick={() => setAdding(true)}
+              className={cn("flex items-center justify-center gap-1 rounded-sm border border-dashed border-line",
+                "text-2xs text-fg-3 hover:border-signal hover:text-signal")}>
+              <PlusIcon className="size-3" />添加
+            </button>
           </div>
         )}
       </div>
+      {control.running && (
+        <p className="shrink-0 truncate border-t border-line px-2 py-0.5 text-2xs text-fail">测试运行中：运行占用的设备不能手动控制</p>
+      )}
       {control.history.length > 0 && (
         <details className="shrink-0 border-t border-line bg-surface-1 text-2xs">
           <summary className="cursor-pointer px-2 py-0.5 text-fg-3">操作记录 {control.history.length}</summary>
-          <ol className="max-h-32 overflow-auto px-2 pb-1 font-mono">
+          <ol className="max-h-24 overflow-auto px-2 pb-1 font-mono">
             {control.history.map((call) => (
               <li key={call.id} className={cn("truncate", call.ok ? "text-fg-2" : "text-fail")} title={call.message}>
                 {new Date(call.at).toLocaleTimeString()} {deviceName(call.hardwareId)}.{call.tool}

@@ -96,9 +96,9 @@ CANVAS_COLUMNS = 60
 PANEL_SIZES: dict[str, tuple[int, int]] = {
     "scope": (30, 14), "digital": (20, 7), "terminal": (24, 12), "trace": (30, 14),
     "values": (20, 10), "gauge": (10, 9), "timeline": (24, 9), "register": (14, 9),
-    "xy": (14, 14), "detail": (14, 12), "control": (16, 9), "sources": (12, 18),
-    "inspector": (12, 18), "results": (20, 10), "messages": (24, 12), "number": (8, 4),
-    "lamp": (5, 4), "switch": (8, 4), "slider": (12, 4), "button": (6, 3), "label": (12, 2),
+    "xy": (14, 14), "detail": (14, 12), "control": (12, 6), "sources": (12, 18),
+    "inspector": (12, 18), "results": (20, 10), "messages": (24, 12), "number": (6, 3),
+    "lamp": (5, 2), "switch": (6, 2), "slider": (10, 3), "button": (5, 2), "label": (8, 2),
 }  # fmt: skip
 """Width and height (cells) a new panel of each type gets."""
 

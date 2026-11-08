@@ -1,12 +1,15 @@
 import { useState, type ReactNode } from "react";
 import { ArrowUpIcon, PlusIcon, Settings2Icon, XIcon } from "lucide-react";
-import type { MonitorPanel, StreamRef } from "@teststand/contracts/monitor";
+import {
+  PANEL_SOURCE_TYPES, type DeviceStreams, type MonitorPanel, type StreamRef
+} from "@teststand/contracts/monitor";
+import type { DeviceStream } from "@teststand/contracts/observability";
 import { Button, IconButton, Input, Select } from "../../../ui/index.js";
 import { deviceName } from "../../streams/stream-model.js";
 import {
   isNumber, isString, PanelFrame, settingOf, useMonitorStatic, usePanel, type PanelProps
 } from "../panel-kit.js";
-import { PANEL_LABELS, panelTitle } from "../use-monitor-workspace.js";
+import { PANEL_LABELS, panelDraws, panelTitle } from "../use-monitor-workspace.js";
 import { PanelEmpty } from "./common.js";
 import { AddControlDialog } from "./ControlPanel.js";
 import { fieldsOf, type BitField } from "./RegisterPanel.js";
@@ -199,9 +202,6 @@ function WidgetSettings({ panel, save }: { panel: MonitorPanel; save: (settings:
             onAdd={(item) => set("control", item)} />
         </Row>
       )}
-      {(panel.type === "switch" || panel.type === "slider") && (
-        <p className="text-fg-3">把回读它状态的变量拖到控件上，控件就显示设备的真实值。</p>
-      )}
     </>
   );
 }
@@ -245,7 +245,101 @@ export function InspectorPanel({ api }: PanelProps) {
   );
 }
 
-/** A panel's properties: title, its streams in order, and its own settings. */
+/** Widgets that show one signal: the first source is the one they read. */
+const SINGLE_SIGNAL: ReadonlySet<string> = new Set(["number", "lamp", "switch", "slider"]);
+
+const refKey = (ref: StreamRef) => `${ref.hardwareId}/${ref.streamId}`;
+function parseRef(value: string): StreamRef | undefined {
+  const at = value.indexOf("/");
+  return at > 0 ? { hardwareId: value.slice(0, at), streamId: value.slice(at + 1) } : undefined;
+}
+
+/** A signal as the pickers list it: its label (or protocol field), its id, unit and whether it is a flag. */
+function signalText(stream: DeviceStream): string {
+  const label = typeof stream.label === "string" && stream.label ? stream.label : stream.derived?.field ?? "";
+  const unit = typeof stream.unit === "string" && stream.unit ? ` [${stream.unit}]` : "";
+  const flag = stream.flag === true ? " · 开关量" : "";
+  return label && label !== stream.id ? `${label} · ${stream.id}${unit}${flag}` : `${stream.id}${unit}${flag}`;
+}
+
+/** Every device's signals this panel can draw, by device; `skip` leaves out those it already has. */
+function SignalOptions({ devices, type, skip }: {
+  devices: readonly DeviceStreams[];
+  type: MonitorPanel["type"];
+  skip?: ReadonlySet<string>;
+}) {
+  return (
+    <>
+      {devices.map((device) => {
+        const items = device.streams.filter((stream) => panelDraws(type, String(stream.type))
+          && !skip?.has(refKey({ hardwareId: device.hardwareId, streamId: stream.id })));
+        if (!items.length) return null;
+        return (
+          <optgroup key={device.hardwareId} label={device.label || device.hardwareId}>
+            {items.map((stream) => (
+              <option key={stream.id} value={refKey({ hardwareId: device.hardwareId, streamId: stream.id })}>
+                {signalText(stream)}
+              </option>
+            ))}
+          </optgroup>
+        );
+      })}
+    </>
+  );
+}
+
+/**
+ * The signals a panel shows, picked here and only here: one for a number, lamp, switch or slider (the value
+ * a control reads back), a list for the others (in order; ↑ moves one up).
+ */
+function SignalSection({ panel, onMoveUp }: { panel: MonitorPanel; onMoveUp: (index: number) => void }) {
+  const { workspace } = useMonitorStatic();
+  if (!PANEL_SOURCE_TYPES[panel.type].length) return null;
+  const devices = workspace.devices;
+  if (SINGLE_SIGNAL.has(panel.type)) {
+    const current = panel.sources[0];
+    const label = panel.type === "switch" || panel.type === "slider" ? "回读信号" : "信号";
+    return (
+      <Row label={label}>
+        <Select aria-label={label} className="h-6 text-2xs" value={current ? refKey(current) : ""}
+          onChange={(event) => {
+            const ref = parseRef(event.target.value);
+            workspace.setSources(panel.id, ref ? [ref] : []);
+          }}>
+          <option value="">（未选择）</option>
+          <SignalOptions devices={devices} type={panel.type} />
+        </Select>
+      </Row>
+    );
+  }
+  const have = new Set(panel.sources.map(refKey));
+  return (
+    <section className="grid gap-0.5">
+      <h3 className="text-2xs font-normal text-fg-3">信号（{panel.sources.length}）</h3>
+      {panel.sources.map((ref, index) => (
+        <div key={refKey(ref)} className="flex h-5 items-center gap-1">
+          <span className="truncate font-mono text-fg">{ref.streamId}</span>
+          <span className="truncate text-fg-3">{deviceName(ref.hardwareId)}</span>
+          <IconButton label={`上移 ${ref.streamId}`} size="icon-xs" variant="ghost" className="ml-auto"
+            disabled={index === 0} onClick={() => onMoveUp(index)}>
+            <ArrowUpIcon />
+          </IconButton>
+          <IconButton label={`移除 ${ref.streamId}`} size="icon-xs" variant="ghost"
+            onClick={() => workspace.removeFrom(panel.id, ref)}>
+            <XIcon />
+          </IconButton>
+        </div>
+      ))}
+      <Select aria-label="添加信号" className="h-6 text-2xs" value=""
+        onChange={(event) => { const ref = parseRef(event.target.value); if (ref) workspace.addTo(panel.id, ref); }}>
+        <option value="">＋ 添加信号…</option>
+        <SignalOptions devices={devices} type={panel.type} skip={have} />
+      </Select>
+    </section>
+  );
+}
+
+/** A panel's properties: title, its signals, and its own settings. */
 export function PanelProperties({ panel }: { panel: MonitorPanel }) {
   const { workspace } = useMonitorStatic();
   const [title, setTitle] = useState<string>();
@@ -264,25 +358,7 @@ export function PanelProperties({ panel }: { panel: MonitorPanel }) {
           onBlur={() => { if (title !== undefined) workspace.updatePanel(panel.id, { title }); setTitle(undefined); }}
           onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }} />
       </Row>
-      {panel.sources.length > 0 && (
-        <section className="grid gap-0.5">
-          <h3 className="text-2xs font-normal text-fg-3">数据流（{panel.sources.length}）</h3>
-          {panel.sources.map((ref, index) => (
-            <div key={`${ref.hardwareId}/${ref.streamId}`} className="flex h-5 items-center gap-1">
-              <span className="truncate font-mono text-fg">{ref.streamId}</span>
-              <span className="truncate text-fg-3">{deviceName(ref.hardwareId)}</span>
-              <IconButton label={`上移 ${ref.streamId}`} size="icon-xs" variant="ghost" className="ml-auto"
-                disabled={index === 0} onClick={() => move(index)}>
-                <ArrowUpIcon />
-              </IconButton>
-              <IconButton label={`移除 ${ref.streamId}`} size="icon-xs" variant="ghost"
-                onClick={() => workspace.removeFrom(panel.id, ref)}>
-                <XIcon />
-              </IconButton>
-            </div>
-          ))}
-        </section>
-      )}
+      <SignalSection panel={panel} onMoveUp={move} />
       <Settings key={panel.id} panel={panel} />
     </div>
   );

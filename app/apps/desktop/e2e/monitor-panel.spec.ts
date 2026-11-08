@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import {
-  _electron as electron, expect, test, type ElectronApplication, type Locator, type Page
+  _electron as electron, expect, test, type ElectronApplication, type Page
 } from "@playwright/test";
 import { reloadAfterLeave, rendererReady, showPanel } from "./renderer.js";
 
@@ -235,7 +235,7 @@ test.describe.serial("monitor panel and pin list", () => {
     await expect(overview).toHaveCount(0);
   });
 
-  test("builds the canvas by dragging components and variables onto it", async () => {
+  test("builds the canvas from components and binds signals in the property panel", async () => {
     const panel = page.getByRole("region", { name: "运行监控" });
     await page.evaluate(() => window.teststand.monitor.update({ input: { panels: [] } }));
     await expect(panel).toContainText("这是一整页画布");
@@ -243,46 +243,32 @@ test.describe.serial("monitor panel and pin list", () => {
     // The components are the activity bar's second panel.
     await showPanel(page, "组件");
     const bar = page.getByRole("region", { name: "组件" });
-    // The relay stream (bits) dragged as the devices panel drags it, onto `target`.
-    const dragRelay = async (target: Locator) => {
-      const data = await page.evaluateHandle((id) => {
-        const transfer = new DataTransfer();
-        transfer.setData("application/x-teststand-stream", JSON.stringify({ hardwareId: id, streamId: "relay" }));
-        transfer.setData("application/x-teststand-stream-type-bits", "bits");
-        return transfer;
-      }, hardwareId);
-      await page.locator("body").dispatchEvent("dragstart", { dataTransfer: data });
-      await page.waitForTimeout(150);
-      await target.dispatchEvent("dragenter", { dataTransfer: data });
-      await target.dispatchEvent("dragover", { dataTransfer: data });
-      await page.waitForTimeout(150);
-      await target.dispatchEvent("drop", { dataTransfer: data });
-      await page.locator("body").dispatchEvent("dragend", { dataTransfer: data });
-    };
     const types = async () => page.evaluate(async () =>
       (await window.teststand.monitor.get()).panels.map((item) => `${item.type}:${item.sources.length}`).join(","));
-    // A variable dropped on an empty spot becomes a fitting widget: a bit is a lamp.
-    await dragRelay(surface);
-    await expect.poll(types).toBe("lamp:1");
 
     // A component dragged in becomes a panel where it is dropped; a click puts one in the first free spot.
     await bar.getByRole("button", { name: "组件 数值表" }).dragTo(surface, { targetPosition: { x: 400, y: 200 } });
-    await expect.poll(types).toBe("lamp:1,values:0");
+    await expect.poll(types).toBe("values:0");
     await bar.getByRole("button", { name: "组件 数字量" }).click();
-    await expect.poll(types).toBe("lamp:1,values:0,digital:0");
+    await expect.poll(types).toBe("values:0,digital:0");
 
-    // A bits signal goes onto the digital panel, never onto the values table.
-    await dragRelay(panel.locator("[data-panel-id^='values']"));
-    await page.waitForTimeout(500);
-    expect(await types()).toBe("lamp:1,values:0,digital:0");
-    await dragRelay(panel.locator("[data-panel-id^='digital']"));
-    await expect.poll(types).toBe("lamp:1,values:0,digital:1");
+    // Signals are picked in the property panel, in 编辑布局: only those the panel can draw are offered.
+    await panel.page().getByRole("button", { name: "编辑布局" }).click();
+    await panel.locator("[data-canvas-item^='digital']").click();
+    const properties = page.getByRole("complementary", { name: "属性" });
+    await properties.getByRole("combobox", { name: "添加信号" }).selectOption(`${hardwareId}/relay`);
+    await expect.poll(types).toBe("values:0,digital:1");
+    await panel.locator("[data-canvas-item^='values']").click();
+    const offered = await properties.getByRole("combobox", { name: "添加信号" })
+      .evaluate((element) => [...(element as HTMLSelectElement).options].map((option) => option.value));
+    expect(offered).not.toContain(`${hardwareId}/relay`);
+    await panel.page().getByRole("button", { name: "编辑布局" }).click();
 
     // A switch is a widget of its own; it asks what device action it calls.
     await bar.getByRole("button", { name: "组件 开关" }).click();
-    await expect.poll(types).toBe("lamp:1,values:0,digital:1,switch:0");
-    await expect(panel.getByRole("button", { name: "设置它调用的设备动作" })).toBeVisible();
-    await page.screenshot({ path: join(artifacts, "drag-built.png") });
+    await expect.poll(types).toBe("values:0,digital:1,switch:0");
+    await expect(panel.getByRole("button", { name: /开关：设置动作/ })).toBeVisible();
+    await page.screenshot({ path: join(artifacts, "canvas-built.png") });
   });
 
   test("shows the physical wiring as a pin list", async () => {
