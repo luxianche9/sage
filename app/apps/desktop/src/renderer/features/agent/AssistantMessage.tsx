@@ -19,16 +19,25 @@ import {
 import { useContext } from "react";
 import { cn, IconButton } from "../../ui";
 import { MarkdownText } from "./MarkdownText";
-import { Reasoning, ReasoningContent, ReasoningRoot, ReasoningText, ReasoningTrigger } from "./Reasoning";
 import { ThreadComponentsContext } from "./thread-context";
+import { ProcessGroup } from "./ProcessGroup";
 import { ToolFallback } from "./ToolFallback";
-import { ToolGroupContent, ToolGroupRoot, ToolGroupTrigger } from "./ToolGroup";
 
-const groupBy = groupPartByType({
-  reasoning: ["group-chainOfThought", "group-reasoning"],
-  "tool-call": ["group-chainOfThought", "group-tool"],
+// Reasoning and tool calls between two pieces of text fold into one 执行过程 line (ProcessGroup).
+const byType = groupPartByType({
+  reasoning: ["group-chainOfThought"],
+  "tool-call": ["group-chainOfThought"],
   "standalone-tool-call": []
 });
+/** The parts OpenCode streams between tool calls that show nothing (step markers, empty text) stay in the
+ *  group: otherwise every tool call became its own 执行过程 line and the sidebar filled up with them. */
+const groupBy: typeof byType = Object.assign(
+  ((part, context) => {
+    if (part.type === "data" || (part.type === "text" && !part.text.trim())) return ["group-chainOfThought"];
+    return byType(part, context);
+  }) as typeof byType,
+  { [Symbol.for("@assistant-ui/groupBy.memoKey")]: "teststand-process-group-v1" }
+);
 
 function MessageError() {
   return (
@@ -40,8 +49,13 @@ function MessageError() {
   );
 }
 
+/** One piece of reasoning inside 执行过程: plain, muted text (the group itself is what folds). */
+function ReasoningLine({ text }: { text: string }) {
+  return <p data-slot="aui_reasoning-text" className="m-0 border-l border-line ps-2 whitespace-pre-wrap">{text}</p>;
+}
+
 export function AssistantMessage() {
-  const { ToolFallback: Fallback = ToolFallback, ToolGroup, ReasoningGroup } = useContext(ThreadComponentsContext);
+  const { ToolFallback: Fallback = ToolFallback } = useContext(ThreadComponentsContext);
   return (
     <MessagePrimitive.Root
       data-slot="aui_assistant-message-root"
@@ -55,27 +69,9 @@ export function AssistantMessage() {
         <MessagePrimitive.GroupedParts groupBy={groupBy}>
           {({ part, children }) => {
             switch (part.type) {
-              case "group-chainOfThought": return <div data-slot="aui_chain-of-thought">{children}</div>;
-              case "group-tool":
-                if (ToolGroup) return <ToolGroup group={part}>{children}</ToolGroup>;
-                return (
-                  <ToolGroupRoot variant="outline">
-                    <ToolGroupTrigger count={part.indices.length} active={part.status.type === "running"} />
-                    <ToolGroupContent>{children}</ToolGroupContent>
-                  </ToolGroupRoot>
-                );
-              case "group-reasoning": {
-                if (ReasoningGroup) return <ReasoningGroup group={part}>{children}</ReasoningGroup>;
-                const running = part.status.type === "running";
-                return (
-                  <ReasoningRoot streaming={running} variant="ghost">
-                    <ReasoningTrigger active={running} />
-                    <ReasoningContent aria-busy={running}><ReasoningText>{children}</ReasoningText></ReasoningContent>
-                  </ReasoningRoot>
-                );
-              }
+              case "group-chainOfThought": return <ProcessGroup group={part}>{children}</ProcessGroup>;
               case "text": return <MarkdownText />;
-              case "reasoning": return <Reasoning {...part} />;
+              case "reasoning": return <ReasoningLine {...part} />;
               case "tool-call": return part.toolUI ?? <Fallback {...part} />;
               case "data": return part.dataRendererUI;
               case "indicator":

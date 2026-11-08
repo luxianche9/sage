@@ -42,9 +42,10 @@ describe("upstream-style thread rendering", () => {
     render(<Runtime />);
     expect(await screen.findByText("加粗")).toBeTruthy();
     expect(screen.getByRole("table")).toBeTruthy();
-    await userEvent.click(screen.getByRole("button", { name: /思考过程/ }));
+    // Reasoning and tool calls fold into one 执行过程 line, closed until it is opened.
+    expect(screen.queryByText("先检查工程，再执行测试。")).toBeNull();
+    await userEvent.click(screen.getByRole("button", { name: /调用了 1 个工具：read/ }));
     expect(await screen.findByText("先检查工程，再执行测试。")).toBeTruthy();
-    await userEvent.click(screen.getByRole("button", { name: /1 次工具调用/ }));
     await userEvent.click(screen.getByRole("button", { name: /已调用：read/ }));
     expect(await screen.findByText(/src\/app\.ts/)).toBeTruthy();
     expect(screen.getByText("ok")).toBeTruthy();

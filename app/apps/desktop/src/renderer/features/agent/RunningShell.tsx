@@ -12,7 +12,6 @@ import { useWiringTasks } from "../../lib/queries.js";
 import { Button, IconButton, Kbd } from "../../ui";
 import { AgentHeader, DrawerToggle, type HeaderProps } from "./AgentHeader";
 import { OpenCodeComposer, useOpenCodeCatalog, useSessionSelection, type OpenCodeSelection } from "./OpenCodeComposer";
-import { OpenCodeReasoningGroup, OpenCodeToolGroup } from "./OpenCodeGroups";
 import { SidebarNotice } from "./RuntimeStates";
 import { Thread } from "./Thread";
 import { ThreadList } from "./ThreadList";
@@ -169,9 +168,7 @@ export function RunningShell({
               onError={onRuntimeError}
               blockedReason={pendingWiring ? `等待操作员处理 ${pendingWiring} 个接线任务` : undefined}
             />,
-            ToolFallback: FallbackTool,
-            ToolGroup: OpenCodeToolGroup,
-            ReasoningGroup: OpenCodeReasoningGroup
+            ToolFallback: FallbackTool
           }} />
           {workspace && <ThreadDrawer container={workspace} onThreadSelected={() => onDrawerOpenChange(false)} />}
         </div>
