@@ -205,6 +205,27 @@ test.describe.serial("monitor panel and pin list", () => {
     await page.getByRole("menuitem", { name: "按数据生成布局" }).click();
     await expect.poll(async () => page.evaluate(async () =>
       (await window.teststand.monitor.get()).panels.map((item) => item.type).join(","))).toBe("scope,values");
+
+    // A preset keeps the layout on this computer: saved under a name, applied to an empty canvas, deleted.
+    const layout = page.getByRole("toolbar", { name: "台架工具栏" }).getByRole("button", { name: "布局", exact: true });
+    await layout.click();
+    await page.getByRole("menuitem", { name: "保存为预设…" }).click();
+    const naming = page.getByRole("dialog", { name: "保存为预设" });
+    await naming.getByRole("textbox", { name: "预设名称" }).fill("两块面板");
+    await naming.getByRole("button", { name: "保存" }).click();
+    await expect(naming).toBeHidden();
+    await page.evaluate(async () => { await window.teststand.monitor.update({ input: { panels: [] } }); });
+    await expect(panel.locator("[data-canvas-item]")).toHaveCount(0);
+    await layout.click();
+    await page.getByRole("menuitem", { name: "应用预设：两块面板" }).click();
+    await expect.poll(async () => page.evaluate(async () =>
+      (await window.teststand.monitor.get()).panels.map((item) => item.type).join(","))).toBe("scope,values");
+    await layout.click();
+    await page.getByRole("menuitem", { name: "删除预设：两块面板" }).click();
+    await layout.click();
+    await expect(page.getByRole("menuitem", { name: "保存为预设…" })).toBeVisible();
+    await expect(page.getByRole("menuitem", { name: "应用预设：两块面板" })).toHaveCount(0);
+    await page.keyboard.press("Escape");
   });
 
   test("shows a run started from the test panel with its event timeline from the first step", async () => {

@@ -144,7 +144,9 @@ export function IcdEditorDialog({ name, alias, source, onClose, onSaved }: Editi
     stream.unit ? [[stream.streamId, stream.unit] as const] : []));
   const rows = trialRows(check?.decoded, units);
   const picked = row !== undefined ? rows[row] : undefined;
-  const pickedBytes = picked ? hexBytes(picked.raw) ?? [] : [];
+  // The same array while the picked frame is the same: the inspector starts over when its bytes change.
+  const pickedRaw = picked?.raw;
+  const pickedBytes = useMemo(() => (pickedRaw === undefined ? [] : hexBytes(pickedRaw) ?? []), [pickedRaw]);
   const matched = picked && !picked.failed ? doc.messages.findIndex((item) => item.name === picked.label) : -1;
   const header = mode === "table" && doc.transport === "bytes" ? guessHeader(samples) : undefined;
   const headerDiffers = header && doc.framing && "header" in doc.framing

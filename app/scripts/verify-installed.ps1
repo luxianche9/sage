@@ -18,7 +18,9 @@ foreach ($entry in $existing) {
 }
 $existingProcesses = Get-CimInstance Win32_Process -Filter "Name = 'testStand.exe'"
 if ($existingProcesses) { throw 'An existing testStand process must be preserved' }
-$installer = Join-Path $distRoot 'testStand-0.1.0-windows-x64.exe'
+$version = (Get-Content -Raw -Encoding UTF8 (Join-Path $workspace 'apps/desktop/package.json') | ConvertFrom-Json).version
+$installer = Join-Path $distRoot "testStand-$version-windows-x64.exe"
+if (-not (Test-Path -LiteralPath $installer)) { throw "Installer not found: $installer" }
 $process = Start-Process -FilePath $installer -ArgumentList "/S /D=$installTarget" -WindowStyle Hidden -PassThru -Wait
 if ($process.ExitCode -ne 0) { throw "Installer failed: $($process.ExitCode)" }
 $payloadReport = Join-Path $workspace 'output/packaging/backend-payload.json'

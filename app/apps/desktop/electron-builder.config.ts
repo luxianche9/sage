@@ -36,11 +36,6 @@ const config: Configuration = {
       from: resolve(desktopDir, "resources/assistant-ui"),
       to: "third-party/assistant-ui",
       filter: ["LICENSE", "SOURCE.txt"]
-    },
-    {
-      from: resolve(desktopDir, "resources/fonts"),
-      to: "third-party/fonts",
-      filter: ["OFL-1.1.txt", "THIRD_PARTY_NOTICES.txt"]
     }
   ],
   win: {

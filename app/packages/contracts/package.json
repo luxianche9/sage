@@ -76,6 +76,9 @@
       "errors": [
         "./dist/errors.d.ts"
       ],
+      "monitor": [
+        "./dist/monitor.d.ts"
+      ],
       "storage": [
         "./dist/storage.d.ts"
       ],

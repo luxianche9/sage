@@ -314,9 +314,7 @@ while ($true) {
 async function verifyThirdPartyResources() {
   const paths = [
     resolve(packagedResources, "assistant-ui/LICENSE"),
-    resolve(packagedResources, "assistant-ui/SOURCE.txt"),
-    resolve(packagedResources, "fonts/OFL-1.1.txt"),
-    resolve(packagedResources, "fonts/THIRD_PARTY_NOTICES.txt")
+    resolve(packagedResources, "assistant-ui/SOURCE.txt")
   ];
   await Promise.all(paths.map((path) => access(path)));
   const source = await readFile(paths[1], "utf8");

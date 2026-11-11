@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { app, BrowserWindow, nativeTheme, type WebContents, type WebFrameMain } from "electron";
+import { app, BrowserWindow, dialog, nativeTheme, type WebContents, type WebFrameMain } from "electron";
 import type { TestStandEventName } from "@teststand/contracts/desktop";
 import { DESKTOP_EVENT_CHANNEL, type DesktopEventMessage } from "../shared/desktop-ipc.js";
 import type { OpenCodeAuthorization } from "./opencode-auth.js";
@@ -44,6 +44,7 @@ export class DesktopWindows {
     this.mainWindow = window;
     const rendererTarget = options.rendererUrl ?? pathToFileURL(join(mainDirectory, "../renderer/index.html")).toString();
     installNavigationGuards(window, rendererTarget);
+    installUnsavedChangesPrompt(window);
     installOpenCodeAuthorization(window, options.authorizeOpenCode);
     let resizeTimer: ReturnType<typeof setTimeout> | undefined;
     const saveState = () => {
@@ -130,7 +131,28 @@ function installNavigationGuards(target: BrowserWindow, rendererTarget: string):
     }
     event.preventDefault();
   });
-  target.webContents.session.setPermissionRequestHandler((_webContents, _permission, callback) => callback(false));
+  // The interface copies text with navigator.clipboard; no other permission is granted.
+  target.webContents.session.setPermissionRequestHandler((contents, permission, callback) =>
+    callback(contents === target.webContents && permission === "clipboard-sanitized-write"));
+}
+
+/**
+ * The renderer cancels the unload while the project has unsaved changes. Electron then neither closes the
+ * window nor asks anything, so closing (or reloading) would do nothing at all: ask here.
+ */
+function installUnsavedChangesPrompt(target: BrowserWindow): void {
+  target.webContents.on("will-prevent-unload", (event) => {
+    const choice = dialog.showMessageBoxSync(target, {
+      type: "warning",
+      buttons: ["取消", "放弃修改"],
+      defaultId: 0,
+      cancelId: 0,
+      message: "项目有未保存的修改",
+      detail: "继续将放弃这些修改。要保留它们，请先取消，再按 Ctrl+S 保存项目。"
+    });
+    // Preventing the event is what lets the unload go ahead.
+    if (choice === 1) event.preventDefault();
+  });
 }
 
 function backgroundColor(theme: "system" | "light" | "dark"): string {

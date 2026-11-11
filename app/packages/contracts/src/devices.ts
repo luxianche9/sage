@@ -92,7 +92,6 @@ export const managedHardwareSchema = z.object({
   lastError: z.object({ category: z.string().min(1), message: z.string(), at: z.string().datetime({ offset: true }).optional() }).nullable().optional()
 });
 export type ManagedHardware = z.infer<typeof managedHardwareSchema>;
-export const reportedManagedHardwareSchema = managedHardwareSchema.omit({ deviceId: true });
 export interface ToolCatalogItem {
   externalName: string;
   remoteName: string;

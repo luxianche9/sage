@@ -7,7 +7,7 @@ import re
 from typing import Any
 
 from teststand_backend.streams import judge
-from teststand_backend.util import clone, new_uuid, utc_now_iso
+from teststand_backend.util import new_uuid, utc_now_iso
 
 Record = dict[str, Any]
 STEP_ID = re.compile(r"^[A-Za-z][A-Za-z0-9_-]{0,63}$")
@@ -106,10 +106,6 @@ def feature_ids(plan: Record) -> list[str]:
 
 def aggregate_verdict(current: str, incoming: str) -> str:
     return incoming if VERDICT_RANK.get(incoming, 0) > VERDICT_RANK.get(current, 0) else current
-
-
-def public_plan(plan: Record) -> Record:
-    return clone(plan)
 
 
 STREAM_VERDICTS = {judge.PASS: "Pass", judge.FAIL: "Fail", judge.INCONCLUSIVE: "Inconclusive"}

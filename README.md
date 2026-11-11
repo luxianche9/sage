@@ -8,7 +8,7 @@
 
 ```
 Electron 桌面应用（app/apps/desktop）
-  渲染进程（React）：测试台架一个界面（活动栏切换设备管理/接线日志/测试编排/运行历史侧栏，右侧在运行监控和工位接线之间切换，工位接线又分针脚列表和端口连线）+ Agent 面板
+  渲染进程（React）：测试台架一个界面（活动栏切换设备管理/变量/组件/接线日志/测试编排/运行历史侧栏，右侧在运行监控和工位接线之间切换，工位接线又分针脚列表和端口连线）+ Agent 面板
   主进程：启动 Python 后端（stdout 一行握手 {port, token}，关闭 stdin = 退出）、窗口、原生对话框
         │  HTTP /api/ops + SSE（127.0.0.1，单 token）
         ▼
@@ -18,7 +18,7 @@ Python 后端（app/python，teststand_backend）
   设备宿主：加载设备插件（devices/sdk + devices/adapters/*），进程内或隔离子进程
 ```
 
-详细设计见 [doc/testStand设计.md](doc/testStand设计.md)，入门教程见 [doc/基础概念与架构教程.md](doc/基础概念与架构教程.md)。
+详细设计见 [doc/技术架构说明.md](doc/技术架构说明.md)。
 
 ## 目录
 
@@ -29,11 +29,12 @@ Python 后端（app/python，teststand_backend）
 | `app/python` | Python 后端 `teststand_backend`（uv 管理） |
 | `app/scripts` | 构建、校验、发布脚本 |
 | `devices/sdk` | 设备插件 SDK `teststand_device_sdk` |
-| `devices/adapters` | 四个板卡适配器：PCI-1710L、PCI-1762、PCI-6208V、CP-118U-I |
-| `devices/native` | DAQNavi 桥接程序（`hwcli_*.cpp`） |
+| `devices/adapters` | 13 个设备适配器（研华 PCI-1710L/1762/6208V、MOXA CP-118U-I、阿尔泰 PXI、JCXD、LVDT、电容板、通用通信链路等），清单见 `devices/README.md` |
+| `devices/native` | 厂商驱动桥接程序（`hwcli_*.cpp`） |
 | `devices/pack.py` | 生成 `.tsdev` 设备包 |
 | `skill/` | 编写设备插件等的 Agent 技能 |
-| `doc/` | 设计文档、计划、调研 |
+| `doc/` | 设计文档、调研 |
+| `demo/` | 无被测对象时的演示：虚拟被测件（TCP）与配套 ICD |
 
 ## 环境要求
 
@@ -53,7 +54,7 @@ pnpm install          # Node 依赖（含 Electron 二进制）
 pnpm python:setup     # = uv sync --project python --frozen，创建 app/python/.venv
 ```
 
-开发环境中四个适配器以 editable 方式装进后端的虚拟环境。设备只驱动真实硬件，需要装好对应板卡和厂商驱动。
+开发环境中只有 PCI-1710L、PCI-1762、PCI-6208V、CP-118U-I 四个适配器以 editable 方式装进后端的虚拟环境，其余的按设备包（`.tsdev`）安装。设备只驱动真实硬件，需要装好对应板卡和厂商驱动。
 
 ## 启动（开发模式）
 
@@ -85,7 +86,7 @@ pnpm dev
 | `pnpm verify` | 前端全部检查 + 生产构建 |
 | `pnpm verify:full` | `verify` + `verify:python` + `test:e2e` |
 | `pnpm package:win` | 打包 Windows 安装程序 |
-| `pnpm release` | 发布流程（输出到 `/release/`） |
+| `pnpm release` | 发布流程（输出到仓库根目录的 `release/<版本>/`） |
 
 ## 设备包
 

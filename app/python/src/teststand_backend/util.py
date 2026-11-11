@@ -9,7 +9,9 @@ import re
 import time
 import uuid
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any, TypeAlias, TypeVar
+from urllib.parse import quote
 
 Record: TypeAlias = dict[str, Any]
 T = TypeVar("T")
@@ -80,6 +82,12 @@ def json_dumps(value: Any, indent: int | None = None) -> str:
 
 def json_loads(text: str | bytes) -> Any:
     return json.loads(text)
+
+
+def sqlite_readonly_uri(path: Path) -> str:
+    """The URI that opens the SQLite file at ``path`` read-only. The path is percent-encoded:
+    a ``#``, ``?`` or ``%`` in a folder name would otherwise end or alter it."""
+    return f"file:{quote(path.as_posix(), safe='/:')}?mode=ro"
 
 
 def search_terms(query: str | None) -> list[str]:

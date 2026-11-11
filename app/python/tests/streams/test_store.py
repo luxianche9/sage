@@ -158,7 +158,8 @@ def test_stream_data_feeds_the_judge(tmp_path: Path) -> None:
 
 
 def test_states_blobs_and_readonly_reopen(tmp_path: Path) -> None:
-    path = tmp_path / "s.sqlite"
+    # A folder name with URI syntax and non-ASCII text in it: the read-only reopen goes by URI.
+    path = tmp_path / "台架 #2 100%" / "s.sqlite"
     store = StreamStore(path)
     key = store.add_stream("cam", "shots")
     store.update_stream(key, stream_type="blob")

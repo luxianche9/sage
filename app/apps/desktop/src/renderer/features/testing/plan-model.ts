@@ -1,8 +1,5 @@
 import type { TestPlan, TestStep, TestStepCatalogItem } from "@teststand/contracts/testing";
 
-/** Steps that name a device: tool calls and the steps that judge one of its streams. */
-const deviceStepTypes = new Set(["InvokeTool", "Observe", "Expect", "Guard"]);
-
 export type TestRegion = "prepare" | "test" | "cleanup";
 type Branch = "children" | "elseChildren";
 export type StepLocation = {
@@ -59,12 +56,6 @@ export function moveStep(
 export function removeStep(plan: TestPlan, stepId: string): void {
   const found = findStep(plan, stepId);
   if (found) found.list.splice(found.index, 1);
-}
-
-export function planHardwareIds(plan: TestPlan): string[] {
-  const ids = new Set<string>();
-  visitSteps(plan, (step) => { if (deviceStepTypes.has(step.type) && step.hardwareId) ids.add(step.hardwareId); });
-  return [...ids].sort();
 }
 
 /** Anchors set by tool calls (`anchor` on InvokeTool); Observe / Expect time their windows from them. */

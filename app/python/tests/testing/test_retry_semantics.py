@@ -32,7 +32,7 @@ def invoke(step_id: str, tool_name: str) -> dict[str, Any]:
 
 
 def retry(*children: dict[str, Any]) -> dict[str, Any]:
-    return {"id": "again", "type": "Retry", "maxAttempts": 3, "children": list(children)}
+    return {"id": "again", "type": "Retry", "attempts": 3, "children": list(children)}
 
 
 def unsafe(plan: dict[str, Any]) -> list[str]:

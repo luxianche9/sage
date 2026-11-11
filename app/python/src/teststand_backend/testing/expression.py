@@ -82,10 +82,6 @@ def references_context(expression: str) -> bool:
     return any(isinstance(node, ast.Name) and node.id in CONTEXT_NAMES for node in ast.walk(tree))
 
 
-def function_names() -> list[str]:
-    return sorted(FUNCTIONS)
-
-
 # -- parsing -------------------------------------------------------------------------------
 
 
@@ -478,8 +474,10 @@ def _node(node: ast.AST, context: dict[str, Any]) -> Any:
         if isinstance(node.op, ast.UAdd):
             return +value
     if isinstance(node, ast.BoolOp):
-        values = [_node(item, context) for item in node.values]
-        return all(values) if isinstance(node.op, ast.And) else any(values)
+        # Left to right, stopping at the operand that decides it: `a != 0 && b / a > 1` is safe.
+        if isinstance(node.op, ast.And):
+            return all(_node(item, context) for item in node.values)
+        return any(_node(item, context) for item in node.values)
     if isinstance(node, ast.BinOp) and type(node.op) in _BINARY:
         return _apply_binary(node.op, _node(node.left, context), _node(node.right, context))
     if isinstance(node, ast.Compare):

@@ -85,7 +85,3 @@ export const requestWiringTaskInputSchema = z.object({
 }).strict();
 export type RequestWiringTaskInput = z.input<typeof requestWiringTaskInputSchema>;
 
-export const wiringTaskListQuerySchema = z.object({
-  status: wiringTaskStatusSchema.optional(),
-  limit: z.number().int().min(1).max(500).optional()
-}).strict();

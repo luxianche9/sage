@@ -86,40 +86,6 @@ export function maskXor(a: number, b: number): number {
 
 const MAX_BITS = 53;
 
-/** Bit numbers that are high in at least one mask, lowest first (bit 0 when all are low). */
-function activeBits(masks: number[]): number[] {
-  const union = masks.reduce((all, mask) => maskOr(all, mask), 0);
-  const bits: number[] = [];
-  for (let bit = 0; bit < MAX_BITS; bit += 1) if (hasBit(union, bit)) bits.push(bit);
-  return bits.length ? bits : [0];
-}
-
-/**
- * Converts a points read into scope columns. Bit streams arrive as changes only, so the last
- * level is held until `holdUntil` (the right edge of the window).
- */
-export function scopeData(type: string, points: StreamPoint[], holdUntil?: number): ScopeData {
-  const x = points.map((point) => point.tb / 1000);
-  if (type !== "bits") {
-    return { x, ys: [points.map((point) => numeric(point.v))], labels: ["值"], stepped: false };
-  }
-  const masks = points.map((point) => maskOf(point.mask));
-  const last = points.at(-1);
-  if (last && holdUntil !== undefined && holdUntil > last.tb) {
-    x.push(holdUntil / 1000);
-    masks.push(masks.at(-1) ?? 0);
-  }
-  const bits = activeBits(masks);
-  return {
-    x,
-    ys: bits.map((bit, lane) => masks.map((mask) => (hasBit(mask, bit) ? 1 : 0) + lane * BIT_LANE)),
-    labels: bits.map((bit) => `bit ${bit}`),
-    stepped: true,
-    bits,
-    lanes: bits.map((bit) => `b${bit}`)
-  };
-}
-
 /** One series on its own x column (seconds). */
 export interface Series {
   x: number[];
@@ -339,11 +305,6 @@ export function codeText(
   return { hex, dec: String(mask), bin, ...(name ? { name } : {}), short: name ?? hex };
 }
 
-/** Bits held in a mask, by number. */
-export function maskBits(mask: number, width: number): boolean[] {
-  return Array.from({ length: width }, (_, bit) => hasBit(mask, bit));
-}
-
 /** A bits stream's number of lines: declared, else enough for every bit seen (at least 8). */
 export function bitsWidth(stream: Pick<StreamInfo, "declaration">, points: StreamPoint[] | undefined): number {
   const declared = stream.declaration?.width;
@@ -478,12 +439,6 @@ const DIRECTION_COLOR: Record<TerminalLine["dir"], string> = {
   tx: "36", rx: "32", mark: "33", event: "35", value: "37"
 };
 
-/** A terminal line with ANSI colours: dim time, coloured direction tag, then the payload. */
-export function ansiLine(line: TerminalLine): string {
-  const color = DIRECTION_COLOR[line.dir];
-  return `\x1b[2m${clockTime(line.tb)}\x1b[0m \x1b[${color}m${DIRECTION_LABEL[line.dir]}\x1b[0m ${line.text}`;
-}
-
 // -- timeline overlays ---------------------------------------------------------------------------
 
 export type OverlayTone = "pass" | "fail" | "run" | "neutral";
@@ -507,11 +462,6 @@ export function verdictTone(verdict: string | null | undefined): OverlayTone {
   return "neutral";
 }
 
-/** Timeline items relevant to one stream's scope. */
-export function overlaysFor(timeline: RunTimeline | undefined, stream: StreamInfo): ScopeOverlays {
-  return combinedOverlays(timeline, [stream]);
-}
-
 /** The judged windows and marks of the streams a scope shows. */
 export function combinedOverlays(timeline: RunTimeline | undefined, streams: StreamInfo[]): ScopeOverlays {
   if (!timeline || !streams.length) return NO_OVERLAYS;
@@ -529,17 +479,6 @@ export function combinedOverlays(timeline: RunTimeline | undefined, streams: Str
         : [])
   ];
   return { windows, marks };
-}
-
-/** The innermost step running at `tb` (latest start among the steps that contain it). */
-export function stepAt(timeline: RunTimeline | undefined, tb: number): string | undefined {
-  let best: { executionId: string; tb0: number } | undefined;
-  for (const step of timeline?.steps ?? []) {
-    if (step.tb0 == null || step.tb0 > tb) continue;
-    if (step.tb1 != null && step.tb1 < tb) continue;
-    if (!best || step.tb0 >= best.tb0) best = { executionId: step.executionId, tb0: step.tb0 };
-  }
-  return best?.executionId;
 }
 
 /** Context the recorder keeps before a run starts and after it ends. */
@@ -567,43 +506,6 @@ export function runRange(timeline: RunTimeline | undefined, now = Date.now()): T
 
 function isNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
-}
-
-/** Channel number at the end of a stream id (`ai3` → 3); undefined for `do`, `relay`, ... */
-function channelNumber(streamId: string): number | undefined {
-  const match = /(\d+)$/.exec(streamId);
-  return match ? Number(match[1]) : undefined;
-}
-
-function argumentChannel(args: Record<string, unknown>): number | undefined {
-  const value = args.channel ?? args.port;
-  const parsed = typeof value === "string" && value.trim() ? Number(value) : value;
-  return typeof parsed === "number" && Number.isFinite(parsed) ? parsed : undefined;
-}
-
-/**
- * Streams the run actually used: judged or guarded ones, plus the channels its tool calls
- * addressed (`channel` argument → the stream numbered the same) and the unnumbered streams
- * (`do`, `relay`) of every device it called.
- */
-export function relevantStreams(timeline: RunTimeline | undefined): Set<string> {
-  const keys = new Set<string>();
-  if (!timeline) return keys;
-  for (const item of timeline.windows) keys.add(item.key);
-  for (const item of timeline.violations) keys.add(item.key);
-  const channels = new Map<string, Set<number | undefined>>();
-  for (const call of timeline.calls) {
-    const used = channels.get(call.hardwareId) ?? new Set<number | undefined>();
-    used.add(argumentChannel(call.arguments ?? {}));
-    channels.set(call.hardwareId, used);
-  }
-  for (const stream of timeline.streams) {
-    const used = channels.get(stream.hardwareId);
-    if (!used || stream.count === 0) continue;
-    const number = channelNumber(stream.streamId);
-    if (number === undefined || used.has(number)) keys.add(stream.key);
-  }
-  return keys;
 }
 
 /** Scope trace colours, one per channel (theme tokens, tuned for both themes). */

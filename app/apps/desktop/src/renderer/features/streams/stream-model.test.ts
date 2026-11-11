@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { RunTimeline, StreamInfo } from "@teststand/contracts/observability";
 import {
-  alignSeries, analogData, ansiLine, sampleGaps, BIT_LANE, combinedOverlays, compareEntries, consoleLine, deviceName,
-  formatNumber, isSampled, logicData, overlaysFor, pointAt, pointText, recordEntry, relativeTime, relevantStreams,
-  runRange, scopeData, shortLabel, stepAt, streamUnit, terminalLine, timelineEntries, verdictTone
+  alignSeries, analogData, sampleGaps, BIT_LANE, combinedOverlays, compareEntries, consoleLine, deviceName,
+  formatNumber, isSampled, logicData, pointAt, pointText, recordEntry, relativeTime,
+  runRange, shortLabel, streamUnit, terminalLine, timelineEntries, verdictTone
 } from "./stream-model.js";
 
 function stream(key: string, overrides: Partial<StreamInfo> = {}): StreamInfo {
@@ -27,21 +27,6 @@ describe("stream model", () => {
     expect(["bytes", "frames", "events", "blob"].some(isSampled)).toBe(false);
   });
 
-  it("converts scalar points to seconds and keeps unreadable values as gaps", () => {
-    const data = scopeData("scalar", [
-      { t: 0, tb: 1_000, v: 1.5 }, { t: 1, tb: 1_500, v: "x" }, { t: 2, tb: 2_000, v: true }
-    ]);
-    expect(data).toMatchObject({ x: [1, 1.5, 2], ys: [[1.5, null, 1]], stepped: false });
-  });
-
-  it("stacks the active bits in lanes and holds the last level to the window edge", () => {
-    const data = scopeData("bits", [{ t: 0, tb: 1_000, mask: 0b100 }, { t: 1, tb: 1_100, mask: "1" }], 1_300);
-    expect(data.bits).toEqual([0, 2]);
-    expect(data.x).toEqual([1, 1.1, 1.3]);
-    expect(data.ys).toEqual([[0, 1, 1], [1 + BIT_LANE, BIT_LANE, BIT_LANE]]);
-    expect(data.labels).toEqual(["bit 0", "bit 2"]);
-  });
-
   it("renders bytes as escaped text or hex with the direction and note", () => {
     const record = { i: 1, t: 0, tb: 0, dir: "tx" as const, data: "41 0d 0a ff", note: "ping" };
     expect(terminalLine("bytes", record, "text")).toEqual({ tb: 0, dir: "tx", text: "A\\r\\n\\xff  # ping" });
@@ -49,62 +34,11 @@ describe("stream model", () => {
     expect(terminalLine("frames", { i: 2, t: 0, tb: 0, id: 0x1a, data: "0102" }, "text").text).toBe("0x1A [2] 01 02");
     expect(terminalLine("events", { i: 3, t: 0, tb: 0, type: "fault", code: 7 }, "text"))
       .toMatchObject({ dir: "event", text: "fault {\"type\":\"fault\",\"code\":7}" });
-    expect(ansiLine({ tb: 0, dir: "rx", text: "ok" })).toMatch(/\x1b\[32mRX\x1b\[0m ok$/);
   });
 
   it("maps verdicts to overlay tones", () => {
     expect(["PASS", "fail", "aborted", "inconclusive", undefined].map(verdictTone))
       .toEqual(["pass", "fail", "fail", "run", "neutral"]);
-  });
-
-  it("keeps only the windows and marks of the stream", () => {
-    const scope = stream("scope/ch1");
-    const overlays = overlaysFor(timeline({
-      windows: [
-        {
-          sequence: 1, stepId: "observe", executionId: "e1", type: "observe", key: "scope/ch1",
-          hardwareId: "scope", streamId: "ch1", verdict: "pass", tb0: 1_100, tb1: 1_200
-        },
-        {
-          sequence: 2, stepId: "expect", executionId: "e2", name: "上升沿", type: "expect", key: "scope/ch1",
-          hardwareId: "scope", streamId: "ch1", verdict: "fail", tb0: 1_300, tb1: 1_400, matchTb: 1_350
-        },
-        {
-          sequence: 3, stepId: "other", executionId: "e3", type: "observe", key: "dmm/v",
-          hardwareId: "dmm", streamId: "v", verdict: "pass", tb0: 1_100, tb1: 1_200
-        }
-      ],
-      anchors: [
-        { name: "pulse", hardwareId: "scope", t: 0, tb: 1_050, stepId: "invoke", executionId: "e0" },
-        { name: "far", hardwareId: "dmm", t: 0, tb: 1_050, stepId: "invoke", executionId: "e0" }
-      ],
-      calls: [{
-        operationId: "op", executionId: "e0", stepId: "invoke", hardwareId: "scope", toolName: "arm",
-        arguments: {}, tb0: 1_000, tb1: null, state: "running"
-      }],
-      violations: [{ stepId: "guard", key: "scope/ch1", tb: 1_500, onViolation: "abort", violation: {} }]
-    }), scope);
-    expect(overlays.windows).toEqual([
-      { tb0: 1_100, tb1: 1_200, tone: "pass", label: "observe" },
-      { tb0: 1_300, tb1: 1_400, tone: "fail", label: "上升沿" }
-    ]);
-    expect(overlays.marks).toEqual([
-      { tb: 1_500, tone: "fail", label: "violation" },
-      { tb: 1_350, tone: "fail", label: "上升沿" }
-    ]);
-  });
-
-  it("finds the innermost step running at an instant", () => {
-    const step = (executionId: string, tb0: number, tb1: number | null) => ({
-      executionId, stepId: executionId, stepType: "Group", region: "test", tb0, tb1, verdict: null, durationMs: null
-    });
-    const value = timeline({
-      steps: [step("outer", 1_000, 2_000), step("inner", 1_200, 1_300), step("open", 1_800, null)]
-    });
-    expect(stepAt(value, 1_250)).toBe("inner");
-    expect(stepAt(value, 1_500)).toBe("outer");
-    expect(stepAt(value, 2_500)).toBe("open");
-    expect(stepAt(value, 500)).toBeUndefined();
   });
 
   it("spans the run with the recorder's pre-roll and tail, and falls back to the stream extents", () => {
@@ -208,27 +142,6 @@ describe("stream model", () => {
     expect(pointAt([], 100)).toBeUndefined();
   });
 
-  it("picks the streams a run judged or addressed", () => {
-    const value = timeline({
-      streams: [
-        stream("PCI1710L/ai0", { count: 5 }), stream("PCI1710L/ai1", { count: 5 }),
-        stream("PCI1730/do", { count: 2 }), stream("PCI1730/di0", { count: 2 }), stream("DMM/v", { count: 0 })
-      ],
-      windows: [{
-        sequence: 1, stepId: "observe", executionId: "e1", type: "observe", key: "DMM/v",
-        hardwareId: "DMM", streamId: "v", verdict: "pass", tb0: 1_100, tb1: 1_200
-      }],
-      calls: [
-        { operationId: "a", executionId: "e0", stepId: "s", hardwareId: "PCI1710L", toolName: "read",
-          arguments: { channel: "1" }, tb0: 1_000, tb1: 1_010, state: "succeeded" },
-        { operationId: "b", executionId: "e0", stepId: "s", hardwareId: "PCI1730", toolName: "write",
-          arguments: { port: 5 }, tb0: 1_000, tb1: 1_010, state: "succeeded" }
-      ]
-    });
-    expect([...relevantStreams(value)].sort()).toEqual(["DMM/v", "PCI1710L/ai1", "PCI1730/do"]);
-    expect(relevantStreams(undefined).size).toBe(0);
-  });
-
   it("combines the overlays of several streams", () => {
     const value = timeline({
       calls: [{
@@ -314,12 +227,12 @@ describe("stream model", () => {
 
 describe("masks wider than 32 bits", () => {
   it("keeps bits 32..52 apart from bits 0..20", async () => {
-    const { hasBit, maskOr, maskXor, maskBits } = await import("./stream-model.js");
+    const { hasBit, maskOr, maskXor } = await import("./stream-model.js");
     const relay47 = 2 ** 47;
     expect(hasBit(relay47, 47)).toBe(true);
     expect(hasBit(relay47, 15)).toBe(false);
     expect(maskOr(relay47, 1)).toBe(relay47 + 1);
     expect(maskXor(relay47 + 1, 1)).toBe(relay47);
-    expect(maskBits(2 ** 40 + 2, 48).flatMap((on, bit) => (on ? [bit] : []))).toEqual([1, 40]);
+    expect([1, 40, 41].map((bit) => hasBit(2 ** 40 + 2, bit))).toEqual([true, true, false]);
   });
 });

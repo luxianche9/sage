@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, render as renderElement, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { TestPlan, TestRunEvent, TestRunLog } from "@teststand/contracts/testing";
+import type { TestPlan, TestRunLog } from "@teststand/contracts/testing";
 import { buildExecutionTrace } from "./run-log-model.js";
 import { RunHeader } from "./RunHeader.js";
 import { useRunLog } from "./useRunLog.js";
@@ -17,10 +17,6 @@ const plan: TestPlan = {
   createdAt: at,
   updatedAt: at
 };
-
-function event(sequence: number, stepId: string, extra: Partial<TestRunEvent> = {}): TestRunEvent {
-  return { sequence, at, runId: "run", type: "step.started", stepId, region: "test", ...extra };
-}
 
 function log(events: number[], latest = events.at(-1) ?? 0): TestRunLog {
   return {

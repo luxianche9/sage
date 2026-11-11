@@ -57,6 +57,10 @@ export function parseValue(value: string, references: TestExpressionReference[])
 export function parseCondition(value: string, references: TestExpressionReference[]): ParsedExpression | undefined {
   const source = value.trim();
   if (!source) return undefined;
+  // What serializeCondition writes while no clause has a data source yet (a new If step starts here).
+  if (source === "false") {
+    return { join: "all", clauses: [{ left: "", operator: "==", rightKind: "literal", right: "" }] };
+  }
   const join: "all" | "any" = source.includes(" || ") ? "any" : "all";
   if (source.includes(" && ") && source.includes(" || ")) return undefined;
   const parts = source.split(join === "all" ? " && " : " || ");

@@ -314,13 +314,6 @@ class RuntimeStateStore:
             )
         return {"items": summaries, **({"nextCursor": next_cursor} if next_cursor else {})}
 
-    def run_snapshots(self) -> list[Record]:
-        self.initialize()
-        self._index_run_artifacts()
-        with self._connect() as database:
-            rows = database.execute("SELECT snapshot_json FROM runs").fetchall()
-        return [self.normalize_run(json.loads(row[0])) for row in rows]
-
     def get_metadata(self, key: str) -> Any:
         self.initialize()
         with self._connect() as database:

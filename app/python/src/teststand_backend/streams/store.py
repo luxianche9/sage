@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 
 from teststand_backend.contracts.errors import app_error
-from teststand_backend.util import Record
+from teststand_backend.util import Record, sqlite_readonly_uri
 
 from .data import StreamData, stream_key
 
@@ -100,9 +100,7 @@ class StreamStore:
         if readonly:
             if not path.exists():
                 raise app_error("not_found", f"No stream recording at {path}", {"path": str(path)})
-            self.db = sqlite3.connect(
-                f"file:{path.as_posix()}?mode=ro", uri=True, check_same_thread=False
-            )
+            self.db = sqlite3.connect(sqlite_readonly_uri(path), uri=True, check_same_thread=False)
         else:
             path.parent.mkdir(parents=True, exist_ok=True)
             self.db = sqlite3.connect(path, check_same_thread=False)

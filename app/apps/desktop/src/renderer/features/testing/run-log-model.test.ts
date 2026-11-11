@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { TestOperationSnapshot, TestPlan, TestResult, TestRunEvent } from "@teststand/contracts/testing";
-import { buildExecutionTrace, downsample, groupMeasurements, projectStepStates } from "./run-log-model.js";
+import { buildExecutionTrace } from "./run-log-model.js";
 
 const at = "2026-09-18T00:00:00Z";
 const plan: TestPlan = {
@@ -26,15 +26,6 @@ function measurement(sequence: number, extra: Partial<TestResult>): TestResult {
 }
 
 describe("run log projection", () => {
-  it("projects nested step state and duration from the event stream", () => {
-    const events: TestRunEvent[] = [
-      event(1, { stepId: "measure" }),
-      event(2, { type: "step.completed", stepId: "measure", verdict: "Pass", durationMs: 1000 }, 1)
-    ];
-    expect(projectStepStates(plan, events).measure).toMatchObject({ state: "Pass", durationMs: 1000 });
-    expect(projectStepStates(plan, events).prepare?.state).toBe("waiting");
-  });
-
   it("marks a 功能组 left out of the run as not selected rather than skipped", () => {
     const flow: TestPlan = {
       ...plan,
@@ -52,36 +43,12 @@ describe("run log projection", () => {
       event(2, { type: "step.completed", stepId: "power", executionId: "e-power", verdict: "Pass" }, 1),
       event(3, { type: "step.skipped", stepId: "comm", executionId: "e-comm", reason: "notSelected" }, 2)
     ];
-    expect(projectStepStates(flow, events).comm?.state).toBe("notSelected");
     const trace = buildExecutionTrace(flow, events, [], []);
     expect(trace.regions.test.map((node) => [node.stepId, node.state])).toEqual([
       ["power", "Pass"], ["comm", "notSelected"]
     ]);
     // Steps inside the group that ran but never started still show as pending children.
     expect(trace.regions.test[0]?.children.map((node) => [node.stepId, node.pending])).toEqual([["measure", true]]);
-  });
-
-  it("groups numeric measurement fields by source, field and unit", () => {
-    const results: TestResult[] = [
-      measurement(1, { unit: "V", value: { ai1: 1, ai2: 2 } }),
-      measurement(2, { unit: "V", value: { ai1: 1.5, ai2: 2.5 } })
-    ];
-    expect(groupMeasurements(results)).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        key: "measure::value.ai1::V",
-        points: expect.arrayContaining([expect.objectContaining({ value: 1.5 })])
-      }),
-      expect.objectContaining({ key: "measure::value.ai2::V" })
-    ]));
-  });
-
-  it("limits rendered points while retaining end-of-series evidence", () => {
-    const points = Array.from({ length: 5000 }, (_, sequence) => ({
-      sequence, at: String(sequence), value: Math.sin(sequence)
-    }));
-    const sampled = downsample(points, 2000);
-    expect(sampled.length).toBeLessThanOrEqual(2000);
-    expect(sampled.at(-1)?.sequence).toBe(4999);
   });
 
   it("keeps repeated executions of one static step separate and attaches evidence by execution id", () => {

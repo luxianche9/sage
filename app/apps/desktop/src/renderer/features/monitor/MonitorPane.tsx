@@ -8,7 +8,8 @@ import { errorMessage } from "../../lib/errors.js";
 import { queryKeys } from "../../lib/query-keys.js";
 import { onRunStepFocused } from "../../lib/run-focus.js";
 import {
-  Button, IconButton, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger, PanelHeader, useConfirm, useToast
+  Button, Dialog, DialogBody, DialogContent, DialogFooter, Field, IconButton, Input, Menu, MenuContent, MenuItem,
+  MenuSeparator, MenuTrigger, PanelHeader, useConfirm, useToast
 } from "../../ui/index.js";
 import { RunOverview, streamUnit, type ConsoleJump, type StreamSource } from "../streams/index.js";
 import { RunControls } from "../testing/EditorToolbar.js";
@@ -133,7 +134,6 @@ export function MonitorPane({ bench, toolbar }: {
     workspace, source, bench, rows, jump, pick, zoomStep, control, frame, selectFrame, activePanelId, notify
   }), [workspace, source, bench, rows, jump, pick, zoomStep, control, frame, selectFrame, activePanelId, notify]);
 
-
   const tools = (
     <span className="ml-auto flex items-center gap-1">
       <span className="mr-1 text-2xs whitespace-nowrap text-fg-3">
@@ -231,6 +231,8 @@ function LayoutMenu({ workspace, labelled = false, onError, onDone }: {
   onDone: (message: string) => void;
 }) {
   const [presets, setPresets] = useState<LayoutPreset[]>([]);
+  // The name is asked in a dialog: Electron has no window.prompt().
+  const [presetName, setPresetName] = useState<string>();
   const file = useRef<HTMLInputElement>(null);
   const generate = () => {
     const streams = workspace.channels.length
@@ -244,9 +246,10 @@ function LayoutMenu({ workspace, labelled = false, onError, onDone }: {
     onDone(workspace.channels.length ? "已按现有数据流重新生成布局" : "已按所有设备的数据流生成布局");
   };
   const save = () => {
-    const name = globalThis.prompt?.("预设名称", "台架布局")?.trim();
+    const name = presetName?.trim();
     if (!name) return;
     setPresets(savePreset(name, workspace.monitor));
+    setPresetName(undefined);
     onDone(`已保存预设「${name}」`);
   };
   const exportFile = () => {
@@ -274,13 +277,13 @@ function LayoutMenu({ workspace, labelled = false, onError, onDone }: {
               应用预设：{preset.name}
             </MenuItem>
           ))}
-          <MenuItem onSelect={save}>保存为预设…</MenuItem>
-          {presets.length > 0 && (
-            <MenuItem danger onSelect={() => {
-              const name = globalThis.prompt?.(`删除哪个预设？（${presets.map((item) => item.name).join("、")}）`)?.trim();
-              if (name) setPresets(deletePreset(name));
-            }}>删除预设…</MenuItem>
-          )}
+          <MenuItem onSelect={() => setPresetName("台架布局")}>保存为预设…</MenuItem>
+          {presets.map((preset) => (
+            <MenuItem key={`delete:${preset.name}`} danger
+              onSelect={() => { setPresets(deletePreset(preset.name)); onDone(`已删除预设「${preset.name}」`); }}>
+              删除预设：{preset.name}
+            </MenuItem>
+          ))}
           <MenuSeparator />
           <MenuItem onSelect={exportFile}>导出布局文件…</MenuItem>
           <MenuItem onSelect={() => file.current?.click()}>导入布局文件…</MenuItem>
@@ -295,6 +298,21 @@ function LayoutMenu({ workspace, labelled = false, onError, onDone }: {
           if (typeof parsed === "string") onError(parsed);
           else { workspace.replace(parsed); onDone(`已导入 ${chosen.name}`); }
         }} />
+      <Dialog open={presetName !== undefined} onOpenChange={(open) => { if (!open) setPresetName(undefined); }}>
+        <DialogContent title="保存为预设" size="sm">
+          <form onSubmit={(event) => { event.preventDefault(); save(); }}>
+            <DialogBody>
+              <Field label="预设名称" hint="同名预设会被覆盖；预设保存在这台电脑上，任何项目都能用。">
+                <Input value={presetName ?? ""} onChange={(event) => setPresetName(event.target.value)} />
+              </Field>
+            </DialogBody>
+            <DialogFooter>
+              <Button type="button" onClick={() => setPresetName(undefined)}>取消</Button>
+              <Button type="submit" variant="primary" disabled={!presetName?.trim()}>保存</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

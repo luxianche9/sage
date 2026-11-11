@@ -22,7 +22,7 @@ from collections.abc import Callable, Iterator
 from pathlib import Path
 from typing import Any
 
-from teststand_backend.util import clone
+from teststand_backend.util import clone, sqlite_readonly_uri
 
 Record = dict[str, Any]
 
@@ -201,7 +201,7 @@ class RunJournal:
             yield self._db
             return
         try:
-            database = sqlite3.connect(f"file:{self.path.as_posix()}?mode=ro", uri=True)
+            database = sqlite3.connect(sqlite_readonly_uri(self.path), uri=True)
         except sqlite3.Error:
             yield None
             return
@@ -230,7 +230,7 @@ def _dump(value: Any) -> str:
 
 def _tables(path: Path) -> set[str]:
     try:
-        database = sqlite3.connect(f"file:{path.as_posix()}?mode=ro", uri=True)
+        database = sqlite3.connect(sqlite_readonly_uri(path), uri=True)
     except sqlite3.Error:
         return set()
     try:

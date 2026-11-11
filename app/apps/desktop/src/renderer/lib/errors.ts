@@ -25,10 +25,6 @@ const DETAILED: ReadonlySet<string> = new Set([
   "invalid_project", "invalid_project_folder"
 ]);
 
-export function errorCategoryMessage(category: string): string | undefined {
-  return ERROR_CATEGORY_MESSAGES[category as ErrorCategory];
-}
-
 export function errorMessage(value: unknown): string {
   const candidate = value as { category?: unknown } | null | undefined;
   if (typeof candidate?.category === "string") {

@@ -4,7 +4,8 @@ import {
   Undo2Icon
 } from "lucide-react";
 import type { TestPlan, TestPlanIssue, TestRunSnapshot } from "@teststand/contracts/testing";
-import { Badge, Button, IconButton, Toolbar, ToolbarDivider } from "../../ui";
+import { errorMessage } from "../../lib/errors.js";
+import { Badge, Button, IconButton, Toolbar, ToolbarDivider, useToast } from "../../ui";
 import { isActiveRun } from "./plan-helpers.js";
 
 export type Confirm = (options: { title: string; message: React.ReactNode; confirmLabel?: string; danger?: boolean })
@@ -77,13 +78,16 @@ export function RunControls({ run, disabled, confirm, onStart, onChanged }: {
   onChanged: () => void;
 }) {
   const [busy, setBusy] = useState(false);
+  const toast = useToast();
   if (!isActiveRun(run)) {
     return <Button size="sm" variant="primary" disabled={disabled} onClick={onStart}><PlayIcon />运行</Button>;
   }
   const paused = run.state === "paused";
   const act = async (action: () => Promise<unknown>) => {
     setBusy(true);
-    try { await action(); onChanged(); } finally { setBusy(false); }
+    try { await action(); onChanged(); }
+    catch (error) { toast.error(errorMessage(error)); }
+    finally { setBusy(false); }
   };
   const togglePause = () => act(() => paused
     ? window.teststand.testing.resumeRun({ runId: run.runId })

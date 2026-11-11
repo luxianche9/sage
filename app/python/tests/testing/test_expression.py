@@ -61,6 +61,8 @@ CONTEXT: dict[str, Any] = {
         ("int(split(trim(steps.read.result.text), ',')[1]) > parameters.limit", True),
         ("parameters.name == 'a && !b' || true", True),
         ("'x != y' == 'x != y' && !false", True),
+        ("parameters.limit != 3 && 1 / (parameters.limit - 3) > 0", False),
+        ("parameters.limit == 3 || 1 / (parameters.limit - 3) > 0", True),
     ],
 )
 def test_functions_and_operators(expression: str, expected: Any) -> None:

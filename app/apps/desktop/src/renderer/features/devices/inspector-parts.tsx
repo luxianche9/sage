@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { Hardware } from "@teststand/contracts/devices";
-import { CircleAlertIcon, SearchXIcon } from "lucide-react";
-import { Badge, EmptyState, PanelBody, PanelHeader, Section, type Tone } from "../../ui";
+import { CircleAlertIcon } from "lucide-react";
+import { Badge, Section } from "../../ui";
 
 /** Two-column key/value list; values are mono so ids and addresses line up. */
 export function Meta({ items }: { items: { label: string; value: ReactNode }[] }) {

@@ -46,9 +46,7 @@ module.exports = {
       from: { path: `^apps/desktop/src/renderer/features/${feature}/` },
       to: {
         path: `^apps/desktop/src/renderer/features/(?!${feature}/)`,
-        pathNot: feature === "projects"
-          ? "^apps/desktop/src/renderer/features/(?:[^/]+/index\\.ts|wiring/TopologyPreview\\.tsx)$"
-          : "^apps/desktop/src/renderer/features/[^/]+/index\\.ts$"
+        pathNot: "^apps/desktop/src/renderer/features/[^/]+/index\\.ts$"
       }
     }))
   ],

@@ -400,8 +400,9 @@ async def test_updating_a_package_keeps_the_devices_and_waits_for_a_restart(
     old.write_bytes(package())
     new.write_bytes(package(version="2.0.0"))
     # Not installed yet: an update has nothing to update.
-    with pytest.raises(AppError, match="not installed"):
+    with pytest.raises(AppError, match="not installed") as missing:
         await app.update_package_from_file(HUMAN, str(new))
+    assert missing.value.category == "not_found"
     await app.add_device_from_file(HUMAN, str(old))
     assert app.list_packages(HUMAN)["restartRequired"] is False
     updated = await app.update_package_from_file(HUMAN, str(new))

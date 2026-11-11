@@ -99,6 +99,13 @@ async def test_child_process_serves_the_device_and_survives_stdout_noise():
     assert device.process is None
 
 
+async def test_a_failed_start_leaves_no_child_process():
+    device = SubprocessDevice("no_such_type", dry_run_config(DemoDevice))
+    with pytest.raises(Exception):
+        await device.start()
+    assert device.process is None
+
+
 @pytest.mark.skipif(sys.platform != "win32", reason="the adapters target Windows")
 async def test_child_process_exits_safely_when_stdin_closes():
     device_cls = load_device("pci6208v")

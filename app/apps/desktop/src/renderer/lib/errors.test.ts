@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { appError } from "@teststand/contracts/errors";
-import { errorCategoryMessage, errorMessage } from "./errors.js";
+import { errorMessage } from "./errors.js";
 
 describe("renderer error messages", () => {
   it("maps categorized application errors to user-facing Chinese copy", () => {
@@ -23,10 +23,5 @@ describe("renderer error messages", () => {
     expect(errorMessage({ name: "ProviderModelNotFoundError", data: { message: "Model not found: openai/m." } }))
       .toBe("Model not found: openai/m.");
     expect(errorMessage({ name: "MessageAbortedError" })).toBe("MessageAbortedError");
-  });
-
-  it("exposes category copy for detailed error views", () => {
-    expect(errorCategoryMessage("assertion_failed")).toBe("断言未通过");
-    expect(errorCategoryMessage("error")).toBeUndefined();
   });
 });

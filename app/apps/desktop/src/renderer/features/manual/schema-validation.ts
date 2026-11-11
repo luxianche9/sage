@@ -20,8 +20,8 @@ function declaredSchemaTypes(schema: JsonSchema): string[] {
 
 /**
  * CSP-safe feedback for the generated form. The authoritative validation still happens in the
- * main process: the selected DeviceTransport runs authoritative validation immediately
- * before issuing the MCP call.
+ * Python backend: the device host validates the arguments against the tool's input schema
+ * immediately before calling the device.
  */
 function validateValue(schema: JsonSchema, value: unknown, path: string, errors: string[]): void {
   if (Array.isArray(schema.allOf)) {

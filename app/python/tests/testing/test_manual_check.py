@@ -136,3 +136,8 @@ async def test_only_a_person_may_answer_a_manual_check(tmp_path: Path) -> None:
     assert completed["verdict"] == "Pass"
     verdict = next(r for r in engine.runs[started["runId"]].results if r.get("kind") == "verdict")
     assert verdict["evidence"]["operator"]
+    assert engine.rejudge_run(started["runId"]) == {
+        "runId": started["runId"],
+        "consistent": True,
+        "results": [],
+    }

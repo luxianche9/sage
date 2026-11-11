@@ -38,10 +38,6 @@ export function executionHardwareIds(activity: ActiveExecutionActivity): string[
   return activity.state === "run" ? activity.hardwareIds : [activity.hardwareId];
 }
 
-export function isHardwareExecuting(activity: ExecutionActivity | undefined, hardwareId: string, state?: ActiveExecutionActivity["state"]): boolean {
-  return activeExecutionActivities(activity).some((item) => (!state || item.state === state) && executionHardwareIds(item).includes(hardwareId));
-}
-
 export const manualToolInvocationInputSchema = z.object({
   hardwareId: z.string().min(1),
   toolName: z.string().min(1),

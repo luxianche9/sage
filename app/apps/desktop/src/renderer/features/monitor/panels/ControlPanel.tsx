@@ -136,7 +136,6 @@ export function Control({ control, onRemove, readback }: {
   );
 }
 
-/** Picks a device tool, the argument the operator sets, the fixed ones and the widget. */
 /** The parameter a widget sets: a boolean for a switch, a number for a slider, none for a button. */
 function paramFor(widget: ControlWidget, props: Record<string, JsonSchema>): string | undefined {
   const names = Object.keys(props);
@@ -147,6 +146,7 @@ function paramFor(widget: ControlWidget, props: Record<string, JsonSchema>): str
   return typed(["number", "integer", "string"]);
 }
 
+/** Picks a device tool, the argument the operator sets, the fixed ones and the widget. */
 export function AddControlDialog({ open, widgetWanted, onClose, onAdd }: {
   open: boolean;
   /** The widget asked for (dropped from the component sidebar); otherwise suggested by the tool. */
@@ -184,7 +184,12 @@ export function AddControlDialog({ open, widgetWanted, onClose, onAdd }: {
   useEffect(() => {
     if (open && tool) pickTool(tool.remoteName);
   }, [open, tool?.remoteName, widgetWanted]); // eslint-disable-line react-hooks/exhaustive-deps
-  const values = presetValues(presets);
+  // Each opening starts a new control: the name and presets typed for the last one do not carry over.
+  useEffect(() => {
+    if (open) { setLabel(""); setPresets(""); }
+  }, [open]);
+  // Only the widgets that show the presets field keep what was typed into it.
+  const values = widget === "presets" || widget === "slider" ? presetValues(presets) : [];
   const add = () => {
     if (!device || !tool) return;
     onAdd({

@@ -5,11 +5,13 @@ import { join } from "node:path";
 
 const electron = vi.hoisted(() => ({
   created: [] as unknown[],
-  nativeTheme: { themeSource: "system", shouldUseDarkColors: false }
+  nativeTheme: { themeSource: "system", shouldUseDarkColors: false },
+  dialog: { showMessageBoxSync: vi.fn(() => 0) }
 }));
 
 vi.mock("electron", () => ({
   nativeTheme: electron.nativeTheme,
+  dialog: electron.dialog,
   BrowserWindow: vi.fn(function BrowserWindow(options: unknown) {
     const webHandlers = new Map<string, (...args: unknown[]) => void>();
     const windowHandlers = new Map<string, (...args: unknown[]) => void>();
@@ -105,6 +107,27 @@ describe("DesktopWindows security", () => {
     const permissionResult = vi.fn();
     permissionHandler(undefined, "media", permissionResult);
     expect(permissionResult).toHaveBeenCalledWith(false);
+    permissionHandler({}, "clipboard-sanitized-write", permissionResult);
+    expect(permissionResult).toHaveBeenLastCalledWith(false);
+    permissionHandler(window.webContents, "clipboard-sanitized-write", permissionResult);
+    expect(permissionResult).toHaveBeenLastCalledWith(true);
+  });
+
+  it("asks before an unload the renderer cancelled for unsaved changes, and lets it go ahead only when told to", () => {
+    const windows = new DesktopWindows();
+    windows.create({ theme: "light", rendererUrl: "http://127.0.0.1:5173/", authorizeOpenCode: async (_url: string, headers: Record<string, string | string[]>) => headers });
+    const window = electron.created[0] as MockWindow;
+    const unload = window.webHandlers.get("will-prevent-unload");
+
+    const kept = { preventDefault: vi.fn() };
+    unload?.(kept);
+    expect(electron.dialog.showMessageBoxSync).toHaveBeenCalledOnce();
+    expect(kept.preventDefault).not.toHaveBeenCalled();
+
+    electron.dialog.showMessageBoxSync.mockReturnValueOnce(1);
+    const discarded = { preventDefault: vi.fn() };
+    unload?.(discarded);
+    expect(discarded.preventDefault).toHaveBeenCalledOnce();
   });
 
   it("lets the backend's OpenCode credentials authorize loopback requests", async () => {

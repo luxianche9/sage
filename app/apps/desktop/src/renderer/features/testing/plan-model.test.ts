@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { TestPlan } from "@teststand/contracts/testing";
-import { clonePlan, createStep, findStep, moveStep, planAnchors, planHardwareIds, removeStep } from "./plan-model.js";
+import { clonePlan, createStep, findStep, moveStep, planAnchors, removeStep } from "./plan-model.js";
 
 function plan(): TestPlan {
   return {
@@ -47,22 +47,13 @@ describe("test plan tree model", () => {
     expect(findStep(value, "delay")).toBeUndefined();
   });
 
-  it("collects concrete hardware bindings", () => {
-    const value = clonePlan(plan());
-    value.regions.test[0]!.children = [{
-      id: "invoke", type: "InvokeTool", hardwareId: "old", toolName: "read", bindingRevision: "rev"
-    }];
-    expect(planHardwareIds(value)).toEqual(["old"]);
-  });
-
-  it("collects stream-step devices and the anchors tool calls set", () => {
+  it("collects the anchors tool calls set", () => {
     const value = clonePlan(plan());
     value.regions.test[0]!.children = [
       { id: "pulse", type: "InvokeTool", hardwareId: "gen", toolName: "pulse", anchor: "pulse" },
       { id: "again", type: "InvokeTool", hardwareId: "gen", toolName: "pulse", anchor: "pulse" },
       { id: "guard", type: "Guard", hardwareId: "scope", streamId: "ch1", children: [] }
     ];
-    expect(planHardwareIds(value)).toEqual(["gen", "scope"]);
     expect(planAnchors(value)).toEqual([{ name: "pulse", hardwareId: "gen", stepId: "pulse" }]);
   });
 

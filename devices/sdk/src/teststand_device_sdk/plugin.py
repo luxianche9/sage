@@ -121,7 +121,12 @@ class SubprocessDevice:
             limit=1 << 24)
         self._job = _kill_with_parent(self.process)
         self._reader = asyncio.create_task(self._read(), name=f"plugin:{self.config.hardware_id}")
-        await self._request("start", {"type": self.device_type, "config": _config_mapping(self.config)})
+        try:
+            await self._request("start", {"type": self.device_type, "config": _config_mapping(self.config)})
+        except BaseException:
+            # A device that could not start leaves no child process behind.
+            await self.stop()
+            raise
 
     async def stop(self) -> None:
         process = self.process

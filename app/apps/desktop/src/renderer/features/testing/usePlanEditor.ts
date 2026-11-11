@@ -7,9 +7,6 @@ import { useKeyboardShortcut } from "../../lib/hooks/useKeyboardShortcut.js";
 import { FLOW_ID, defaultRunParameters } from "./plan-helpers.js";
 import { clonePlan, findStep } from "./plan-model.js";
 
-type Confirm = (options: { title: string; message: React.ReactNode; confirmLabel?: string; danger?: boolean })
-  => Promise<boolean>;
-
 const historyLimit = 50;
 
 function errorText(error: unknown): string {
@@ -20,10 +17,7 @@ function errorText(error: unknown): string {
  * Draft editing of the project's test flow: undo/redo, save with conflict detection, validation,
  * debounced draft analysis, AI-revision conflict handling and run start with the chosen 功能组.
  */
-export function usePlanEditor({ confirm, onRunStarted }: {
-  confirm: Confirm;
-  onRunStarted: (runId: string) => void;
-}) {
+export function usePlanEditor({ onRunStarted }: { onRunStarted: (runId: string) => void }) {
   const client = useQueryClient();
   const [selectedPlanId, setSelectedPlanId] = useState<string>();
   const [draft, setDraft] = useState<TestPlan>();
@@ -189,6 +183,8 @@ export function usePlanEditor({ confirm, onRunStarted }: {
       setIssues(result.issues);
       setDirty(false);
       setConflict(false);
+      setPast([]);
+      setFuture([]);
       setMessage("已用本地草稿覆盖");
       await invalidateTestingData(client);
     } catch (error) {

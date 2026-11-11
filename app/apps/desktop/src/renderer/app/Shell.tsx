@@ -88,8 +88,9 @@ function Shell() {
     (message) => setError(message)
   );
 
-  useKeyboardShortcut("s", save.mutateAsync, Boolean(project.data));
-  useEffect(() => { writeAssistantOpen(assistantOpen); }, [assistantOpen]);
+  useKeyboardShortcut("s", () => save.mutate(), Boolean(project.data));
+  // Only the operator's own choice is remembered; closing the sidebar with the project is not one.
+  const showAssistant = useCallback((open: boolean) => { writeAssistantOpen(open); setAssistantOpen(open); }, []);
   useEffect(() => { if (!project.data) setAssistantOpen(false); }, [project.data]);
   useEffect(() => {
     if (!project.data) return;
@@ -180,7 +181,7 @@ function Shell() {
         assistantOpen={assistantOpen}
         busy={save.isPending}
         onProjectAction={handleProjectAction}
-        onToggleAssistant={() => setAssistantOpen((open) => !open)}
+        onToggleAssistant={() => showAssistant(!assistantOpen)}
       />
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <ActivityBar
@@ -214,7 +215,7 @@ function Shell() {
             <Suspense fallback={<aside className="tf-agent-sidebar animate-slide-in-right"><FeatureFallback /></aside>}>
               <AssistantSidebar
                 gatewayRunning={dashboard.data?.gateway.running ?? false}
-                onClose={() => setAssistantOpen(false)}
+                onClose={() => showAssistant(false)}
                 onOpenSettings={openSettings}
               />
             </Suspense>

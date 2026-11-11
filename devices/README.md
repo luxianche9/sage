@@ -4,8 +4,8 @@
 新硬件适配器按技能 [`skill/device-plugin`](../skill/device-plugin/SKILL.md) 编写。
 
 Each hardware device is the device plugin SDK plus one adapter, loaded by the
-testStand backend as a plugin. The four boards (PCI-1710L, PCI-1762,
-PCI-6208V, CP-118U-I) are built from this directory. A release of testStand ships
+testStand backend as a plugin. All thirteen adapters under `adapters/` (see the
+stream table below) are built from this directory. A release of testStand ships
 none of them: each adapter is delivered as a `.tsdev` device package and installed
 on the bench page (+ → 添加设备…), which installs its driver and adds the device in one step.
 
@@ -14,7 +14,8 @@ sdk/                     teststand_device_sdk: DeviceHost, plugin loading (in pr
                          process), builtin tools, envelope, lifecycle, safe_state, streams (ring
                          buffer), /device manifest, waveform player, compliance suite
 adapters/<adapter>/      teststand_adapter_<adapter>: adapter.py, driver.py, sim.py, pinout.py, tests/
-native/                  DAQNavi bridges (hwcli_*.cpp) and build.py, built into adapters/<card>/.../bin/
+native/                  bridge programs (hwcli_*.cpp), built into adapters/<card>/.../bin/: build.py
+                         (DAQNavi, 64-bit, MinGW-w64) and build_x86.py (32-bit vendor DLLs, MSVC x86)
 pack.py                  builds dist/<type>-<version>.tsdev device packages
 test.ps1                 local tests: SDK, every adapter, dry-run compliance
 ```
@@ -23,6 +24,7 @@ test.ps1                 local tests: SDK, every adapter, dry-run compliance
 
 ```powershell
 python native/build.py      # DAQNavi bridges (MinGW-w64 g++), needed by pci1710l and pci1762
+python native/build_x86.py  # 32-bit bridge (MSVC x86), needed by lj_co8
 python pack.py --all        # tests + --check, wheel, manifest -> dist/*.tsdev
 ```
 
@@ -40,6 +42,7 @@ copy them from the vendor delivery before `pack.py` (it refuses to build without
 | `jcxd_mads3210` | `UMADX3210_x64.dll` | `JCXD-MADS-CPCI-3210-2S/Lib/x64/` |
 | `jcxd_sds48` | `JC_SDS48.dll` | `JCXD-SDS48-X-V2.0.0/Lib/x64/` |
 | `htlt_lvdt8` | `htlt_api_x64.dll` | `htlt 2.x kit/htlt/sdk/lib/x64/` |
+| `lj_co8` | `PXI4281.dll` (32-bit, next to `hwcli_lj_co8.exe`) | LJ-CO-CPCI-8 vendor delivery |
 
 `art_pxi2355l`, `art_pxi2604` and `jcxd_rsx8` ship no DLL: they use the installed
 ART-DAQ, ART-SWITCH and the RSX8_JC virtual COM port driver.
@@ -152,6 +155,8 @@ clock by at most one poll interval (`--check` verifies it).
 | `art_pxi2604` | `relays` 40-bit positions (`switches`) |
 | `htlt_lvdt8` | `pos0..7` setpoint, `exc0..7` measured excitation in Vrms |
 | `jcxd_rsx8` | `serial0..7` bytes like `cp118u_i` |
+| `lj_co8` | `c0..7` scalar in pF, `setpoint` (the card has no readback) |
+| `comm_link` (`isolation = "inproc"`) | `link` bytes, writable: RX and TX of one serial, TCP or UDP link, `mark` on connect/disconnect/clear |
 
 ### Self-test and acceptance
 
@@ -164,5 +169,5 @@ What only wiring can show (an output voltage, a contact, a serial line) is the
 "现场验收" section of each adapter README: a loopback or meter procedure the user runs
 once on site, with the expected readings.
 
-The native vendor CLIs of `pci1710l` and `pci1762` are found through
+The native vendor CLIs of `pci1710l`, `pci1762` and `lj_co8` are found through
 `settings.hwcliPath` or the `<ADAPTER>_HWCLI_PATH` / `HWCLI_PATH` environment variables.

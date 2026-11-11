@@ -23,7 +23,7 @@ export function PlanParametersEditor({ value, onChange }: {
   return (
     <div className="grid gap-2">
       {value.map((item, index) => (
-        <div key={`${item.name}-${index}`} className="grid gap-2 rounded-md border border-line bg-surface-0 p-2">
+        <div key={index} className="grid gap-2 rounded-md border border-line bg-surface-0 p-2">
           <div className="grid grid-cols-[minmax(0,1fr)_104px_auto] gap-1.5">
             <Input
               aria-label={`参数 ${index + 1} 名称`}

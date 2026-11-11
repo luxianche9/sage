@@ -17,14 +17,8 @@ out/
 output/
 tmp/
 
-/logs/
-run/
-sim_hardware/servers/*/server.json
-
 playwright-report/
 test-results/
-
-examples/
 
 # build outputs
 build/
@@ -35,3 +29,6 @@ devices/adapters/*/src/*/bin/
 
 # Release output of app/scripts/release.mjs
 /release/
+
+# Local-only helper scripts (never committed)
+*.local.mjs

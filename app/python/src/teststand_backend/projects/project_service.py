@@ -262,7 +262,7 @@ def empty_project_file(name: str = "Untitled project") -> Record:
             "projectId": new_uuid(),
             "name": name,
             "wiring": {"nodes": [], "connections": []},
-            "monitor": {"panels": [], "layout": None},
+            "monitor": {"panels": []},
             "createdAt": now,
             "updatedAt": now,
         }

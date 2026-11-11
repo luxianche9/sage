@@ -26,7 +26,6 @@ from .data import StreamData
 
 PASS, FAIL, INCONCLUSIVE = "pass", "fail", "inconclusive"
 NUMERIC_OPS = ("lt", "le", "gt", "ge", "eq", "ne", "within", "outside")
-TEXT_OPS = ("eq", "ne", "matches", "contains")
 OPS = NUMERIC_OPS + ("matches", "contains")
 MIN_SAMPLES = 3
 UNCERTAINTY_WARNING_RATIO = 0.1
@@ -38,7 +37,6 @@ SCALAR_METRICS = ("mean", "min", "max", "p2p", "pp", "rms", "std", "first", "las
 # between ``low`` and ``high`` (defaults: window min and max); settleMs needs ``band``
 # (absolute or '1%') around ``target`` (default: last value), counted from the window start.
 WAVEFORM_METRICS = ("freq", "period", "duty", "riseMs", "fallMs", "settleMs")
-WAVEFORM_PARAMS = ("threshold", "hysteresis", "low", "high", "target", "band")
 # Cross-stream metrics (signal vs reference, both scalar/block), see ``compare``.
 COMPARE_METRICS = ("delayMs", "phaseDeg", "correlation", "ratio", "meanRatio", "ppRatio")
 DEFAULT_HYSTERESIS_RATIO = 0.05

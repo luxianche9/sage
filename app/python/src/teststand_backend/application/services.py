@@ -10,7 +10,7 @@ from teststand_backend.contracts.devices import parse_device_instance, parse_har
 from teststand_backend.contracts.errors import app_error
 from teststand_backend.contracts.operations import operation
 from teststand_backend.contracts.wiring import parse_request_wiring_task_input
-from teststand_backend.devices.plugin_store import PluginStore
+from teststand_backend.devices.plugin_store import PACKAGE_EXTENSION, PluginStore
 from teststand_backend.util import utc_now_iso
 
 from .authorization import Authorizer, Json
@@ -165,7 +165,7 @@ class DevicesApplication:
         """Add a device from a ``.tsdev`` device package on this computer (absolute path). The
         package's driver code runs inside testStand, so the operator confirms first."""
         file = Path(path)
-        if file.suffix.lower() != ".tsdev" or not file.is_absolute():
+        if file.suffix.lower() != PACKAGE_EXTENSION or not file.is_absolute():
             raise app_error("invalid_argument", "path must be an absolute path to a .tsdev file")
         try:
             data = await asyncio.to_thread(file.read_bytes)
@@ -185,7 +185,7 @@ class DevicesApplication:
         its devices keep their ids, settings and wiring and use it after testStand restarts.
         Adds no device. The operator confirms first."""
         file = Path(path)
-        if file.suffix.lower() != ".tsdev" or not file.is_absolute():
+        if file.suffix.lower() != PACKAGE_EXTENSION or not file.is_absolute():
             raise app_error("invalid_argument", "path must be an absolute path to a .tsdev file")
         try:
             data = await asyncio.to_thread(file.read_bytes)
@@ -195,7 +195,7 @@ class DevicesApplication:
         device_type = manifest["type"]
         if not self._packages().installed(device_type):
             raise app_error(
-                "failed_precondition",
+                "not_found",
                 f"Device type {device_type} is not installed; add a device with "
                 "devices.addDeviceFromFile instead",
             )

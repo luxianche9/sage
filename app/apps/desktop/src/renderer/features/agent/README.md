@@ -19,4 +19,4 @@ Custom slash commands are dispatched through OpenCode's `session.command` endpoi
 through `@assistant-ui/react-opencode`, including streaming, cancellation, attachments, tool calls, permissions,
 questions, retry/edit/branch behavior and session lifecycle management.
 
-See `resources/assistant-ui` and `resources/fonts` for source and license notices included in packaged builds.
+See `resources/assistant-ui` for the source and license notices included in packaged builds.

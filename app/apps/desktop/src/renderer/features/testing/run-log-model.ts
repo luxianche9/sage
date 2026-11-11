@@ -4,15 +4,7 @@ import type {
 
 /** `notSelected`: a 功能组 the run was not asked to run (a skip with reason `notSelected`). */
 type StepRunState = "waiting" | "running" | "Pass" | "Fail" | "Error" | "skipped" | "notSelected" | "Aborted";
-export interface StepProjection { state: StepRunState; durationMs?: number; startedAt?: string; completedAt?: string }
-export interface MeasurementPoint { at: string; value: number; sequence: number }
-export interface MeasurementSeries {
-  key: string;
-  sourceStepId: string;
-  field: string;
-  unit?: string;
-  points: MeasurementPoint[];
-}
+interface StepProjection { state: StepRunState; durationMs?: number; startedAt?: string; completedAt?: string }
 
 interface TraceIteration {
   index: number;
@@ -114,56 +106,6 @@ export function buildExecutionTrace(
   attachRelatedAssertions(results, byExecutionId);
   const unmatchedOperations = attachOperations(operations, byExecutionId);
   return { regions, byExecutionId, unmatchedResults, unmatchedOperations };
-}
-
-export function projectStepStates(plan: TestPlan, events: TestRunEvent[]): Record<string, StepProjection> {
-  const output: Record<string, StepProjection> = {};
-  visitPlanSteps(plan, (step) => { output[step.id] = { state: "waiting" }; });
-  for (const event of [...events].sort((left, right) => left.sequence - right.sequence)) {
-    const stepId = typeof event.stepId === "string" ? event.stepId : undefined;
-    if (!stepId) continue;
-    if (event.type === "step.started") output[stepId] = { state: "running", startedAt: event.at };
-    if (event.type === "step.skipped") output[stepId] = { state: skipState(event), completedAt: event.at };
-    if (event.type === "step.completed") output[stepId] = projectionFromCompletion(event);
-  }
-  return output;
-}
-
-export function groupMeasurements(results: TestResult[], maxPoints = 2000): MeasurementSeries[] {
-  const grouped = new Map<string, MeasurementSeries>();
-  for (const result of results) {
-    if (result.kind !== "measurement") continue;
-    const sourceStepId = String(result.sourceStepId ?? result.stepId ?? "unknown");
-    const unit = typeof result.unit === "string" ? result.unit : undefined;
-    for (const [field, value] of numericFields(result.value)) {
-      const key = `${sourceStepId}::${field}::${unit ?? ""}`;
-      const series = grouped.get(key) ?? { key, sourceStepId, field, ...(unit ? { unit } : {}), points: [] };
-      series.points.push({ at: result.at, value, sequence: result.sequence });
-      grouped.set(key, series);
-    }
-  }
-  return [...grouped.values()].map((series) => ({ ...series, points: downsample(series.points, maxPoints) }));
-}
-
-export function downsample(points: MeasurementPoint[], maxPoints = 2000): MeasurementPoint[] {
-  if (points.length <= maxPoints || maxPoints < 3) return points;
-  const bucketCount = Math.max(1, Math.floor((maxPoints - 1) / 2));
-  const bucketSize = Math.ceil(points.length / bucketCount);
-  const output: MeasurementPoint[] = [];
-  for (let index = 0; index < points.length; index += bucketSize) {
-    const bucket = points.slice(index, index + bucketSize);
-    if (!bucket.length) continue;
-    let min = bucket[0]!;
-    let max = bucket[0]!;
-    for (const point of bucket) {
-      if (point.value < min.value) min = point;
-      if (point.value > max.value) max = point;
-    }
-    output.push(...(min.sequence <= max.sequence ? [min, max] : [max, min]));
-  }
-  const last = points.at(-1)!;
-  if (output.at(-1)?.sequence !== last.sequence) output.push(last);
-  return output.length <= maxPoints ? output : [...output.slice(0, maxPoints - 1), last];
 }
 
 function createNode(step: TestStep, event: TestRunEvent): ExecutionTraceNode {
@@ -351,10 +293,4 @@ function childOrder(left: ExecutionTraceNode, right: ExecutionTraceNode): number
 
 function scopeState(verdict: string): StepRunState {
   return verdict === "Fail" || verdict === "Error" || verdict === "Aborted" ? verdict : "Pass";
-}
-
-function numericFields(value: unknown, prefix = "value"): Array<[string, number]> {
-  if (typeof value === "number" && Number.isFinite(value)) return [[prefix, value]];
-  if (!value || typeof value !== "object" || Array.isArray(value)) return [];
-  return Object.entries(value).flatMap(([key, item]) => numericFields(item, `${prefix}.${key}`));
 }

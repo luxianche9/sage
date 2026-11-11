@@ -9,7 +9,13 @@ export function JsonEditor({ value, onChange, label = "编辑 JSON" }: {
 }) {
   const [text, setText] = useState(() => JSON.stringify(value, null, 2));
   const [error, setError] = useState<string>();
-  useEffect(() => setText(JSON.stringify(value, null, 2)), [value]);
+  // Follow the value when it changes elsewhere; what is being typed stays as typed while it means the same.
+  useEffect(() => setText((current) => {
+    try {
+      if (JSON.stringify(JSON.parse(current)) === JSON.stringify(value)) return current;
+    } catch { /* text that does not parse is replaced by the new value */ }
+    return JSON.stringify(value, null, 2);
+  }), [value]);
   return (
     <details className="rounded-md border border-line bg-surface-0">
       <summary className="cursor-pointer px-2 py-1.5 text-xs text-fg-3 select-none hover:text-fg-2">{label}</summary>

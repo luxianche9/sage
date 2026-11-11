@@ -28,7 +28,7 @@ type PanelDialog = "editor" | "parameters" | "issues" | "recovery";
 export function TestPanel({ bench }: { bench: BenchRun }) {
   const client = useQueryClient();
   const [confirm, confirmDialog] = useConfirm();
-  const editor = usePlanEditor({ confirm, onRunStarted: openRunMonitor });
+  const editor = usePlanEditor({ onRunStarted: openRunMonitor });
   const [dialog, setDialog] = useState<PanelDialog>();
   const catalog = useTestStepCatalog();
   const typeLabels = useMemo(

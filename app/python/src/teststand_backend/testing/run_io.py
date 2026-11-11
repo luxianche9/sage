@@ -492,6 +492,9 @@ def rejudge(results: list[Record], path: Path | None) -> list[Record]:
             spec = result.get("judge")
             if result.get("kind") != "verdict" or not isinstance(spec, dict):
                 continue
+            # An operator's answer is not in the recording: there is nothing to recompute it from.
+            if spec.get("type") == "manual":
+                continue
             recomputed = rejudge_one(spec, store, context)
             output.append(
                 {

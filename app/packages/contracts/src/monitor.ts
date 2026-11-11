@@ -52,9 +52,6 @@ export const PANEL_SIZES: Readonly<Record<PanelType, readonly [number, number]>>
   inspector: [12, 18], results: [20, 10], messages: [24, 12], number: [8, 4], lamp: [5, 4], switch: [8, 4],
   slider: [12, 4], button: [6, 3], label: [12, 2]
 };
-/** Widgets holding one control in `settings.control`. */
-export const ONE_CONTROL_TYPES: readonly PanelType[] = ["button", "switch", "slider"];
-
 export const CONTROL_WIDGETS = ["button", "toggle", "slider", "presets"] as const;
 export type ControlWidget = (typeof CONTROL_WIDGETS)[number];
 

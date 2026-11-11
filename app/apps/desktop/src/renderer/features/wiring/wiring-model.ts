@@ -5,8 +5,7 @@ import type {
   PortPosition,
   PortSide,
   ProjectWiringConnection,
-  WiringTask,
-  WiringTaskChange
+  WiringTask
 } from "@teststand/contracts/wiring";
 import type { Tone } from "../../ui/cn.js";
 

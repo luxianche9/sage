@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import builtins
-import json
 import os
 import re
 import tempfile
@@ -54,9 +53,6 @@ class TestPlanStore:
         if not session:
             raise app_error("requires_project", "requires_project")
         return Path(session["rootPath"]) / ".teststand" / "plans"
-
-    def request_ledger_path(self) -> Path:
-        return self.directory().parent / "testing-requests.json"
 
     async def claim_request(
         self, scope: str, request_id: str, payload: Any | None = None
@@ -256,37 +252,6 @@ class TestPlanStore:
         try:
             with os.fdopen(handle, "w", encoding="utf-8", newline="\n") as stream:
                 self._yaml.dump(plan, stream)
-                stream.flush()
-                os.fsync(stream.fileno())
-            os.replace(temporary, path)
-        finally:
-            if os.path.exists(temporary):
-                os.unlink(temporary)
-
-    def _read_request_ledger(self) -> Record:
-        path = self.request_ledger_path()
-        if not path.exists():
-            return {"version": 1, "requests": {}}
-        try:
-            value = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as error:
-            raise app_error("invalid_argument", "Testing request ledger is invalid") from error
-        if (
-            not isinstance(value, dict)
-            or value.get("version") != 1
-            or not isinstance(value.get("requests"), dict)
-        ):
-            raise app_error("invalid_argument", "Testing request ledger is invalid")
-        return cast(Record, value)
-
-    def _write_request_ledger(self, ledger: Record) -> None:
-        path = self.request_ledger_path()
-        path.parent.mkdir(parents=True, exist_ok=True)
-        handle, temporary = tempfile.mkstemp(prefix=path.name + ".", suffix=".tmp", dir=path.parent)
-        try:
-            with os.fdopen(handle, "w", encoding="utf-8", newline="\n") as stream:
-                json.dump(ledger, stream, ensure_ascii=False, indent=2)
-                stream.write("\n")
                 stream.flush()
                 os.fsync(stream.fileno())
             os.replace(temporary, path)

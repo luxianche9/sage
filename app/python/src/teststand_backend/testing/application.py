@@ -343,18 +343,6 @@ class TestingApplication:
                 "A wiring task for this plan's hardware is awaiting confirmation",
             )
 
-    def check_recovery_gate(self, plan: Record) -> None:
-        self.store.runtime.initialize()
-        blocked = {
-            item["hardwareId"] for item in self.store.runtime.operations(recovery_only=True)
-        } & set(plan_hardware_ids(plan))
-        if blocked:
-            raise app_error(
-                "conflict",
-                "Hardware has unresolved physical operations",
-                {"hardwareIds": sorted(blocked), "recoveryRequired": True},
-            )
-
     # Units under test: a project tests one product; each physical unit is one round.
 
     def ensure_unit(self) -> Record:

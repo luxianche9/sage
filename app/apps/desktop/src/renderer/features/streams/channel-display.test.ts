@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { RunTimeline, StreamInfo } from "@teststand/contracts/observability";
 import { defaultDisplay } from "./channel-display.js";
-import {
-  BIT_LANE, bitsWidth, codeText, compareEntries, consoleLine, logicData, maskBits, stepDepths, timelineEntries,
-  type ConsoleEntry
-} from "./stream-model.js";
+import { BIT_LANE, bitsWidth, codeText, consoleLine, logicData, stepDepths, timelineEntries } from "./stream-model.js";
 
 const point = (tb: number, mask: number) => ({ t: tb, tb, mask });
 
@@ -12,7 +9,6 @@ describe("digital channel display", () => {
   it("formats a mask as a code with the declared name", () => {
     expect(codeText(4, 16)).toEqual({ hex: "0x0004", dec: "4", bin: "0000 0000 0000 0100", short: "0x0004" });
     expect(codeText(1, 8, { 1: "RUN" })).toMatchObject({ hex: "0x01", name: "RUN", short: "RUN" });
-    expect(maskBits(0b101, 4)).toEqual([true, false, true, false]);
     expect(bitsWidth({ declaration: { width: 16 } }, [])).toBe(16);
     expect(bitsWidth({}, [point(0, 0x100)])).toBe(9);
   });

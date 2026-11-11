@@ -138,7 +138,8 @@ function FieldSettings({ panel, save }: { panel: MonitorPanel; save: (settings: 
 /** What the small widgets can be told: digits, the bit a lamp shows, its words and colour, a label's text. */
 function WidgetSettings({ panel, save }: { panel: MonitorPanel; save: (settings: Record<string, unknown>) => void }) {
   const [setting, setSetting] = useState(false);
-  const set = (key: string, value: unknown) => save({ ...panel.settings, [key]: value });
+  // The backend merges settings; null (not a dropped undefined) is what clears one.
+  const set = (key: string, value: unknown) => save({ [key]: value ?? null });
   const bit = settingOf(panel, "bit", undefined as number | undefined, isNumber);
   const wanted = panel.type === "switch" ? "toggle" : panel.type === "slider" ? "slider" : "button";
   return (
