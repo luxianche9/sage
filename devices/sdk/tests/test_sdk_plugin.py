@@ -27,9 +27,8 @@ from sdk_demo import DemoDevice
 
 def test_installed_types_come_from_entry_points():
     types = device_types()
-    assert {"pci6208v", "pci1710l", "pci1762", "cp118u_i"} <= set(types)
-    assert load_device("pci6208v").isolation == "subprocess"
-    assert load_device("cp118u_i").isolation == "inproc"
+    assert "comm_link" in types
+    assert load_device("comm_link").isolation == "inproc"
     assert load_device("sdk_demo:DemoDevice") is DemoDevice
 
 
@@ -70,28 +69,28 @@ async def test_host_streams_read_seek_and_watch():
         await host.stop()
 
 
-async def test_open_device_follows_isolation():
+async def test_open_device_follows_isolation(tmp_path, isolated_path):
     assert isinstance(open_device("sdk_demo:DemoDevice", dry_run_config(DemoDevice)), InprocDevice)
-    device = open_device("pci6208v", dry_run_config(load_device("pci6208v")))
+    _installed_package(tmp_path)
+    activate_plugins(tmp_path)
+    device = open_device("tsplug", dry_run_config(load_device("tsplug")))
     assert isinstance(device, SubprocessDevice)
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="the adapters target Windows")
-async def test_child_process_serves_the_device_and_survives_stdout_noise():
-    device_cls = load_device("pci6208v")
-    device = SubprocessDevice("pci6208v", dry_run_config(device_cls), [sys.executable, "-c",
+async def test_child_process_serves_the_device_and_survives_stdout_noise(child_imports_demo):
+    device = SubprocessDevice("sdk_demo:DemoDevice", dry_run_config(DemoDevice), [sys.executable, "-c",
         "import os,sys; os.write(1, b'driver banner' + bytes([10])); "
         "from teststand_device_sdk.plugin import child_main; sys.exit(child_main())"])
     await device.start()
     try:
         described = await device.describe()
         names = {tool["name"] for tool in described["tools"]}
-        assert "pci6208v_set_voltage" in names and described["device"]["identity"]["dryRun"] is True
-        result = await device.call("pci6208v_set_voltage", {"hardwareId": device.config.hardware_id,
-                                                             "channel": 0, "volts": 1.5}, "op-1")
+        assert "demo_set_level" in names and described["device"]["identity"]["dryRun"] is True
+        result = await device.call("demo_set_level", {"hardwareId": device.config.hardware_id,
+                                                      "channel": 1, "level": True}, "op-1")
         assert result["ok"] and result["meta"]["operationId"] == "op-1"
-        read = await device.read_stream("ao0", 0, 50)
-        assert read["records"][-1]["v"] == 1.5
+        read = await device.read_stream("do", 0, 50)
+        assert read["records"]
         safe = await device.safe_all()
         assert safe[0]["hardwareId"] == device.config.hardware_id
     finally:
@@ -106,17 +105,21 @@ async def test_a_failed_start_leaves_no_child_process():
     assert device.process is None
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="the adapters target Windows")
-async def test_child_process_exits_safely_when_stdin_closes():
-    device_cls = load_device("pci6208v")
-    device = SubprocessDevice("pci6208v", dry_run_config(device_cls))
+async def test_child_process_exits_safely_when_stdin_closes(child_imports_demo):
+    device = SubprocessDevice("sdk_demo:DemoDevice", dry_run_config(DemoDevice))
     await device.start()
     process = device.process
     assert process is not None and process.stdin is not None
     process.stdin.close()
     assert await asyncio.wait_for(process.wait(), 10) == 0
     with pytest.raises(Exception, match="not running|exited"):
-        await device.call("pci6208v_safe_state", {"hardwareId": device.config.hardware_id})
+        await device.call("demo_safe_state", {"hardwareId": device.config.hardware_id})
+
+
+@pytest.fixture
+def child_imports_demo(monkeypatch):
+    """The child process imports ``sdk_demo`` from this test directory."""
+    monkeypatch.setenv("PYTHONPATH", str(Path(__file__).parent))
 
 
 def _installed_package(root, name="tsplug", version="1.0.0"):

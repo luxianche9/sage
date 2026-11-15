@@ -29,8 +29,7 @@ Python 后端（app/python，teststand_backend）
 | `app/python` | Python 后端 `teststand_backend`（uv 管理） |
 | `app/scripts` | 构建、校验、发布脚本 |
 | `devices/sdk` | 设备插件 SDK `teststand_device_sdk` |
-| `devices/adapters` | 13 个设备适配器（研华 PCI-1710L/1762/6208V、MOXA CP-118U-I、阿尔泰 PXI、JCXD、LVDT、电容板、通用通信链路等），清单见 `devices/README.md` |
-| `devices/native` | 厂商驱动桥接程序（`hwcli_*.cpp`） |
+| `devices/adapters` | 设备适配器：目前只有通用通信链路 `comm_link`（串口/TCP/UDP）；485 转 USB、USB 转 DShot 等新硬件适配待添加 |
 | `devices/pack.py` | 生成 `.tsdev` 设备包 |
 | `skill/` | 编写设备插件等的 Agent 技能 |
 | `doc/` | 设计文档、调研 |
@@ -54,7 +53,7 @@ pnpm install          # Node 依赖（含 Electron 二进制）
 pnpm python:setup     # = uv sync --project python --frozen，创建 app/python/.venv
 ```
 
-开发环境中只有 PCI-1710L、PCI-1762、PCI-6208V、CP-118U-I 四个适配器以 editable 方式装进后端的虚拟环境，其余的按设备包（`.tsdev`）安装。设备只驱动真实硬件，需要装好对应板卡和厂商驱动。
+开发环境中只有通用通信链路适配器 `comm_link` 以 editable 方式装进后端的虚拟环境，其余的按设备包（`.tsdev`）安装。设备只驱动真实硬件。
 
 ## 启动（开发模式）
 
@@ -94,7 +93,6 @@ pnpm dev
 
 ```powershell
 cd devices
-python native/build.py   # DAQNavi 桥接程序（需要 MinGW-w64 g++），pci1710l、pci1762 需要
 python pack.py --all     # 测试 + 检查 + 打包 -> dist/*.tsdev
 ```
 

@@ -1,10 +1,10 @@
 """Build ``.tsdev`` device packages from the adapters in this workspace.
 
-    python devices/pack.py pci1762 [pci6208v ...] | --all  [--out DIR] [--skip-tests]
+    python devices/pack.py comm_link [other ...] | --all  [--out DIR] [--skip-tests]
 
 For each adapter: run its tests and the dry-run ``--check`` compliance suite (``test.ps1``),
-make sure the files listed under ``[tool.teststand.package] requiredFiles`` exist (the DAQNavi
-bridges built by ``native/build.py``), build its wheel, add wheels for any third-party
+make sure the files listed under ``[tool.teststand.package] requiredFiles`` exist (e.g. vendor
+DLLs copied into ``bin/``), build its wheel, add wheels for any third-party
 dependencies (CPython 3.11, 64-bit Windows), and write ``<out>/<type>-<version>.tsdev``:
 ``package.json`` (the manifest testStand shows before installing) plus ``wheels/*.whl``.
 Install a package on the testStand Devices page; testStand itself is not rebuilt.
@@ -85,7 +85,7 @@ def pack(adapter: str, out: Path, skip_tests: bool) -> Path:
     package_dir = ADAPTERS / adapter / "src" / f"teststand_adapter_{adapter}"
     missing = [name for name in options.get("requiredFiles", []) if not (package_dir / name).is_file()]
     if missing:
-        sys.exit(f"{adapter}: missing {', '.join(missing)} (build them first, e.g. python devices/native/build.py)")
+        sys.exit(f"{adapter}: missing {', '.join(missing)} (copy them from the vendor delivery first)")
     print(f"== {adapter} ({device_type})", flush=True)
     if not skip_tests:
         run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(HERE / "test.ps1"),

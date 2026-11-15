@@ -4,8 +4,9 @@
 新硬件适配器按技能 [`skill/device-plugin`](../skill/device-plugin/SKILL.md) 编写。
 
 Each hardware device is the device plugin SDK plus one adapter, loaded by the
-testStand backend as a plugin. All thirteen adapters under `adapters/` (see the
-stream table below) are built from this directory. A release of testStand ships
+testStand backend as a plugin. The adapters under `adapters/` (see the stream table
+below) are built from this directory; the board adapters of the earlier bench were removed
+and new ones (RS-485 over USB, USB to DShot) will be added here. A release of testStand ships
 none of them: each adapter is delivered as a `.tsdev` device package and installed
 on the bench page (+ → 添加设备…), which installs its driver and adds the device in one step.
 
@@ -14,8 +15,6 @@ sdk/                     teststand_device_sdk: DeviceHost, plugin loading (in pr
                          process), builtin tools, envelope, lifecycle, safe_state, streams (ring
                          buffer), /device manifest, waveform player, compliance suite
 adapters/<adapter>/      teststand_adapter_<adapter>: adapter.py, driver.py, sim.py, pinout.py, tests/
-native/                  bridge programs (hwcli_*.cpp), built into adapters/<card>/.../bin/: build.py
-                         (DAQNavi, 64-bit, MinGW-w64) and build_x86.py (32-bit vendor DLLs, MSVC x86)
 pack.py                  builds dist/<type>-<version>.tsdev device packages
 test.ps1                 local tests: SDK, every adapter, dry-run compliance
 ```
@@ -23,8 +22,6 @@ test.ps1                 local tests: SDK, every adapter, dry-run compliance
 ## Device packages
 
 ```powershell
-python native/build.py      # DAQNavi bridges (MinGW-w64 g++), needed by pci1710l and pci1762
-python native/build_x86.py  # 32-bit bridge (MSVC x86), needed by lj_co8
 python pack.py --all        # tests + --check, wheel, manifest -> dist/*.tsdev
 ```
 
@@ -34,18 +31,7 @@ vendor drivers the bench needs and the files that must be in the wheel under
 `[tool.teststand.package]` in the adapter's `pyproject.toml`.
 
 Vendor DLLs shipped inside a package live in `src/<package>/bin/`, which git ignores;
-copy them from the vendor delivery before `pack.py` (it refuses to build without them):
-
-| Adapter | `bin/` file | From the vendor delivery |
-|---|---|---|
-| `jcxd_da6401` | `DA6401_JC.dll` | `JCXD-DA-X-6401-V1.0/Lib/x64/` |
-| `jcxd_mads3210` | `UMADX3210_x64.dll` | `JCXD-MADS-CPCI-3210-2S/Lib/x64/` |
-| `jcxd_sds48` | `JC_SDS48.dll` | `JCXD-SDS48-X-V2.0.0/Lib/x64/` |
-| `htlt_lvdt8` | `htlt_api_x64.dll` | `htlt 2.x kit/htlt/sdk/lib/x64/` |
-| `lj_co8` | `PXI4281.dll` (32-bit, next to `hwcli_lj_co8.exe`) | LJ-CO-CPCI-8 vendor delivery |
-
-`art_pxi2355l`, `art_pxi2604` and `jcxd_rsx8` ship no DLL: they use the installed
-ART-DAQ, ART-SWITCH and the RSX8_JC virtual COM port driver.
+copy them from the vendor delivery before `pack.py` (it refuses to build without them).
 
 ## Device plugins
 
@@ -54,7 +40,7 @@ An adapter package registers its `Device` subclass under the entry point group
 
 ```toml
 [project.entry-points."teststand.devices"]
-pci1762 = "teststand_adapter_pci1762:DEVICE"
+comm_link = "teststand_adapter_comm_link:DEVICE"
 ```
 
 The backend calls `open_device(type, config)`. `config` is a `DeviceConfig`, usually
@@ -99,8 +85,8 @@ true. Simulation switches, all off by default so simulated inputs read idle valu
 ```powershell
 .\test.ps1                  # SDK tests, then every adapter's tests and dry-run compliance check
 .\test.ps1 -Target sdk
-.\test.ps1 -Target pci6208v
-uv run python -m teststand_device_sdk --adapter pci1710l --check   # compliance only
+.\test.ps1 -Target comm_link
+uv run python -m teststand_device_sdk --adapter comm_link --check   # compliance only
 ```
 
 `--check` runs the compliance suite in process against the dry-run simulator: tool
@@ -144,18 +130,6 @@ clock by at most one poll interval (`--check` verifies it).
 
 | Adapter | Streams |
 |---|---|
-| `pci1710l` | `ai0..15` scalar scan group in V, `measured` (one scan, shared `t`; need `configure_ai`), `di` 16-bit `measured` published on change, `do` 16-bit read back after every write |
-| `pci1762` | `di` 16-bit (`IDI0..15`) `measured` published on change, `relay` 16-bit (`R0..15`) coil command read back after every write |
-| `pci6208v` (`isolation = "subprocess"`: PCIS-DASK writes to stdout when it loads) | `ao0..7` scalar in V, `setpoint`: the accepted value published on write and every point of a software waveform (`set_waveform`/`stop_waveform`, at most 200 updates/s; `safe_state` stops it) |
-| `cp118u_i` | `serial1..8` bytes: RX from a 10 ms reader thread that calls `idle()` after every read, TX via the stream writer, `mark` on configure/clear/flush |
-| `jcxd_da6401` | `ao0..63` scalar in V, `setpoint` |
-| `jcxd_mads3210` | `ai0..31` block in V, `measured`: hardware-clocked continuous acquisition, every sample at the card rate; `ao0..7` setpoint; `di`/`do` 48-bit; `freq0..1` Hz |
-| `jcxd_sds48` | `relays` 48-bit drive register (`switches`) |
-| `art_pxi2355l` | `di` 32-bit `measured` on change, `do` 32-bit driver readback |
-| `art_pxi2604` | `relays` 40-bit positions (`switches`) |
-| `htlt_lvdt8` | `pos0..7` setpoint, `exc0..7` measured excitation in Vrms |
-| `jcxd_rsx8` | `serial0..7` bytes like `cp118u_i` |
-| `lj_co8` | `c0..7` scalar in pF, `setpoint` (the card has no readback) |
 | `comm_link` (`isolation = "inproc"`) | `link` bytes, writable: RX and TX of one serial, TCP or UDP link, `mark` on connect/disconnect/clear |
 
 ### Self-test and acceptance
@@ -169,5 +143,3 @@ What only wiring can show (an output voltage, a contact, a serial line) is the
 "现场验收" section of each adapter README: a loopback or meter procedure the user runs
 once on site, with the expected readings.
 
-The native vendor CLIs of `pci1710l`, `pci1762` and `lj_co8` are found through
-`settings.hwcliPath` or the `<ADAPTER>_HWCLI_PATH` / `HWCLI_PATH` environment variables.

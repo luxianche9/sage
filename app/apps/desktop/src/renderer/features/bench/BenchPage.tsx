@@ -17,7 +17,6 @@ import { AddDeviceDialog, pickDevicePackage, type StagedPackage } from "../devic
 import { importBundleFile } from "../devices/BundleActions.js";
 import { DeviceEditor } from "../devices/editors/DeviceEditor.js";
 import { HardwareEditor } from "../devices/editors/HardwareEditor.js";
-import { ComponentSidebar } from "../monitor/ComponentSidebar.js";
 import { MonitorPane } from "../monitor/MonitorPane.js";
 import { useBenchRun } from "../monitor/use-bench-run.js";
 import { useMonitorWorkspace } from "../monitor/use-monitor-workspace.js";
@@ -308,10 +307,10 @@ function Bench({ panel, view, onView }: {
           />
         </div>
         <div id="bench-side-components" className={panelClass("components")}>
-          <ComponentSidebar
-            onAddPanel={(type) => { onView("monitor"); monitor.addPanel(type); }}
-            onAddControl={(widget) => { onView("monitor"); monitor.addControlWidget(widget); }}
-          />
+          <section aria-label={SIDE_PANEL_LABELS.components} className="flex h-full flex-col bg-surface-1">
+            <PanelHeader title={SIDE_PANEL_LABELS.components} />
+            <p className="p-3 text-xs text-fg-3">上位机组件正在重新设计。</p>
+          </section>
         </div>
         <div id="bench-side-log" className={panelClass("log")}><WiringLogPanel hardware={hardware} /></div>
         <div id="bench-side-testing" className={panelClass("testing")}><TestPanel bench={bench} /></div>

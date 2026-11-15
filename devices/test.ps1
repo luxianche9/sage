@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    # "all", "sdk" or an adapter directory name under adapters\ (e.g. pci6208v).
+    # "all", "sdk" or an adapter directory name under adapters\ (e.g. comm_link).
     [string]$Target = "all"
 )
 

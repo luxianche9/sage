@@ -24,10 +24,7 @@ dependencies = [
 
 [tool.uv.sources]
 teststand-device-sdk = { path = "../../devices/sdk", editable = true }
-teststand-adapter-pci1710l = { path = "../../devices/adapters/pci1710l", editable = true }
-teststand-adapter-pci1762 = { path = "../../devices/adapters/pci1762", editable = true }
-teststand-adapter-pci6208v = { path = "../../devices/adapters/pci6208v", editable = true }
-teststand-adapter-cp118u-i = { path = "../../devices/adapters/cp118u_i", editable = true }
+teststand-adapter-comm-link = { path = "../../devices/adapters/comm_link", editable = true }
 
 [build-system]
 requires = ["hatchling"]
@@ -37,14 +34,10 @@ build-backend = "hatchling.build"
 packages = ["src/teststand_backend"]
 
 [dependency-groups]
-# The adapters are not part of testStand: a release ships none and installs them as .tsdev device
-# packages. In development they are editable here so the backend tests and the end-to-end tests
-# can run real adapters in simulator mode.
+# Adapters are not part of testStand: a release ships none and installs them as .tsdev device packages.
+# In development the generic link adapter is editable here so tests have one real plugin installed.
 dev = [
-  "teststand-adapter-pci1710l",
-  "teststand-adapter-pci1762",
-  "teststand-adapter-pci6208v",
-  "teststand-adapter-cp118u-i",
+  "teststand-adapter-comm-link",
   "ruff",
   "mypy",
   "pytest",

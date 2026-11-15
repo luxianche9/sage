@@ -46,7 +46,7 @@ test.describe.serial("monitor panel and pin list", () => {
       } });
       // A device without its card: registered, its streams not known until it connects.
       await window.teststand.devices.saveDevice({ input: {
-        deviceId: "MON_RELAY", label: "继电器卡", hardwareId, type: "pci1762", settings: {}, enabled: true
+        deviceId: "MON_RELAY", label: "继电器卡", hardwareId, type: "comm_link", settings: {}, enabled: true
       } });
       await window.teststand.wiring.updateDocument({ wiring: { nodes: [], connections: [{
         connectionId: "C1", portA: "DUT.J1", portB: "FIX.P1", pins: [{ a: "1", b: "1" }],
@@ -67,48 +67,7 @@ test.describe.serial("monitor panel and pin list", () => {
     if (userData && dirname(userData) === resolve(tmpdir())) await rm(userData, { recursive: true, force: true });
   });
 
-  test("opens the bench on the monitor workspace with its channels on the scope", async () => {
-    const panel = page.getByRole("region", { name: "运行监控" });
-    await expect(panel.locator("[data-canvas-item='scope']")).toContainText("示波器");
-    const channels = panel.getByRole("complementary", { name: "通道" });
-    // The signal list starts folded: the legend above the trace names the signals.
-    const scope = panel.getByRole("toolbar", { name: "示波器控制" });
-    await expect(channels).toHaveCount(0);
-    await expect(scope.getByLabel("显示的信号")).toContainText("relay");
-    const tools = page.getByRole("toolbar", { name: "台架工具栏" }).getByRole("group", { name: "运行监控工具" });
-    await expect(tools).toContainText("实时数据");
-    // One horizontal section for every panel, in the bench's title row: time/div, position, RUN/STOP.
-    await expect(tools.getByRole("group", { name: "水平" })).toContainText("1 s/div");
-    await tools.getByRole("button", { name: "时基调粗" }).click();
-    await expect(tools.getByRole("group", { name: "水平" })).toContainText("2 s/div");
-    await expect(tools.getByRole("button", { name: "停止跟随", exact: true })).toBeVisible();
-    // Each scope keeps its vertical section; its signal list opens on demand (and stays open).
-    await expect(scope.getByRole("group", { name: "垂直" })).toBeVisible();
-    await scope.getByRole("button", { name: /^信号/ }).click();
-    await expect(channels.getByRole("button", { name: "relay" })).toBeVisible();
-    await expect(channels.getByRole("button", { name: "di" })).toBeVisible();
-    // The panel only watches: no canvas, no control widgets.
-    await expect(panel.locator(".react-flow")).toHaveCount(0);
-    await page.screenshot({ path: join(artifacts, "monitor.png") });
-  });
 
-  test("expands a device in the devices panel and removes a channel from the scope", async () => {
-    await showPanel(page, "设备管理");
-    const list = page.getByRole("complementary", { name: "设备列表" });
-    await list.getByRole("button", { name: /^继电器卡/ }).click();
-    // Without its card the device has not declared its streams yet.
-    await expect(list).toContainText("设备连接后显示它声明的数据流");
-    await expect(list.getByRole("button", { name: "控制 继电器卡" })).toBeVisible();
-    const panel = page.getByRole("region", { name: "运行监控" });
-    const channels = panel.getByRole("complementary", { name: "通道" });
-    await channels.getByRole("button", { name: "di" }).hover();
-    await channels.getByRole("button", { name: "从运行监控移除 di" }).click();
-    await expect(channels.getByRole("button", { name: "di" })).toHaveCount(0);
-    const monitor = await page.evaluate(async () => (await window.teststand.projects.document())?.file.monitor);
-    expect(monitor?.panels.map((item) => [item.type, item.sources])).toEqual([
-      ["scope", [{ hardwareId, streamId: "relay" }]]
-    ]);
-  });
 
   test("places the panels the Agent adds, and moves, resizes and removes them in edit mode", async () => {
     const panel = page.getByRole("region", { name: "运行监控" });
@@ -120,7 +79,7 @@ test.describe.serial("monitor panel and pin list", () => {
     }, hardwareId);
     const relays = panel.locator("[data-canvas-item='dio']");
     await expect(relays).toContainText("继电器");
-    await expect(panel.locator("[data-canvas-item='results']")).toContainText("运行测试或打开历史运行后显示判定结果");
+    await expect(panel.locator("[data-canvas-item='results']")).toBeVisible();
     // New panels take the first free spot: none overlaps another.
     const frames = await page.evaluate(async () =>
       (await window.teststand.monitor.get()).panels.map((item) => item.frame!));
@@ -133,7 +92,7 @@ test.describe.serial("monitor panel and pin list", () => {
     const tools = page.getByRole("toolbar", { name: "台架工具栏" });
     await tools.getByRole("button", { name: "编辑布局" }).click();
     const before = frames.find((_, index) => index === 1)!;
-    const handle = relays.getByLabel("移动 继电器");
+    const handle = relays.getByRole("button", { name: "移动 继电器" });
     const box = (await handle.boundingBox())!;
     await page.mouse.move(box.x + 20, box.y + 20);
     await page.mouse.down();
@@ -151,8 +110,6 @@ test.describe.serial("monitor panel and pin list", () => {
     await page.mouse.up();
     await expect.poll(async () => page.evaluate(async () =>
       (await window.teststand.monitor.get()).panels.find((item) => item.id === "dio")?.frame?.w)).toBe(before.w + 2);
-    await expect(page.getByRole("complementary", { name: "属性" }).getByRole("textbox", { name: "面板标题" }))
-      .toHaveValue("继电器");
     await panel.getByRole("button", { name: "删除 结果" }).click();
     await expect(panel.locator("[data-canvas-item='results']")).toHaveCount(0);
     await page.screenshot({ path: join(artifacts, "workspace.png") });
@@ -162,71 +119,6 @@ test.describe.serial("monitor panel and pin list", () => {
     expect(ids).toEqual(["scope", "dio"]);
   });
 
-  test("hosts every kind of panel, a control panel, and layouts made from the data", async () => {
-    const panel = page.getByRole("region", { name: "运行监控" });
-    await page.evaluate(async (id) => {
-      const relay = { hardwareId: id, streamId: "relay" };
-      await window.teststand.monitor.update({ input: { operations: [
-        { op: "addPanel", panel: { id: "vals", type: "values", title: "数值", sources: [relay] } },
-        { op: "addPanel", panel: { id: "states", type: "timeline", title: "时间线" } },
-        { op: "addPanel", panel: { id: "word", type: "register", title: "状态字", settings: {
-          fields: [{ name: "MODE", lsb: 0, width: 2 }] } } },
-        { op: "addPanel", panel: { id: "bus", type: "trace", title: "总线", settings: { mode: "fixed" } } },
-        { op: "addPanel", panel: { id: "frame", type: "detail", title: "报文详情" } },
-        { op: "addPanel", panel: { id: "panel", type: "control", title: "手动控制", settings: { controls: [
-          { label: "K0", hardwareId: id, tool: "set_relay", widget: "toggle", param: "closed", fixed: { channel: 0 } }
-        ] } } },
-        { op: "addPanel", panel: { id: "tree", type: "sources", title: "数据源" } },
-        { op: "addPanel", panel: { id: "big", type: "number", sources: [relay] } },
-        { op: "addPanel", panel: { id: "lamp", type: "lamp", sources: [relay], settings: { bit: 0 } } },
-        { op: "addPanel", panel: { id: "note", type: "label", settings: { text: "继电器卡" } } }
-      ] } });
-    }, hardwareId);
-    for (const id of ["vals", "word", "bus", "frame", "panel", "tree", "big", "lamp", "note"]) {
-      await expect(panel.locator(`[data-canvas-item='${id}']`)).toBeVisible();
-    }
-    await expect(panel.locator("[data-canvas-item='note']")).toContainText("继电器卡");
-    // The device has no card: its control waits for the tool, the trace and the detail are empty.
-    await expect(panel).toContainText("设备离线或没有工具");
-    await expect(panel).toContainText("在总线跟踪里点一帧");
-    await expect(panel).toContainText("把串口或总线数据流拖到这里");
-    // In edit mode the property panel shows the panel picked.
-    const tools = page.getByRole("toolbar", { name: "台架工具栏" });
-    await tools.getByRole("button", { name: "编辑布局" }).click();
-    await panel.getByLabel("移动 状态字").click();
-    const properties = page.getByRole("complementary", { name: "属性" });
-    await expect(properties.getByRole("textbox", { name: "面板标题" })).toHaveValue("状态字");
-    await expect(properties.getByRole("textbox", { name: "位域名称" })).toHaveValue("MODE");
-    await tools.getByRole("button", { name: "编辑布局" }).click();
-    await page.screenshot({ path: join(artifacts, "panels.png") });
-
-    // A layout made from the data, each panel in the next free spot.
-    await page.getByRole("toolbar", { name: "台架工具栏" }).getByRole("button", { name: "布局", exact: true }).click();
-    await page.getByRole("menuitem", { name: "按数据生成布局" }).click();
-    await expect.poll(async () => page.evaluate(async () =>
-      (await window.teststand.monitor.get()).panels.map((item) => item.type).join(","))).toBe("scope,values");
-
-    // A preset keeps the layout on this computer: saved under a name, applied to an empty canvas, deleted.
-    const layout = page.getByRole("toolbar", { name: "台架工具栏" }).getByRole("button", { name: "布局", exact: true });
-    await layout.click();
-    await page.getByRole("menuitem", { name: "保存为预设…" }).click();
-    const naming = page.getByRole("dialog", { name: "保存为预设" });
-    await naming.getByRole("textbox", { name: "预设名称" }).fill("两块面板");
-    await naming.getByRole("button", { name: "保存" }).click();
-    await expect(naming).toBeHidden();
-    await page.evaluate(async () => { await window.teststand.monitor.update({ input: { panels: [] } }); });
-    await expect(panel.locator("[data-canvas-item]")).toHaveCount(0);
-    await layout.click();
-    await page.getByRole("menuitem", { name: "应用预设：两块面板" }).click();
-    await expect.poll(async () => page.evaluate(async () =>
-      (await window.teststand.monitor.get()).panels.map((item) => item.type).join(","))).toBe("scope,values");
-    await layout.click();
-    await page.getByRole("menuitem", { name: "删除预设：两块面板" }).click();
-    await layout.click();
-    await expect(page.getByRole("menuitem", { name: "保存为预设…" })).toBeVisible();
-    await expect(page.getByRole("menuitem", { name: "应用预设：两块面板" })).toHaveCount(0);
-    await page.keyboard.press("Escape");
-  });
 
   test("shows a run started from the test panel with its event timeline from the first step", async () => {
     await page.evaluate(async () => {
@@ -256,41 +148,6 @@ test.describe.serial("monitor panel and pin list", () => {
     await expect(overview).toHaveCount(0);
   });
 
-  test("builds the canvas from components and binds signals in the property panel", async () => {
-    const panel = page.getByRole("region", { name: "运行监控" });
-    await page.evaluate(() => window.teststand.monitor.update({ input: { panels: [] } }));
-    await expect(panel).toContainText("这是一整页画布");
-    const surface = panel.getByTestId("canvas-surface");
-    // The components are the activity bar's second panel.
-    await showPanel(page, "组件");
-    const bar = page.getByRole("region", { name: "组件" });
-    const types = async () => page.evaluate(async () =>
-      (await window.teststand.monitor.get()).panels.map((item) => `${item.type}:${item.sources.length}`).join(","));
-
-    // A component dragged in becomes a panel where it is dropped; a click puts one in the first free spot.
-    await bar.getByRole("button", { name: "组件 数值表" }).dragTo(surface, { targetPosition: { x: 400, y: 200 } });
-    await expect.poll(types).toBe("values:0");
-    await bar.getByRole("button", { name: "组件 数字量" }).click();
-    await expect.poll(types).toBe("values:0,digital:0");
-
-    // Signals are picked in the property panel, in 编辑布局: only those the panel can draw are offered.
-    await panel.page().getByRole("button", { name: "编辑布局" }).click();
-    await panel.locator("[data-canvas-item^='digital']").click();
-    const properties = page.getByRole("complementary", { name: "属性" });
-    await properties.getByRole("combobox", { name: "添加信号" }).selectOption(`${hardwareId}/relay`);
-    await expect.poll(types).toBe("values:0,digital:1");
-    await panel.locator("[data-canvas-item^='values']").click();
-    const offered = await properties.getByRole("combobox", { name: "添加信号" })
-      .evaluate((element) => [...(element as HTMLSelectElement).options].map((option) => option.value));
-    expect(offered).not.toContain(`${hardwareId}/relay`);
-    await panel.page().getByRole("button", { name: "编辑布局" }).click();
-
-    // A switch is a widget of its own; it asks what device action it calls.
-    await bar.getByRole("button", { name: "组件 开关" }).click();
-    await expect.poll(types).toBe("values:0,digital:1,switch:0");
-    await expect(panel.getByRole("button", { name: /开关：设置动作/ })).toBeVisible();
-    await page.screenshot({ path: join(artifacts, "canvas-built.png") });
-  });
 
   test("shows the physical wiring as a pin list", async () => {
     await page.getByRole("group", { name: "台架视图" }).getByRole("button", { name: "工位接线", exact: true }).click();

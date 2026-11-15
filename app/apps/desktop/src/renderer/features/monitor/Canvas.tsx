@@ -1,15 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
-import { GripIcon, XIcon } from "lucide-react";
+import { GripIcon, PuzzleIcon, XIcon } from "lucide-react";
 import {
   GRID_PX, PANEL_SIZES, type ControlWidget, type Frame, type MonitorPanel, type PanelType
 } from "@teststand/contracts/monitor";
 import { cn, IconButton } from "../../ui/index.js";
-import { useLatestValues } from "../variables/use-latest-values.js";
 import { BARE_TYPES, canvasExtent, cells, MIN_CELLS, moved, resized } from "./canvas-model.js";
 import { CONTROL_MIME, newControlPanelId, requestControl } from "./control-requests.js";
-import { PANEL_COMPONENTS } from "./MonitorPanels.js";
-import { PANEL_ICONS } from "./panel-icons.js";
-import { LatestValuesContext, latestKeys } from "./panels/Widgets.js";
 import { PANEL_LABELS, PANEL_MIME, panelTitle, type MonitorWorkspace } from "./use-monitor-workspace.js";
 
 /** A control dropped from the component bar becomes this widget (presets live in a control panel). */
@@ -39,7 +35,6 @@ export function Canvas({ workspace, editing, selected, onSelect, empty }: {
   empty: ReactNode;
 }) {
   const panels = workspace.monitor.panels as Array<MonitorPanel & { frame: Frame }>;
-  const values = useLatestValues(latestKeys(panels), true);
   const extent = useMemo(() => canvasExtent(panels.map((panel) => panel.frame)), [panels]);
   const surface = useRef<HTMLDivElement>(null);
   const [arranging, setArranging] = useState(false);
@@ -67,7 +62,7 @@ export function Canvas({ workspace, editing, selected, onSelect, empty }: {
     ({ ...point, w: PANEL_SIZES[type][0], h: PANEL_SIZES[type][1] });
 
   return (
-    <LatestValuesContext.Provider value={values}>
+    <>
       <div role="region" aria-label="画布" className="relative min-h-0 flex-1 overflow-auto bg-surface-0"
         onPointerDown={(event) => {
           if (event.target === event.currentTarget || event.target === surface.current) onSelect(undefined);
@@ -130,7 +125,7 @@ export function Canvas({ workspace, editing, selected, onSelect, empty }: {
           </div>
         )}
       </div>
-    </LatestValuesContext.Provider>
+    </>
   );
 }
 
@@ -149,8 +144,6 @@ function CanvasItem({ panel, editing, selected, onSelect, onArrange, onMove, onR
   const [gesture, setGesture] = useState<Gesture>();
   const [preview, setPreview] = useState<Frame>();
   const frame = preview ?? panel.frame;
-  const Component = PANEL_COMPONENTS[panel.type];
-  const TypeIcon = PANEL_ICONS[panel.type];
   const bare = BARE_TYPES.has(panel.type);
   const title = panelTitle(panel);
 
@@ -196,12 +189,12 @@ function CanvasItem({ panel, editing, selected, onSelect, onArrange, onMove, onR
         {!bare && (
           <header className={cn("flex h-6 shrink-0 items-center gap-1.5 border-b border-line bg-surface-1 px-2 text-xs",
             editing && "cursor-move")} {...handlers("move")}>
-            <TypeIcon className="size-3.5 text-fg-3" />
+            <PuzzleIcon className="size-3.5 text-fg-3" />
             <span className="truncate font-medium text-fg">{title}</span>
           </header>
         )}
         <div className="relative min-h-0 flex-1">
-          <Component api={{ id: panel.id }} />
+          <PendingComponent type={panel.type} />
           {editing && (
             // While editing, the panel is moved and picked, not operated.
             <div aria-label={`移动 ${title}`} className="absolute inset-0 z-30 cursor-move" {...handlers("move")} />
@@ -231,6 +224,15 @@ function CanvasItem({ panel, editing, selected, onSelect, onArrange, onMove, onR
             {...handlers("resize")} />
         </>
       )}
+    </div>
+  );
+}
+
+/** Stands in for a panel while the host-computer components are being redesigned. */
+function PendingComponent({ type }: { type: PanelType }) {
+  return (
+    <div className="grid h-full place-items-center p-2 text-center text-2xs text-fg-3">
+      <span>组件「{PANEL_LABELS[type]}」待重新设计</span>
     </div>
   );
 }

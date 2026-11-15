@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { execFile, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { access, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -18,7 +18,6 @@ const resourcesRoot = resolve(dirname(executablePath), "resources");
 const bundledOpenCode = resolve(resourcesRoot, "opencode/opencode.exe");
 const packagedResources = resolve(resourcesRoot, "third-party");
 // The .tsdev device packages released with this build (devices/pack.py --all).
-const devicePackagesDir = resolve(process.env.TESTSTAND_SMOKE_DEVICE_PACKAGES ?? resolve(workspaceDir, "../devices/dist"));
 
 const userDataDir = await mkdtemp(join(tmpdir(), "teststand-packaged-smoke-"));
 const projectName = "packaged-smoke 中文 项目";
@@ -72,7 +71,6 @@ try {
   await mkdir(dirname(agentReportPath), { recursive: true });
   await writeFile(agentReportPath, JSON.stringify(agentReport, null, 2) + "\n");
   await verifyAgentUi(page);
-  await verifyDevicePackages(application, page);
   assert.deepEqual(rendererErrors, [], `Renderer errors during first launch:\n${rendererErrors.join("\n")}`);
   const firstSidecarPid = await waitForSidecar(baselinePids);
   launchedSidecarPids.add(firstSidecarPid);
@@ -90,7 +88,6 @@ try {
   await page.getByText(projectName, { exact: true }).first().click();
   await poll(async () => (await page.evaluate(() => window.teststand.agents.openCodeStatus())).state === "running", 30_000);
   await verifyAgentUi(page);
-  await verifyPendingRemovalApplied(page);
   assert.deepEqual(rendererErrors, [], `Renderer errors during automatic restart launch:\n${rendererErrors.join("\n")}`);
   const secondSidecarPid = await waitForSidecar(new Set([...baselinePids, firstSidecarPid]));
   launchedSidecarPids.add(secondSidecarPid);
@@ -170,66 +167,6 @@ async function verifyAgentUi(page) {
   await page.getByRole("dialog", { name: "会话历史" }).waitFor();
   await page.getByRole("button", { name: "关闭会话抽屉", exact: true }).evaluate((button) => button.click());
   await page.getByRole("dialog", { name: "会话历史" }).waitFor({ state: "hidden" });
-}
-
-/**
- * A release ships no drivers: every device is added from its device package. Add PCI-1762 the
- * user's way (+ → 添加设备…, native file dialog answered), the others through the API, all on
- * the bench's real cards; call a tool on PCI-1762 and on PCI-6208V (isolated child of the
- * frozen backend). Closing testStand drives every output back to its safe value.
- * Removing the last PCI-1762 removes its package at the next start.
- */
-async function verifyDevicePackages(application, page) {
-  const files = (await readdir(devicePackagesDir)).filter((name) => name.endsWith(".tsdev")).sort();
-  for (const type of ["pci1710l", "pci1762", "pci6208v", "cp118u_i"]) {
-    assert.ok(files.some((name) => name.startsWith(`${type}-`)), `Missing device package for ${type} in ${devicePackagesDir}`);
-  }
-  assert.deepEqual((await page.evaluate(() => window.teststand.system.dashboard())).devices, []);
-
-  const relay = resolve(devicePackagesDir, files.find((name) => name.startsWith("pci1762-")));
-  await application.evaluate(({ dialog }, path) => {
-    dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [path] });
-  }, relay);
-  const click = (locator) => locator.evaluate((element) => element.click());
-  await click(page.getByRole("tab", { name: "测试台架", exact: true }));
-  await page.getByRole("button", { name: "添加", exact: true }).click();
-  await page.getByRole("menuitem", { name: "添加设备…" }).click();
-  const confirm = page.getByRole("dialog", { name: "添加设备" });
-  await confirm.getByText("Advantech PCI-1762", { exact: true }).waitFor();
-  await confirm.getByText("Advantech DAQNavi", { exact: true }).waitFor();
-  await click(confirm.getByRole("button", { name: "添加", exact: true }));
-  await confirm.waitFor({ state: "hidden" });
-  await page.getByRole("tabpanel", { name: "设备列表" }).getByRole("button", { name: /PCI-1762/ }).waitFor();
-
-  for (const name of files.filter((item) => !item.startsWith("pci1762-"))) {
-    const bytes = [...await readFile(resolve(devicePackagesDir, name))];
-    const result = await page.evaluate(async (data) => {
-      const bytes = new Uint8Array(data);
-      const report = await window.teststand.devices.inspectPackage({ data: bytes });
-      if (report.problems.length) throw new Error(report.problems.join("; "));
-      return window.teststand.devices.addDevice({ data: bytes, label: "" });
-    }, bytes);
-    assert.equal(result.restartRequired, false, `${name} should be usable at once`);
-    assert.equal(result.status.transport.state, "online", `${name}: ${JSON.stringify(result.status.transport)}`);
-  }
-
-  const calls = { PCI1762: ["pci1762_set_relay", { channel: 0, closed: true }],
-    PCI6208V: ["pci6208v_set_voltage", { channel: 0, volts: 1.25 }] };
-  for (const [deviceId, [tool, args]] of Object.entries(calls)) {
-    const call = await page.evaluate(({ deviceId, tool, args }) => window.teststand.devices.callTool({
-      name: `${deviceId}__${tool}`, args: { hardwareId: `${deviceId}_CARD`, ...args } }), { deviceId, tool, args });
-    assert.ok(JSON.stringify(call).includes(String(Object.values(args).at(-1))), `${deviceId}: ${JSON.stringify(call)}`);
-  }
-  await page.evaluate(() => window.teststand.devices.removeDevice({ deviceId: "PCI1762" }));
-}
-
-async function verifyPendingRemovalApplied(page) {
-  const installed = JSON.parse(await readFile(join(userDataDir, "plugins", "installed.json"), "utf8"));
-  assert.deepEqual(Object.keys(installed.types).sort(), ["cp118u_i", "pci1710l", "pci6208v"]);
-  const relay = resolve(devicePackagesDir, (await readdir(devicePackagesDir)).find((name) => name.startsWith("pci1762-")));
-  const report = await page.evaluate((data) => window.teststand.devices.inspectPackage({ data: new Uint8Array(data) }),
-    [...await readFile(relay)]);
-  assert.equal(report.action, "install");
 }
 
 function startProcessAudit() {

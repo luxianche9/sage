@@ -186,7 +186,6 @@ def _operation_semantics(tool: Record) -> Record:
         return clone(declared)
     annotations = tool.get("annotations", {})
     name = str(tool.get("remoteName", ""))
-    known_hh_tool = name.startswith(("pci1710l_", "pci1762_", "pci6208v_", "cp118u_"))
     read_only = bool(annotations.get("readOnlyHint"))
     idempotent = bool(annotations.get("idempotentHint"))
     if name.startswith(("get_", "list_")) or any(token in name for token in ("_read_", "_get_")):
@@ -205,19 +204,7 @@ def _operation_semantics(tool: Record) -> Record:
     )
     requirements: list[str] = []
     effects: list[str] = []
-    if name == "pci1710l_configure_ai":
-        effects = ["analog_input_configured"]
-    elif name == "pci1710l_read_voltage":
-        requirements = ["analog_input_configured"]
-    elif name == "cp118u_configure_port":
-        effects = ["serial_port_configured"]
-    elif name.startswith("cp118u_") and name != "cp118u_configure_port":
-        requirements = ["serial_port_configured"]
     safety: Record | None = None
-    if name == "pci6208v_set_voltage":
-        safety = {"toolName": "pci6208v_safe_state", "arguments": {}}
-    elif name in {"pci1762_set_relay", "pci1762_set_bank"}:
-        safety = {"toolName": "pci1762_safe_state", "arguments": {}}
     evidence_type = (
         evidence
         if isinstance(evidence, str)
@@ -236,6 +223,6 @@ def _operation_semantics(tool: Record) -> Record:
         "stateEffects": effects,
         "evidenceType": evidence_type,
         "outcomeOnInvalidResponse": "unknown",
-        "trusted": bool(metadata) or known_hh_tool,
+        "trusted": bool(metadata),
         **({"safetyAction": safety} if safety else {}),
     }

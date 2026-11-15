@@ -22,7 +22,6 @@ import {
 import { useLiveKeepalive, useMonitorTime } from "./monitor-time.js";
 import { Canvas } from "./Canvas.js";
 import { MonitorContext, MonitorTimeContext, type MonitorStaticContextValue, type SelectedFrame } from "./panel-kit.js";
-import { PanelProperties } from "./panels/InspectorPanel.js";
 import { TimebaseControls } from "./TimebaseControls.js";
 import type { BenchRun } from "./use-bench-run.js";
 import { useManualControl } from "./use-manual-control.js";
@@ -204,7 +203,7 @@ export function MonitorPane({ bench, toolbar }: {
                   </IconButton>
                 )} />
                 <div className="min-h-0 flex-1 overflow-y-auto">
-                  <PanelProperties panel={selectedPanel} />
+                  <p className="p-3 text-xs text-fg-3">「{selectedPanel.title || selectedPanel.type}」的属性待组件重新设计后提供。</p>
                 </div>
               </aside>
             )}
