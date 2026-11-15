@@ -1,21 +1,39 @@
 import { useEffect, useState } from "react";
 
+/** One 1×1 canvas reads every colour back; a canvas per call (45 a second from a live scope) piled up
+ *  hundreds of MB of canvas buffers in the renderer until it crashed. */
+let probe: CanvasRenderingContext2D | null | undefined;
+const resolved = new Map<string, string>();
+const RESOLVED_CAP = 512;
+
 /**
  * Resolves a CSS colour (often oklch, or `var(--tf-*)`) to an rgba string for canvas-based widgets
- * (uPlot, xterm).
+ * (uPlot, xterm). Results are cached by colour and alpha; a theme switch changes the token values, so
+ * it gets fresh entries.
  */
 export function resolveColor(value: string, alpha = 1): string {
   const token = /^var\((--[\w-]+)\)$/.exec(value.trim())?.[1];
   if (token) return tokenColor(token, alpha);
-  const canvas = document.createElement("canvas");
-  canvas.width = 1;
-  canvas.height = 1;
-  const context = canvas.getContext("2d", { willReadFrequently: true });
-  if (!context) return value;
-  context.fillStyle = value;
-  context.fillRect(0, 0, 1, 1);
-  const [red, green, blue, opacity] = context.getImageData(0, 0, 1, 1).data;
-  return `rgba(${red}, ${green}, ${blue}, ${((opacity ?? 255) / 255) * alpha})`;
+  const key = `${value}|${alpha}`;
+  const cached = resolved.get(key);
+  if (cached) return cached;
+  if (probe === undefined) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1;
+    canvas.height = 1;
+    probe = canvas.getContext("2d", { willReadFrequently: true });
+  }
+  if (!probe) return value;
+  probe.clearRect(0, 0, 1, 1);
+  // An invalid colour leaves fillStyle as it was: start from black, as a fresh canvas would.
+  probe.fillStyle = "#000";
+  probe.fillStyle = value;
+  probe.fillRect(0, 0, 1, 1);
+  const [red, green, blue, opacity] = probe.getImageData(0, 0, 1, 1).data;
+  const rgba = `rgba(${red}, ${green}, ${blue}, ${((opacity ?? 255) / 255) * alpha})`;
+  if (resolved.size >= RESOLVED_CAP) resolved.clear();
+  resolved.set(key, rgba);
+  return rgba;
 }
 
 /**

@@ -10,27 +10,10 @@ import { useMonitorStreams, useProjectDocument } from "../../lib/queries.js";
 import { queryKeys } from "../../lib/query-keys.js";
 import { newControlPanelId, requestControl } from "./control-requests.js";
 
-/** Drag payload of a device stream in the devices panel: `{hardwareId, streamId}` as JSON. */
-const STREAM_MIME = "application/x-teststand-stream";
-/** The stream's type rides in the MIME type itself: a drop target can read it while dragging. */
-const STREAM_TYPE_MIME = "application/x-teststand-stream-type-";
 /** Drag payload of a component from the component bar: the panel type. */
 export const PANEL_MIME = "application/x-teststand-panel";
 
-/** Starts dragging a stream (from the devices panel or the data-source tree). */
-export function startStreamDrag(data: DataTransfer, ref: StreamRef, type: string): void {
-  data.setData(STREAM_MIME, JSON.stringify(ref));
-  data.setData(`${STREAM_TYPE_MIME}${type.toLowerCase()}`, type);
-  data.effectAllowed = "copy";
-}
-
-/** The type of the stream being dragged ("" when it did not say); undefined when no stream is. */
-export function draggedStreamType(types: readonly string[]): string | undefined {
-  if (!types.includes(STREAM_MIME)) return undefined;
-  return types.find((item) => item.startsWith(STREAM_TYPE_MIME))?.slice(STREAM_TYPE_MIME.length) ?? "";
-}
-
-/** The panel last focused in the workspace, where + puts a stream. */
+/** The panel last focused in the workspace, where a preset control goes. */
 let focusedPanelId: string | undefined;
 export function setFocusedPanel(id: string | undefined): void {
   focusedPanelId = id;
@@ -40,17 +23,6 @@ const EMPTY: Monitor = { panels: [] };
 
 export function streamKey(ref: StreamRef): string {
   return `${ref.hardwareId}__${ref.streamId}`;
-}
-
-export function readDraggedStream(data: DataTransfer): StreamRef | undefined {
-  try {
-    const value = JSON.parse(data.getData(STREAM_MIME)) as Partial<StreamRef>;
-    return typeof value.hardwareId === "string" && typeof value.streamId === "string"
-      ? { hardwareId: value.hardwareId, streamId: value.streamId }
-      : undefined;
-  } catch {
-    return undefined;
-  }
 }
 
 /** What the panels need of a stream the device declares; live frames carry the rest. */
@@ -111,7 +83,7 @@ export function panelTitle(panel: Pick<MonitorPanel, "type" | "title">): string 
 
 /**
  * The project's monitor canvas — its panels (each with its frame), the streams every device offers, and the
- * edits the canvas makes (add, move or remove a panel, drop a stream on one). Edits go to the project buffer,
+ * edits the canvas makes (add, move or remove a panel, bind its signals). Edits go to the project buffer,
  * like the Agent's.
  */
 export function useMonitorWorkspace(timeline: RunTimeline | undefined) {
@@ -172,19 +144,6 @@ export function useMonitorWorkspace(timeline: RunTimeline | undefined) {
 
   const addTo = useCallback((panelId: string, ref: StreamRef) =>
     save({ operations: [{ op: "addSources", panelId, sources: [ref] }] }), [save]);
-  /**
-   * Puts a stream on the panel last focused when it draws the stream, else on the first panel that
-   * does; never creates a panel. Returns the panel's title, or undefined when none can show it.
-   */
-  const place = useCallback((ref: StreamRef): string | undefined => {
-    const type = declared.get(streamKey(ref))?.type;
-    const focused = monitor.panels.find((panel) => panel.id === focusedPanelId);
-    const target = focused && panelDraws(focused.type, type) ? focused
-      : monitor.panels.find((panel) => panelDraws(panel.type, type));
-    if (!target) return undefined;
-    addTo(target.id, ref);
-    return panelTitle(target);
-  }, [declared, monitor.panels, addTo]);
   const removeFrom = useCallback((panelId: string, ref: StreamRef) =>
     save({ operations: [{ op: "removeSources", panelId, sources: [ref] }] }), [save]);
   const addPanel = useCallback((type: PanelType, sources: StreamRef[] = [], frame?: Frame, id?: string,
@@ -246,7 +205,6 @@ export function useMonitorWorkspace(timeline: RunTimeline | undefined) {
     streams: [...infos.values()],
     streamsOf,
     typeOf,
-    place,
     addTo,
     removeFrom,
     addPanel,

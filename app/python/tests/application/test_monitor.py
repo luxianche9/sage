@@ -293,7 +293,7 @@ async def test_panels_sit_where_they_are_put_and_new_ones_take_a_free_spot(
     )
     assert [panel["frame"] for panel in result["panels"]] == [
         moved,
-        {"x": 8, "y": 0, "w": 5, "h": 4},
+        {"x": 8, "y": 0, "w": 5, "h": 2},
     ]
     # A project of an earlier version has panels without frames: they are placed when read.
     projects.update_monitor(

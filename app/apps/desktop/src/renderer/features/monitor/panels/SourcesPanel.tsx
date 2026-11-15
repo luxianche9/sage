@@ -1,14 +1,14 @@
 import { useState } from "react";
 import {
-  ActivityIcon, BinaryIcon, ChevronDownIcon, ChevronRightIcon, DatabaseIcon, PlusIcon, TerminalIcon
+  ActivityIcon, BinaryIcon, ChevronDownIcon, ChevronRightIcon, DatabaseIcon, TerminalIcon
 } from "lucide-react";
-import type { DeviceStreams, StreamRef } from "@teststand/contracts/monitor";
-import { cn, IconButton, Input } from "../../../ui/index.js";
+import type { DeviceStreams } from "@teststand/contracts/monitor";
+import { cn, Input } from "../../../ui/index.js";
 import { valueAt } from "../../streams/measure.js";
 import { formatNumber, pointMask } from "../../streams/stream-model.js";
 import { useStreamsPoints } from "../../streams/useStreamReader.js";
 import { PanelFrame, useMonitorStatic, usePanel, type PanelProps } from "../panel-kit.js";
-import { startStreamDrag, streamKey } from "../use-monitor-workspace.js";
+import { streamKey } from "../use-monitor-workspace.js";
 import { PanelEmpty } from "./common.js";
 
 function TypeIcon({ type }: { type: string }) {
@@ -20,18 +20,13 @@ function TypeIcon({ type }: { type: string }) {
 
 /** The newest value of each stream of an open device (sampled streams only). */
 function DeviceRows({ device, filter }: { device: DeviceStreams; filter: string }) {
-  const { workspace, source, notify } = useMonitorStatic();
+  const { workspace, source } = useMonitorStatic();
   const streams = device.streams.filter((stream) => !filter || stream.id.toLowerCase().includes(filter)
     || String(stream.label ?? "").toLowerCase().includes(filter));
   const sampled = streams.filter((stream) => ["scalar", "block", "bits"].includes(String(stream.type)));
   const points = useStreamsPoints(source, sampled.map((stream) => `${device.hardwareId}__${stream.id}`),
     { follow: true, spanMs: 2_000, range: undefined, width: 50 });
   const shown = new Set(workspace.channels.map(streamKey));
-  const add = (ref: StreamRef) => {
-    const target = workspace.place(ref);
-    if (target) notify.success(`${ref.streamId} 已加到「${target}」`);
-    else notify.error(`还没有能显示 ${ref.streamId} 的组件：先从组件栏拖一个进来`);
-  };
   return (
     <ul>
       {streams.map((stream) => {
@@ -41,9 +36,7 @@ function DeviceRows({ device, filter }: { device: DeviceStreams; filter: string 
           ? (pointMask(read?.at(-1)) !== undefined ? `0x${pointMask(read?.at(-1))!.toString(16).toUpperCase()}` : "")
           : formatNumber(valueAt(read, undefined) ?? null);
         return (
-          <li key={stream.id} draggable
-            onDragStart={(event) => startStreamDrag(event.dataTransfer, ref, String(stream.type))}
-            className="group/source flex h-5 cursor-grab items-center gap-1.5 pr-1 pl-6 hover:bg-surface-2">
+          <li key={stream.id} className="flex h-5 items-center gap-1.5 pr-1 pl-6 hover:bg-surface-2">
             <TypeIcon type={String(stream.type)} />
             <span className={cn("truncate font-mono", shown.has(streamKey(ref)) ? "text-fg" : "text-fg-2")}>
               {stream.id}
@@ -53,11 +46,6 @@ function DeviceRows({ device, filter }: { device: DeviceStreams; filter: string 
               {sampled.includes(stream) && value !== "—"
                 ? `${value}${typeof stream.unit === "string" ? ` ${stream.unit}` : ""}` : ""}
             </span>
-            <IconButton label={`加入 ${stream.id}`} size="icon-xs" variant="ghost"
-              className="opacity-0 group-hover/source:opacity-100 focus-visible:opacity-100"
-              onClick={() => add(ref)}>
-              <PlusIcon />
-            </IconButton>
           </li>
         );
       })}
@@ -66,8 +54,8 @@ function DeviceRows({ device, filter }: { device: DeviceStreams; filter: string 
 }
 
 /**
- * Every device and the streams it declares, with their newest values (PlotJuggler's signal tree):
- * drag a stream onto a panel that can show it, or + puts it on the panel last focused (or the first) that can.
+ * Every device and the streams it declares, with their newest values (PlotJuggler's signal tree). Read only:
+ * a panel's signals are picked in the property panel.
  */
 export function SourcesPanel({ api }: PanelProps) {
   const [{ workspace }, panel] = usePanel(api.id);

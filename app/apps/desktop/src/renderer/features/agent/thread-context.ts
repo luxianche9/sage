@@ -1,15 +1,11 @@
-import type { AssistantState, MessagePrimitive, ToolCallMessagePartComponent } from "@assistant-ui/react";
-import { createContext, type ComponentType, type PropsWithChildren, type ReactNode } from "react";
-
-type ThreadGroupPart = MessagePrimitive.GroupedParts.GroupPart;
+import type { AssistantState, ToolCallMessagePartComponent } from "@assistant-ui/react";
+import { createContext, type ComponentType, type ReactNode } from "react";
 
 export type ThreadComponents = {
   AssistantMessage?: ComponentType;
   Welcome?: ComponentType;
   Composer?: ReactNode;
   ToolFallback?: ToolCallMessagePartComponent;
-  ToolGroup?: ComponentType<PropsWithChildren<{ group: ThreadGroupPart }>>;
-  ReasoningGroup?: ComponentType<PropsWithChildren<{ group: ThreadGroupPart }>>;
 };
 
 export const EMPTY_COMPONENTS: ThreadComponents = {};

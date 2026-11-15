@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, type ReactNode } from "react";
 import type { MonitorPanel } from "@teststand/contracts/monitor";
 import type { StreamInfo } from "@teststand/contracts/observability";
 import { cn } from "../../ui/index.js";
@@ -8,9 +8,7 @@ import type { MonitorTime } from "./monitor-time.js";
 import type { TraceRow } from "./trace-model.js";
 import type { BenchRun } from "./use-bench-run.js";
 import type { ManualControl } from "./use-manual-control.js";
-import {
-  draggedStreamType, PANEL_LABELS, panelDraws, panelTitle, readDraggedStream, type MonitorWorkspace
-} from "./use-monitor-workspace.js";
+import type { MonitorWorkspace } from "./use-monitor-workspace.js";
 
 /** What the canvas hands each panel: its id (the project panel it draws). */
 export interface PanelProps {
@@ -80,81 +78,15 @@ export function useWindow() {
   };
 }
 
-const TYPE_NAMES: Record<string, string> = {
-  scalar: "数值", block: "采样", bits: "数字量", bytes: "串口", frames: "总线", events: "事件"
-};
-
-/**
- * The type of the stream being dragged anywhere in the window ("" when it did not say), or
- * undefined: panels light up where it can go while the drag lasts.
- */
-export function useStreamDrag(): string | undefined {
-  const [type, setType] = useState<string>();
-  useEffect(() => {
-    const start = (event: DragEvent) => setType(draggedStreamType([...(event.dataTransfer?.types ?? [])]));
-    const stop = () => setType(undefined);
-    window.addEventListener("dragstart", start, true);
-    window.addEventListener("dragend", stop, true);
-    window.addEventListener("drop", stop, true);
-    return () => {
-      window.removeEventListener("dragstart", start, true);
-      window.removeEventListener("dragend", stop, true);
-      window.removeEventListener("drop", stop, true);
-    };
-  }, []);
-  return type;
-}
-
-/**
- * A panel's body. While a stream is dragged it shows whether the stream can go here: panels that
- * draw its type are outlined (and say so under the pointer), the others are dimmed with the reason.
- * Only a panel that draws the stream takes the drop; nothing else does.
- */
+/** A panel's body. Signals are bound in the property panel, never dropped onto a panel. */
 export function PanelFrame({ panel, children, className }: {
   panel: MonitorPanel;
   children: ReactNode;
   className?: string;
 }) {
-  const { workspace } = useMonitorStatic();
-  const dragging = useStreamDrag();
-  const [over, setOver] = useState(false);
-  const takes = dragging !== undefined && panelDraws(panel.type, dragging || undefined);
-  const name = TYPE_NAMES[dragging ?? ""] ?? dragging;
   return (
-    <div
-      data-panel-id={panel.id}
-      className={cn("relative h-full min-h-0 min-w-0 bg-surface-0", className)}
-      onDragOver={(event) => {
-        if (!takes || draggedStreamType([...event.dataTransfer.types]) === undefined) return;
-        event.preventDefault();
-        event.stopPropagation();
-        event.dataTransfer.dropEffect = "copy";
-        setOver(true);
-      }}
-      onDragLeave={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOver(false);
-      }}
-      onDrop={(event) => {
-        setOver(false);
-        if (!takes) return;
-        const ref = readDraggedStream(event.dataTransfer);
-        if (!ref) return;
-        event.preventDefault();
-        event.stopPropagation();
-        workspace.addTo(panel.id, ref);
-      }}
-    >
+    <div data-panel-id={panel.id} className={cn("relative h-full min-h-0 min-w-0 bg-surface-0", className)}>
       {children}
-      {dragging !== undefined && (
-        <div aria-hidden className={cn("pointer-events-none absolute inset-0 z-20 grid place-items-center",
-          takes ? cn("border-2 border-dashed", over ? "border-pass bg-pass/10" : "border-pass/50")
-            : "bg-surface-0/75")}>
-          <span className={cn("rounded-sm px-2 py-1 text-xs shadow-overlay",
-            takes ? (over ? "bg-pass text-signal-fg" : "hidden") : "bg-surface-2 text-fg-3")}>
-            {takes ? `松开：加到「${panelTitle(panel)}」` : `${PANEL_LABELS[panel.type]}不能显示${name ? `${name}信号` : "这条信号"}`}
-          </span>
-        </div>
-      )}
     </div>
   );
 }

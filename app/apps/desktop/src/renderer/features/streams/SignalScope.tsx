@@ -31,7 +31,7 @@ const MAX_LAG_MS = 1_000;
 const SIGNALS_KEY = "teststand.scope.signal-list";
 
 /** The signal list is folded unless the operator opened it: the legend above the trace already names and
- *  toggles each signal, and signals are added from 变量. */
+ *  toggles each signal, and signals are picked in the property panel. */
 function storedOpen(): boolean {
   try {
     return globalThis.localStorage?.getItem(SIGNALS_KEY) === "true";

@@ -93,7 +93,7 @@ export function ComponentSidebar({ onAddPanel, onAddControl }: {
     <section aria-label="组件" className="flex h-full min-h-0 flex-col bg-surface-1">
       <PanelHeader title="组件" />
       <div className="min-h-0 flex-1 overflow-y-auto px-1.5 pb-2">
-        <p className="px-1.5 pt-1.5 text-2xs text-fg-3">拖到运行监控画布上的任意位置（或单击添加），再把变量拖到组件上</p>
+        <p className="px-1.5 pt-1.5 text-2xs text-fg-3">拖到运行监控画布上的任意位置（或单击添加），再在属性面板里选它的信号</p>
         <Heading>显示</Heading>
         {DISPLAY.map((group) => (
           <div key={group.label}>

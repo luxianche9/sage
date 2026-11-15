@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { useQueryClient } from "@tanstack/react-query";
 import { ReactFlowProvider, useEdgesState, useNodesState } from "@xyflow/react";
 import type { DeviceInstance, Hardware, ToolCatalogItem } from "@teststand/contracts/devices";
-import type { StreamRef } from "@teststand/contracts/monitor";
 import { PlusIcon, RefreshCwIcon, TriangleAlertIcon } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { resolvePortRef } from "../../lib/hardware.js";
@@ -21,10 +20,9 @@ import { HardwareEditor } from "../devices/editors/HardwareEditor.js";
 import { ComponentSidebar } from "../monitor/ComponentSidebar.js";
 import { MonitorPane } from "../monitor/MonitorPane.js";
 import { useBenchRun } from "../monitor/use-bench-run.js";
-import { streamKey, useMonitorWorkspace } from "../monitor/use-monitor-workspace.js";
+import { useMonitorWorkspace } from "../monitor/use-monitor-workspace.js";
 import { RunHistory } from "../testing/RunHistory.js";
 import { TestPanel } from "../testing/TestPanel.js";
-import { VariablesSidebar } from "../variables/VariablesSidebar.js";
 import { EditPinsModal, ListCreateConnectionModal } from "../wiring/ConnectionEditor.js";
 import { PinList } from "../wiring/PinList.js";
 import {
@@ -141,7 +139,6 @@ function Bench({ panel, view, onView }: {
   const connections = useMemo(() => wiring?.connections ?? [], [wiring?.connections]);
   const online = useMemo(() => new Map((dashboard.data?.availability ?? [])
     .map((item) => [item.hardwareId, item.state === "available"])), [dashboard.data]);
-  const shown = useMemo(() => new Set(monitor.channels.map(streamKey)), [monitor.channels]);
   const placed = useMemo(() => new Set((wiring?.nodes ?? []).map((node) => node.hardwareId)), [wiring?.nodes]);
 
   const { movePort, resizeNode } = edits;
@@ -281,12 +278,6 @@ function Bench({ panel, view, onView }: {
       )}
     />
   );
-  const addStream = (ref: StreamRef) => {
-    onView("monitor");
-    const target = monitor.place(ref);
-    if (target) toast.success(`${ref.streamId} 已加到「${target}」`);
-    else toast.error(`运行监控里还没有能显示 ${ref.streamId} 的组件：先从「组件」里拖一个进来`);
-  };
   // `hidden` comes last: merged after a display class such as `flex`, it would lose.
   const panelClass = (side: SidePanel, className?: string) =>
     cn("min-h-0 min-w-0", className, panel !== side && "hidden");
@@ -305,20 +296,16 @@ function Bench({ panel, view, onView }: {
           <DeviceList
             header={devicesHeader}
             hardware={hardware}
-            shown={shown}
             placed={placed}
+            active={panel === "devices"}
             onOpen={(item) => openInfo(item.hardwareId)}
             onControl={openControl}
-            onAddStream={addStream}
             footer={hardware.length > 0 && (
               <p className="shrink-0 border-t border-line px-3 py-1.5 text-2xs text-fg-3">
-                展开设备，把数据流拖到运行监控；把设备拖到端口连线画布上放置
+                展开设备看信号和实时值；把设备拖到端口连线画布上放置
               </p>
             )}
           />
-        </div>
-        <div id="bench-side-variables" className={panelClass("variables")}>
-          <VariablesSidebar active={panel === "variables"} onAddStream={addStream} />
         </div>
         <div id="bench-side-components" className={panelClass("components")}>
           <ComponentSidebar

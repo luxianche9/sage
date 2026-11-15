@@ -69,6 +69,17 @@
   .tf-num { font-family: var(--tf-font-mono); font-variant-numeric: tabular-nums; }
   .tf-drag { -webkit-app-region: drag; }
   .tf-no-drag { -webkit-app-region: no-drag; }
+  /* The canvas slider: a slim track filled to the value, a round thumb (host-computer style). */
+  .tf-hmi-range { appearance: none; height: 16px; background: transparent; cursor: pointer; }
+  .tf-hmi-range:disabled { cursor: not-allowed; }
+  .tf-hmi-range::-webkit-slider-runnable-track {
+    height: 4px; border-radius: 2px; background: var(--tf-surface-3); box-shadow: inset 0 0 0 1px var(--tf-line-strong);
+  }
+  .tf-hmi-range::-webkit-slider-thumb {
+    appearance: none; width: 12px; height: 12px; margin-top: -4px; border-radius: 50%;
+    background: var(--tf-signal); border: 2px solid var(--tf-surface-1); box-shadow: 0 0 0 1px var(--tf-signal);
+  }
+  .tf-hmi-range:focus-visible { outline: 2px solid var(--tf-signal); outline-offset: 1px; }
 }
 
 body.resizing-col { cursor: col-resize; user-select: none; }

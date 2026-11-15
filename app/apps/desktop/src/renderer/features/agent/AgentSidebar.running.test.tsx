@@ -72,7 +72,6 @@ vi.mock("./OpenCodeComposer", () => ({
 vi.mock("./Thread", () => ({ Thread: () => <div data-testid="thread" /> }));
 vi.mock("./ThreadList", () => ({ ThreadList: () => null }));
 vi.mock("./OpenCodeDataPart", () => ({ OpenCodeDataPart: () => null }));
-vi.mock("./OpenCodeGroups", () => ({ OpenCodeReasoningGroup: () => null, OpenCodeToolGroup: () => null }));
 vi.mock("./tools/OpenCodeTools", () => ({ FallbackTool: () => null }));
 vi.mock("./tools/toolkit", () => ({ OpenCodeToolUIs: () => null }));
 

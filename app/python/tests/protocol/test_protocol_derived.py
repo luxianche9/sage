@@ -54,6 +54,7 @@ def test_derived_stream_catalogue() -> None:
     assert streams["dut.status"].stream_type == "frames"
     assert streams["dut.status.voltage"].stream_type == "scalar"
     assert (streams["dut.status.voltage"].unit, streams["dut.status.power"].unit) == ("V", "W")
+    assert streams["dut.status.selfTest"].flag and not streams["dut.status.selfTestRaw"].flag
     assert streams["dut.$unframed"].stream_type == "bytes"
     for alias in ("", "1dut", "a.b", "a-b"):
         with pytest.raises(AppError) as caught:
