@@ -10,7 +10,19 @@ resolution-markers = [
 
 [manifest]
 members = [
+    "teststand-adapter-art-pxi2355l",
+    "teststand-adapter-art-pxi2604",
     "teststand-adapter-comm-link",
+    "teststand-adapter-cp118u-i",
+    "teststand-adapter-htlt-lvdt8",
+    "teststand-adapter-jcxd-da6401",
+    "teststand-adapter-jcxd-mads3210",
+    "teststand-adapter-jcxd-rsx8",
+    "teststand-adapter-jcxd-sds48",
+    "teststand-adapter-lj-co8",
+    "teststand-adapter-pci1710l",
+    "teststand-adapter-pci1762",
+    "teststand-adapter-pci6208v",
     "teststand-device-sdk",
     "teststand-devices",
 ]
@@ -389,9 +401,141 @@ wheels = [
 ]
 
 [[package]]
+name = "teststand-adapter-art-pxi2355l"
+version = "1.0.0"
+source = { editable = "adapters/art_pxi2355l" }
+dependencies = [
+    { name = "teststand-device-sdk" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "teststand-device-sdk", editable = "sdk" }]
+
+[[package]]
+name = "teststand-adapter-art-pxi2604"
+version = "1.0.0"
+source = { editable = "adapters/art_pxi2604" }
+dependencies = [
+    { name = "teststand-device-sdk" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "teststand-device-sdk", editable = "sdk" }]
+
+[[package]]
 name = "teststand-adapter-comm-link"
 version = "1.0.0"
 source = { editable = "adapters/comm_link" }
+dependencies = [
+    { name = "teststand-device-sdk" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "teststand-device-sdk", editable = "sdk" }]
+
+[[package]]
+name = "teststand-adapter-cp118u-i"
+version = "0.2.0"
+source = { editable = "adapters/cp118u_i" }
+dependencies = [
+    { name = "teststand-device-sdk" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "teststand-device-sdk", editable = "sdk" }]
+
+[[package]]
+name = "teststand-adapter-htlt-lvdt8"
+version = "1.0.0"
+source = { editable = "adapters/htlt_lvdt8" }
+dependencies = [
+    { name = "teststand-device-sdk" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "teststand-device-sdk", editable = "sdk" }]
+
+[[package]]
+name = "teststand-adapter-jcxd-da6401"
+version = "1.0.0"
+source = { editable = "adapters/jcxd_da6401" }
+dependencies = [
+    { name = "teststand-device-sdk" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "teststand-device-sdk", editable = "sdk" }]
+
+[[package]]
+name = "teststand-adapter-jcxd-mads3210"
+version = "1.0.2"
+source = { editable = "adapters/jcxd_mads3210" }
+dependencies = [
+    { name = "teststand-device-sdk" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "teststand-device-sdk", editable = "sdk" }]
+
+[[package]]
+name = "teststand-adapter-jcxd-rsx8"
+version = "1.0.0"
+source = { editable = "adapters/jcxd_rsx8" }
+dependencies = [
+    { name = "teststand-device-sdk" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "teststand-device-sdk", editable = "sdk" }]
+
+[[package]]
+name = "teststand-adapter-jcxd-sds48"
+version = "1.0.0"
+source = { editable = "adapters/jcxd_sds48" }
+dependencies = [
+    { name = "teststand-device-sdk" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "teststand-device-sdk", editable = "sdk" }]
+
+[[package]]
+name = "teststand-adapter-lj-co8"
+version = "1.0.0"
+source = { editable = "adapters/lj_co8" }
+dependencies = [
+    { name = "teststand-device-sdk" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "teststand-device-sdk", editable = "sdk" }]
+
+[[package]]
+name = "teststand-adapter-pci1710l"
+version = "0.2.0"
+source = { editable = "adapters/pci1710l" }
+dependencies = [
+    { name = "teststand-device-sdk" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "teststand-device-sdk", editable = "sdk" }]
+
+[[package]]
+name = "teststand-adapter-pci1762"
+version = "0.2.0"
+source = { editable = "adapters/pci1762" }
+dependencies = [
+    { name = "teststand-device-sdk" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "teststand-device-sdk", editable = "sdk" }]
+
+[[package]]
+name = "teststand-adapter-pci6208v"
+version = "0.2.0"
+source = { editable = "adapters/pci6208v" }
 dependencies = [
     { name = "teststand-device-sdk" },
 ]
@@ -428,7 +572,19 @@ name = "teststand-devices"
 version = "0"
 source = { virtual = "." }
 dependencies = [
+    { name = "teststand-adapter-art-pxi2355l" },
+    { name = "teststand-adapter-art-pxi2604" },
     { name = "teststand-adapter-comm-link" },
+    { name = "teststand-adapter-cp118u-i" },
+    { name = "teststand-adapter-htlt-lvdt8" },
+    { name = "teststand-adapter-jcxd-da6401" },
+    { name = "teststand-adapter-jcxd-mads3210" },
+    { name = "teststand-adapter-jcxd-rsx8" },
+    { name = "teststand-adapter-jcxd-sds48" },
+    { name = "teststand-adapter-lj-co8" },
+    { name = "teststand-adapter-pci1710l" },
+    { name = "teststand-adapter-pci1762" },
+    { name = "teststand-adapter-pci6208v" },
     { name = "teststand-device-sdk" },
 ]
 
@@ -441,7 +597,19 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "teststand-adapter-art-pxi2355l", editable = "adapters/art_pxi2355l" },
+    { name = "teststand-adapter-art-pxi2604", editable = "adapters/art_pxi2604" },
     { name = "teststand-adapter-comm-link", editable = "adapters/comm_link" },
+    { name = "teststand-adapter-cp118u-i", editable = "adapters/cp118u_i" },
+    { name = "teststand-adapter-htlt-lvdt8", editable = "adapters/htlt_lvdt8" },
+    { name = "teststand-adapter-jcxd-da6401", editable = "adapters/jcxd_da6401" },
+    { name = "teststand-adapter-jcxd-mads3210", editable = "adapters/jcxd_mads3210" },
+    { name = "teststand-adapter-jcxd-rsx8", editable = "adapters/jcxd_rsx8" },
+    { name = "teststand-adapter-jcxd-sds48", editable = "adapters/jcxd_sds48" },
+    { name = "teststand-adapter-lj-co8", editable = "adapters/lj_co8" },
+    { name = "teststand-adapter-pci1710l", editable = "adapters/pci1710l" },
+    { name = "teststand-adapter-pci1762", editable = "adapters/pci1762" },
+    { name = "teststand-adapter-pci6208v", editable = "adapters/pci6208v" },
     { name = "teststand-device-sdk", editable = "sdk" },
 ]
 
