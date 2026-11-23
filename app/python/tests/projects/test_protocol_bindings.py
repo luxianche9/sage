@@ -67,8 +67,10 @@ def test_bindings_list_their_field_streams_on_the_source_hardware(tmp_path: Path
         "message": "status",
         "field": "voltage",
     }
-    assert streams["dut.status.selfTest"]["flag"] is True and "flag" not in streams["dut.status.voltage"]
-    assert "dut.status" not in streams and "dut.$errors" not in streams  # followed by name only
+    assert streams["dut.status.selfTest"]["flag"] is True
+    assert "flag" not in streams["dut.status.voltage"]
+    # Message and error streams are followed by name only.
+    assert "dut.status" not in streams and "dut.$errors" not in streams
     assert protocols.streams("other") == []
     assert protocols.derived("dev", "dut.status") is not None
     assert protocols.derived("dev", "rx") is None

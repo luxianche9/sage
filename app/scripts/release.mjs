@@ -1,7 +1,7 @@
 // Build a testStand release into <repository>/release/<version>/ (outside app/dist, which every
 // build cleans):
 //   testStand-<version>-windows-x64.exe   the installer (NSIS, unsigned)
-//   devices/<type>-<version>.tsdev         one device package per adapter in devices/adapters
+//   devices/<type>-<version>.tsdev         one device package per plugin folder under plugin/
 //   SHA256SUMS.txt, RELEASE.md
 // Steps: version check, frozen backend + desktop + installer, device packages (tests, --check,
 // wheel), then the packaged smoke test against the unpacked app and those device packages.
@@ -30,7 +30,7 @@ await rm(release, { recursive: true, force: true });
 await mkdir(resolve(release, "devices"), { recursive: true });
 
 run("pnpm", ["package:win"], { cwd: workspace });
-run("uv", ["run", "--project", "devices", "python", "devices/pack.py", "--all", "--out", resolve(release, "devices")],
+run("uv", ["run", "--project", "plugin", "python", "plugin/tools/pack.py", "--all", "--out", resolve(release, "devices")],
   { cwd: repository });
 run("node", ["scripts/smoke-packaged.mjs"], {
   cwd: resolve(workspace, "apps/desktop"),

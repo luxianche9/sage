@@ -18,8 +18,8 @@
 
 ## 新增设备
 
-新设备不需要重新安装 testStand：按 `skill/device-plugin` 写适配器，用
-`python devices/pack.py <adapter>` 生成 `.tsdev`，用“添加设备…”添加即可。
+新设备不需要重新安装 testStand：按 `plugin/tools/skill/device-plugin` 写适配器，用
+`python plugin/tools/pack.py <adapter>` 生成 `.tsdev`，用“添加设备…”添加即可。
 驱动升级在重启 testStand 后生效。
 
 ## 变更

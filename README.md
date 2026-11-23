@@ -15,10 +15,10 @@ Electron 桌面应用（app/apps/desktop）
 Python 后端（app/python，teststand_backend）
   HTTP API │ Agent MCP 网关（127.0.0.1:8000）
   设备清单 · 计划 · 运行 · 判定 · 报告 · OpenCode Agent 进程管理
-  设备宿主：加载设备插件（devices/sdk + devices/adapters/*），进程内或隔离子进程
+  设备宿主：加载设备插件（sdk + plugin/*），进程内或隔离子进程
 ```
 
-详细设计见 [doc/技术架构说明.md](doc/技术架构说明.md)。
+详细设计见 [docs/技术架构说明.md](docs/技术架构说明.md)。
 
 ## 目录
 
@@ -28,11 +28,11 @@ Python 后端（app/python，teststand_backend）
 | `app/packages/contracts` | 前后端共享的 TypeScript 契约 |
 | `app/python` | Python 后端 `teststand_backend`（uv 管理） |
 | `app/scripts` | 构建、校验、发布脚本 |
-| `devices/sdk` | 设备插件 SDK `teststand_device_sdk` |
-| `devices/adapters` | 设备适配器：目前只有通用通信链路 `comm_link`（串口/TCP/UDP）；485 转 USB、USB 转 DShot 等新硬件适配待添加 |
-| `devices/pack.py` | 生成 `.tsdev` 设备包 |
+| `sdk` | 设备插件 SDK `teststand_device_sdk` |
+| `plugin` | 设备适配器：目前只有通用通信链路 `comm_link`（串口/TCP/UDP）；485 转 USB、USB 转 DShot 等新硬件适配待添加 |
+| `plugin/tools/pack.py` | 生成 `.tsdev` 设备包 |
 | `skill/` | 编写设备插件等的 Agent 技能 |
-| `doc/` | 设计文档、调研 |
+| `docs/` | 设计文档、调研 |
 | `demo/` | 无被测对象时的演示：虚拟被测件（TCP）与配套 ICD |
 
 ## 环境要求
@@ -96,4 +96,4 @@ cd devices
 python pack.py --all     # 测试 + 检查 + 打包 -> dist/*.tsdev
 ```
 
-编写新的设备适配器见 [devices/README.md](devices/README.md) 和 [skill/device-plugin](skill/device-plugin/SKILL.md)。
+编写新的设备适配器见 [plugin/README.md](plugin/README.md) 和 [plugin/tools/skill/device-plugin](plugin/tools/skill/device-plugin/SKILL.md)。

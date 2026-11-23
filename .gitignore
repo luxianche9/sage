@@ -24,8 +24,8 @@ test-results/
 build/
 .import_linter_cache/
 
-# DAQNavi bridges built by devices/native/build.py
-devices/adapters/*/src/*/bin/
+# Bridges built by plugin/tools/native/*.py and vendor DLLs copied in by hand
+plugin/*/src/*/bin/
 
 # Release output of app/scripts/release.mjs
 /release/

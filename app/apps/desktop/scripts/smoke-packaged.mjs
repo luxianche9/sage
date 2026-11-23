@@ -17,7 +17,7 @@ const executablePath = resolve(process.env.TESTSTAND_SMOKE_EXECUTABLE ?? resolve
 const resourcesRoot = resolve(dirname(executablePath), "resources");
 const bundledOpenCode = resolve(resourcesRoot, "opencode/opencode.exe");
 const packagedResources = resolve(resourcesRoot, "third-party");
-// The .tsdev device packages released with this build (devices/pack.py --all).
+// The .tsdev device packages released with this build (plugin/tools/pack.py --all).
 
 const userDataDir = await mkdtemp(join(tmpdir(), "teststand-packaged-smoke-"));
 const projectName = "packaged-smoke 中文 项目";

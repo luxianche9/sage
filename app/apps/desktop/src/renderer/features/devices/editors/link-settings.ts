@@ -1,4 +1,4 @@
-/** Settings of a `comm_link` device (devices/adapters/comm_link): which link it makes when it opens. */
+/** Settings of a `comm_link` device (plugin/comm_link): which link it makes when it opens. */
 
 export const LINK_TYPE = "comm_link";
 

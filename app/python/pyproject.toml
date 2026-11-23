@@ -23,8 +23,8 @@ dependencies = [
 [project.entry-points."teststand.result_listeners"]
 
 [tool.uv.sources]
-teststand-device-sdk = { path = "../../devices/sdk", editable = true }
-teststand-adapter-comm-link = { path = "../../devices/adapters/comm_link", editable = true }
+teststand-device-sdk = { path = "../../sdk", editable = true }
+teststand-adapter-comm-link = { path = "../../plugin/comm_link", editable = true }
 
 [build-system]
 requires = ["hatchling"]

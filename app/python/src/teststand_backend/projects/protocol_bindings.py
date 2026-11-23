@@ -75,8 +75,8 @@ class ProjectProtocols:
 
     def streams(self, hardware_id: str) -> list[Record]:
         """The field streams the bindings derive on ``hardware_id``, like declared streams
-        (``{id, type, label?, unit?, flag?, derived}``). Message and error streams are left out: they
-        are followed by name, not shown as signals."""
+        (``{id, type, label?, unit?, flag?, derived}``). Message and error streams are left out:
+        they are followed by name, not shown as signals."""
         return [
             {
                 "id": stream.stream_id,
