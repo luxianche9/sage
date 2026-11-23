@@ -27,6 +27,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent  # plugin/tools
 ADAPTERS = HERE.parent  # plugin/: one folder per plugin
 SDK = "sage-device-sdk"
+# Third-party wheels come through the same PyPI mirror as uv (plugin/pyproject.toml).
+PYPI_MIRROR = "https://mirrors.aliyun.com/pypi/simple/"
 GROUP = "sage.devices"
 
 
@@ -68,7 +70,7 @@ def third_party_wheels(requirements: list[str], target: Path) -> None:
     """Wheels (no source builds) for the adapter's own dependencies and theirs, for the backend's Python."""
     if not requirements:
         return
-    run(["uv", "run", "--with", "pip", "python", "-m", "pip", "download", "--only-binary=:all:",
+    run(["uv", "run", "--with", "pip", "python", "-m", "pip", "download", "--index-url", PYPI_MIRROR, "--only-binary=:all:",
          "--python-version", "3.11", "--platform", "win_amd64", "--implementation", "cp",
          "--dest", str(target), *requirements])
     for wheel in target.glob("sage_device_sdk-*.whl"):

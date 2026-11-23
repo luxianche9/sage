@@ -56,3 +56,7 @@ python native/build_x86.py                # 修改桥接源码后重建 bin/hwcl
 ```
 
 交付给 SAGE 用设备包：`python plugin/tools/pack.py lj_co8` 生成 `plugin/dist/lj_co8-<版本>.sagedev`；在 SAGE 测试台架点“+ → 添加设备…”选这个文件，先以模拟模式添加验证，再编辑为实物做空载验收。
+
+## 实机验证状态
+
+未验证：还没在真实硬件上跑过（2026-11）。验证后写明在哪台电脑、哪个提交、用什么接线验证过；规则见 `docs/decisions/0004-多机工作流.md`。

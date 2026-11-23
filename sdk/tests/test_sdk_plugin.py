@@ -27,8 +27,9 @@ from sdk_demo import DemoDevice
 
 def test_installed_types_come_from_entry_points():
     types = device_types()
-    assert "comm_link" in types
-    assert load_device("comm_link").isolation == "inproc"
+    assert {"demo", "demo_isolated"} <= set(types)
+    assert load_device("demo").isolation == "inproc"
+    assert load_device("demo_isolated").isolation == "subprocess"
     assert load_device("sdk_demo:DemoDevice") is DemoDevice
 
 

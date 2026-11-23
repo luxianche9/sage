@@ -2,6 +2,29 @@
 
 ## 未发布
 
+（暂无）
+
+## 0.3.0 (尚未发布)
+
+### 重构（2026-11-23）：改名 SAGE，平台与设备插件分开交付
+
+**破坏性变化，0.2.0 的数据和设备包都不能直接用：**
+
+- **产品改名为 SAGE**（原名与 NI TestStand 撞名）：程序标识 `com.sage.desktop`，用户数据目录 `%APPDATA%\SAGE`（不会自动搬旧目录），凭据服务名 `SAGE`，安装包 `SAGE-<版本>-windows-x64.exe`。
+- 设备包扩展名 `.tsdev` → **`.sagedev`**，硬件定义 `.tshw` → **`.sagehw`**，工程标记文件夹改为 **`.sage`**。插件入口点组改为 `sage.devices`，配置段 `[tool.sage.package]`，SDK 包名 `sage-device-sdk`（模块 `sage_device_sdk`），插件包名 `sage-plugin-<名>`。旧设备包需要用新版重新打包。
+- **安装包不再带任何设备**，包括通用链路 `comm_link`：每种设备单独交付一个 `.sagedev`。`pnpm release` 只出平台安装包。
+- **删除 `comm_link` 的专用"连接方式"表单**：它的设置在编辑设备的"高级设置"里以 JSON 填写。
+- **运行监控的面板组件删除，组件库重做中**：示波器、总线跟踪、终端、数字量、数值表、仪表、状态字、XY 图、控制面板等暂不可用；整页画布、变量、协议编辑保留。
+
+**仓库与开发（不影响用户）：**
+
+- 目录：平台 `app/`，设备 SDK `sdk/`（附只用于测试的演示插件 `sdk/demo_plugin`），设备插件 `plugin/<名>/` 一个文件夹一个（自带说明书和桥接程序），共用工具 `plugin/tools/`。恢复 12 个板卡插件（研华、MOXA、阿尔泰、JCXD、LVDT、电容板）。
+- 依赖方向 `app -> sdk <- plugin`，由新检查 `pnpm check:boundaries` 强制；平台测试改用演示插件。
+- 依赖下载全部走国内镜像（npmmirror、阿里云 PyPI）。
+- 新增 `scripts/verify.ps1`（全仓检查）、`CLAUDE.md`、`docs/decisions/`、`docs/status.md`。
+
+### 其他变化
+
 - **协议绑定移到项目级，字段成为常驻变量**：`project.json` 新增 `protocols: [{icd, alias, source}]`，把 ICD 绑到设备的原始字节 / 报文流上；每个数值字段 `<alias>.<报文>.<字段>` 就是源设备上的一条数据流，运行监控能直接显示（以前只能在测试运行时解出，监控只能在总线跟踪里看解码表）。测试计划不再自带 `protocolBindings`，统一使用项目的绑定，执行指纹随绑定变化。
 - **活动栏新增「变量」面板**（第二项）：按设备列出全部变量及实时值；字节流旁「解析协议」选一份 ICD（可当场新建 / 编辑）并起别名，解出的字段挂在原始流下面，可拖到运行监控。
 - 新操作 `protocols.list` / `protocols.update`、`streams.latest`（各流最新一条记录，不等待）；Agent 工具 `list_protocol_bindings`、`update_protocol_bindings`（操作员确认后生效）、`read_stream_values`。`list_device_streams`、`monitor.streams` 包含协议字段（带 `derived` 来源）。

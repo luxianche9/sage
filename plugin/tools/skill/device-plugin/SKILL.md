@@ -23,9 +23,9 @@ description: Create, extend, review and troubleshoot SAGE device plugins built o
 1. **读资料**。从手册或 SDK 头文件整理：型号与厂商原文、通道数与编号起点、每个操作的参数（类型、范围、单位）、返回值含义、上电和安全状态、错误码、连接器引脚表。区分"控制器状态"（寄存器、驱动接受的值）和"测量值"，这决定 `evidence`。同时确认驱动会不会往 stdout 打印、会不会崩溃拖垮宿主进程，这决定 `isolation`（第 5 步）。
 2. **生成骨架**（在仓库根目录）：
    ```powershell
-   uv run --project devices python plugin/tools/skill/device-plugin/scripts/new_device.py <adapter> --prefix <prefix> --model <MODEL> --manufacturer <Vendor>
+   uv run --project plugin python plugin/tools/skill/device-plugin/scripts/new_device.py <adapter> --prefix <prefix> --model <MODEL> --manufacturer <Vendor>
    ```
-   生成 `plugin/<adapter>/`，在它的 `pyproject.toml` 里声明入口点 `[project.entry-points."sage.devices"] <adapter> = "sage_plugin_<adapter>:DEVICE"`，并登记到 `devices/pyproject.toml` 的 uv 工作区。入口点名就是设备类型。骨架是一张数字 I/O 卡，开箱即通过合规检查，但带有若干 `TODO(new_device)`。
+   生成 `plugin/<adapter>/`，在它的 `pyproject.toml` 里声明入口点 `[project.entry-points."sage.devices"] <adapter> = "sage_plugin_<adapter>:DEVICE"`，并登记到 `plugin/pyproject.toml` 的 uv 工作区（之后在 `plugin/` 下 `uv sync`）。入口点名就是设备类型。骨架是一张数字 I/O 卡，开箱即通过合规检查，但带有若干 `TODO(new_device)`。
 3. **写驱动 `driver.py`**。只做厂商调用的类型化封装，返回原始返回码和数据，不做业务判断。写法见 `references/vendor-bindings.md`。
 4. **写模拟器 `sim.py`**。与驱动同接口，忠实模拟控制器状态（影子寄存器、配置门槛），输入读成空闲值（0 V、低电平、无 RX）。演示用的噪声、回环只能用环境变量开启。适配器单元测试和 `--check` 用 SDK 的 `dry_run` 让 `select_driver` 选它；SAGE 里的设备总是用真实驱动，没有模拟运行。
 5. **写适配器 `adapter.py`**。按 `references/sdk-api.md` 把每个操作写成 `@tool`：声明 `kind`、`requires`、`effects`、`evidence`、`safety_action`；每个参数用 `param()` 写清范围和单位；失败时抛 `DeviceError`，`details` 里带上部分效果。模板默认 `isolation = "subprocess"`（ctypes 调用出错只影响这台设备）；只有纯 Python / 标准库驱动才改成 `inproc`。

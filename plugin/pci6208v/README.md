@@ -26,3 +26,7 @@
 cd devices
 .\test.ps1 -Target pci6208v                 # pytest + dry-run 合规检查
 ```
+
+## 实机验证状态
+
+未验证：还没在真实硬件上跑过（2026-11）。验证后写明在哪台电脑、哪个提交、用什么接线验证过；规则见 `docs/decisions/0004-多机工作流.md`。

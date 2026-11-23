@@ -3,6 +3,7 @@
 //   2. Nothing in app/ depends on a product plugin package (sage_plugin_* / sage-plugin-*);
 //      the platform's tests use the SDK's demo plugin (sdk/demo_plugin) instead.
 //   3. Plugins and the SDK never reach into the platform (sage_backend, @sage/*).
+//   4. The SDK (tests included) never names a product plugin; it tests itself with sdk/demo_plugin.
 // Product plugins are the folders under plugin/ that have a pyproject.toml.
 import { readFile, readdir } from "node:fs/promises";
 import { relative, resolve, sep } from "node:path";
@@ -52,7 +53,11 @@ for await (const path of files(workspace)) {
 }
 for (const root of ["plugin", "sdk"]) {
   for await (const path of files(resolve(repository, root))) {
-    if (platform.test(await readFile(path, "utf8"))) report(path, "reaches into the platform (sage_backend / @sage/*)");
+    const content = await readFile(path, "utf8");
+    if (platform.test(content)) report(path, "reaches into the platform (sage_backend / @sage/*)");
+    if (root === "sdk" && (pluginPackage.test(content) || deviceType.test(content))) {
+      report(path, "the SDK names a product plugin; use the demo plugin (sdk/demo_plugin)");
+    }
   }
 }
 if (violations.length) throw new Error(`Plugin boundary violations:\n${violations.join("\n")}`);

@@ -55,3 +55,7 @@
 .\plugin\tools\test.ps1 -Target comm_link   # pytest（含本机 TCP/UDP 回环）+ 合规检查
 python plugin\tools\pack.py comm_link        # plugin\dist\comm_link-1.0.0.sagedev
 ```
+
+## 实机验证状态
+
+未验证：还没在真实硬件上跑过（2026-11）。验证后写明在哪台电脑、哪个提交、用什么接线验证过；规则见 `docs/decisions/0004-多机工作流.md`。

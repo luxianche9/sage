@@ -1,6 +1,6 @@
 [project]
 name = "sage-backend"
-version = "0.2.0"
+version = "0.3.0"
 description = "Python backend for the SAGE desktop"
 requires-python = ">=3.11,<3.12"
 dependencies = [

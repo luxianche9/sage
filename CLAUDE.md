@@ -34,7 +34,7 @@ SAGE 是单机测试台架软件：一台 Windows 电脑上，桌面程序管理
 ```powershell
 # 平台（在 app/ 下）
 pnpm install; pnpm python:setup   # 装依赖（走国内镜像，见规则 7）
-pnpm dev                          # 开发模式启动
+pnpm dev                          # 开发模式启动；设备类型列表里只有演示插件 demo / demo_isolated
 pnpm verify; pnpm verify:python; pnpm test:e2e
 
 # 插件（在 plugin/ 下）
@@ -45,6 +45,8 @@ uv run python tools\pack.py <插件名>          # -> plugin\dist\<名>-<版本>
 # 新插件
 python plugin\tools\skill\device-plugin\scripts\new_device.py <名> --prefix <前缀> --model <型号> --manufacturer <厂商>
 ```
+
+在开发模式里试一个真实插件：先在 `plugin/` 下打出它的 `.sagedev`，再在 SAGE 界面"+ → 添加设备…"选它（和客户的安装路径一样）。
 
 ## 三台电脑
 

@@ -31,3 +31,7 @@ cd devices
 ```
 
 真机模式使用 DAQNavi 桥接程序 `hwcli_pci1710l.exe`：源码在 `plugin/pci1710l/native/hwcli_pci1710l.cpp`，用 `python plugin/tools/native/build.py`（MinGW-w64 g++ + DAQNavi SDK 头文件）编译到本包的 `bin/` 下，适配器默认从那里启动；也可用 `settings.hwcliPath` 或环境变量 `PCI1710L_HWCLI_PATH` / `HWCLI_PATH` 指定。
+
+## 实机验证状态
+
+未验证：还没在真实硬件上跑过（2026-11）。验证后写明在哪台电脑、哪个提交、用什么接线验证过；规则见 `docs/decisions/0004-多机工作流.md`。

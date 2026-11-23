@@ -81,9 +81,9 @@ true. Simulation switches, all off by default so simulated inputs read idle valu
 ## Test locally
 
 ```powershell
-.\test.ps1                  # SDK tests, then every adapter's tests and dry-run compliance check
-.\test.ps1 -Target sdk
-.\test.ps1 -Target comm_link
+.\tools\test.ps1            # SDK tests, then every adapter's tests and dry-run compliance check
+.\tools\test.ps1 -Target sdk
+.\tools\test.ps1 -Target comm_link
 uv run python -m sage_device_sdk --adapter comm_link --check   # compliance only
 ```
 
