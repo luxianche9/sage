@@ -17,7 +17,7 @@
 | `0778ed2` | 解耦：平台只依赖 SDK；测试插件 `sdk/demo_plugin`；平台发布只含安装包 |
 | `39d796a` | `CLAUDE.md`、`docs/decisions/`、本交接单、`scripts/verify.ps1` |
 | `89ea297` | 依赖下载全部走国内镜像 |
-| （本次） | 按 Fable 5.2 审核修正：SDK 测试改用演示插件、边界检查覆盖 SDK、技能与 README 命令、版本升 0.3.0 与 CHANGELOG、插件 README 加"实机验证状态" |
+| `5250bf2` | 按 Fable 5.2 审核修正：SDK 测试改用演示插件、边界检查覆盖 SDK、技能与 README 命令、版本升 0.3.0 与 CHANGELOG、插件 README 加"实机验证状态" |
 
 检查结果（开发机，全新 clone）：前端 257 条测试（desktop 248 + contracts 9）、后端 759 条（覆盖率达标）、端到端 22 条、插件与 SDK 250 条（含合规检查）全部通过。
 
