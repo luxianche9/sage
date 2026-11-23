@@ -285,7 +285,7 @@ async def test_a_driver_the_environment_already_has_is_not_installed(
     tmp_path: Path, isolated: Any
 ) -> None:
     plugins = await store(tmp_path)
-    data = package(type="comm_link", wheels=[wheel(device_type="comm_link")])
+    data = package(type="demo", wheels=[wheel(device_type="demo")])
     report = plugins.inspect(data)
     assert report["problems"] == [] and report["action"] == "present"
     assert (await plugins.install(data))["action"] == "present"

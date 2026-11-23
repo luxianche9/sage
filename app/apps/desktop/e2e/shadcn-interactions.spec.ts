@@ -147,7 +147,7 @@ test.describe.serial("desktop controls preserve real keyboard and pointer intera
 
   test("submits the device editor with Enter", async () => {
     await page.evaluate(() => window.sage.devices.saveDevice({ input: {
-      deviceId: "KEYBOARD_DEV", label: "Keyboard device", hardwareId: "KEYBOARD_DEV_CARD", type: "comm_link",
+      deviceId: "KEYBOARD_DEV", label: "Keyboard device", hardwareId: "KEYBOARD_DEV_CARD", type: "demo",
       settings: {}, enabled: true
     } }));
     await showPanel(page, "设备管理");

@@ -196,7 +196,7 @@ def test_cli_check_runs_compliance_in_dry_run(capsys):
 
     assert main(["--adapter", "sdk_demo:DemoDevice", "--check", "--log-level", "warning"]) == 0
     report = json.loads(capsys.readouterr().out)
-    assert report | {"warnings": []} == {"adapter": "sdk_demo.DemoDevice", "ok": True, "failures": [], "warnings": []}
+    assert report | {"warnings": []} == {"adapter": "sage_plugin_demo.device.DemoDevice", "ok": True, "failures": [], "warnings": []}
 
 
 class SelfTestingDevice(DemoDevice):

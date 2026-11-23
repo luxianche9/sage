@@ -1,13 +1,12 @@
-// Build a SAGE release into <repository>/release/<version>/ (outside app/dist, which every
+// Build a SAGE platform release into <repository>/release/<version>/ (outside app/dist, which every
 // build cleans):
 //   SAGE-<version>-windows-x64.exe   the installer (NSIS, unsigned)
-//   devices/<type>-<version>.sagedev         one device package per plugin folder under plugin/
 //   SHA256SUMS.txt, RELEASE.md
-// Steps: version check, frozen backend + desktop + installer, device packages (tests, --check,
-// wheel), then the packaged smoke test against the unpacked app and those device packages.
+// Steps: version check, frozen backend + desktop + installer, then the packaged smoke test.
+// Device plugins are released on their own: python plugin/tools/pack.py <plugin> -> .sagedev.
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { copyFile, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { basename, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -27,20 +26,14 @@ const sha256 = async (path) => createHash("sha256").update(await readFile(path))
 
 run("node", ["scripts/check-version.mjs"], { cwd: workspace });
 await rm(release, { recursive: true, force: true });
-await mkdir(resolve(release, "devices"), { recursive: true });
+await mkdir(release, { recursive: true });
 
 run("pnpm", ["package:win"], { cwd: workspace });
-run("uv", ["run", "--project", "plugin", "python", "plugin/tools/pack.py", "--all", "--out", resolve(release, "devices")],
-  { cwd: repository });
-run("node", ["scripts/smoke-packaged.mjs"], {
-  cwd: resolve(workspace, "apps/desktop"),
-  env: { ...process.env, SAGE_SMOKE_DEVICE_PACKAGES: resolve(release, "devices") }
-});
+run("node", ["scripts/smoke-packaged.mjs"], { cwd: resolve(workspace, "apps/desktop") });
 
 const installer = `SAGE-${version}-windows-x64.exe`;
 await copyFile(resolve(dist, installer), resolve(release, installer));
-const packages = (await readdir(resolve(release, "devices"))).filter((name) => name.endsWith(".sagedev")).sort();
-const files = [installer, ...packages.map((name) => `devices/${name}`)];
+const files = [installer];
 const sums = await Promise.all(files.map(async (name) => `${await sha256(resolve(release, name))}  ${name}`));
 await writeFile(resolve(release, "SHA256SUMS.txt"), sums.join("\n") + "\n");
 
@@ -50,6 +43,5 @@ const notes = await readFile(resolve(workspace, "scripts/release-notes.md"), "ut
 await writeFile(resolve(release, "RELEASE.md"), notes
   .replaceAll("{{version}}", version)
   .replace("{{installer}}", installer)
-  .replace("{{packages}}", packages.map((name) => `- \`devices/${name}\``).join("\n"))
   .replace("{{changes}}", section ? section.slice(section.indexOf("\n") + 1).trim() : "（见 CHANGELOG.md）"));
 console.log(`\nRelease ${version} in ${release}:\n${files.map((name) => `  ${basename(name)}`).join("\n")}`);

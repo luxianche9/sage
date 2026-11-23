@@ -945,6 +945,95 @@ wheels = [
 ]
 
 [[package]]
+name = "sage-backend"
+version = "0.2.0"
+source = { editable = "." }
+dependencies = [
+    { name = "ada-url" },
+    { name = "anyio" },
+    { name = "httpx" },
+    { name = "jsonschema" },
+    { name = "keyring" },
+    { name = "mcp" },
+    { name = "packaging" },
+    { name = "pydantic" },
+    { name = "ruamel-yaml" },
+    { name = "sage-device-sdk" },
+    { name = "starlette" },
+    { name = "uvicorn" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "import-linter" },
+    { name = "mypy" },
+    { name = "pyinstaller" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
+    { name = "sage-plugin-demo" },
+    { name = "types-jsonschema" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "ada-url", specifier = "==1.15.3" },
+    { name = "anyio", specifier = "==4.15.1" },
+    { name = "httpx", specifier = "==0.28.1" },
+    { name = "jsonschema", specifier = "==4.26.0" },
+    { name = "keyring", specifier = "==25.7.0" },
+    { name = "mcp", specifier = "==1.29.1" },
+    { name = "packaging", specifier = "==26.3" },
+    { name = "pydantic", specifier = "==2.13.5" },
+    { name = "ruamel-yaml", specifier = "==0.18.15" },
+    { name = "sage-device-sdk", editable = "../../sdk" },
+    { name = "starlette", specifier = "==1.6.0" },
+    { name = "uvicorn", specifier = "==0.52.4" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "import-linter", specifier = "==2.15" },
+    { name = "mypy" },
+    { name = "pyinstaller", specifier = "==6.22.2" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
+    { name = "sage-plugin-demo", editable = "../../sdk/demo_plugin" },
+    { name = "types-jsonschema" },
+]
+
+[[package]]
+name = "sage-device-sdk"
+version = "0.2.1"
+source = { editable = "../../sdk" }
+dependencies = [
+    { name = "pydantic" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "jsonschema", marker = "extra == 'test'", specifier = ">=4" },
+    { name = "pydantic", specifier = ">=2.11,<3" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=8" },
+    { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=0.23" },
+]
+provides-extras = ["test"]
+
+[[package]]
+name = "sage-plugin-demo"
+version = "1.0.0"
+source = { editable = "../../sdk/demo_plugin" }
+dependencies = [
+    { name = "sage-device-sdk" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "sage-device-sdk", specifier = ">=0.2,<0.3" }]
+
+[[package]]
 name = "secretstorage"
 version = "3.5.0"
 source = { registry = "https://pypi.org/simple" }
@@ -991,95 +1080,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/b5/b4/205b0d5241d934e8a
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c8/cb/6a6a47d5b464bd08695d254f3da6e7986cc70c9fa5d778eda57538edfe56/starlette-1.6.0-py3-none-any.whl", hash = "sha256:a86dd39d14bb45f85a3d18525215a9ef0cfd1f192ac793220e72598c90335f0c", size = 75969, upload-time = "2026-08-08T18:27:56.196Z" },
 ]
-
-[[package]]
-name = "sage-plugin-comm-link"
-version = "1.0.0"
-source = { editable = "../../plugin/comm_link" }
-dependencies = [
-    { name = "sage-device-sdk" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "sage-device-sdk", editable = "../../sdk" }]
-
-[[package]]
-name = "sage-backend"
-version = "0.2.0"
-source = { editable = "." }
-dependencies = [
-    { name = "ada-url" },
-    { name = "anyio" },
-    { name = "httpx" },
-    { name = "jsonschema" },
-    { name = "keyring" },
-    { name = "mcp" },
-    { name = "packaging" },
-    { name = "pydantic" },
-    { name = "ruamel-yaml" },
-    { name = "starlette" },
-    { name = "sage-device-sdk" },
-    { name = "uvicorn" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "import-linter" },
-    { name = "mypy" },
-    { name = "pyinstaller" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "pytest-cov" },
-    { name = "ruff" },
-    { name = "sage-plugin-comm-link" },
-    { name = "types-jsonschema" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "ada-url", specifier = "==1.15.3" },
-    { name = "anyio", specifier = "==4.15.1" },
-    { name = "httpx", specifier = "==0.28.1" },
-    { name = "jsonschema", specifier = "==4.26.0" },
-    { name = "keyring", specifier = "==25.7.0" },
-    { name = "mcp", specifier = "==1.29.1" },
-    { name = "packaging", specifier = "==26.3" },
-    { name = "pydantic", specifier = "==2.13.5" },
-    { name = "ruamel-yaml", specifier = "==0.18.15" },
-    { name = "starlette", specifier = "==1.6.0" },
-    { name = "sage-device-sdk", editable = "../../sdk" },
-    { name = "uvicorn", specifier = "==0.52.4" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "import-linter", specifier = "==2.15" },
-    { name = "mypy" },
-    { name = "pyinstaller", specifier = "==6.22.2" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "pytest-cov" },
-    { name = "ruff" },
-    { name = "sage-plugin-comm-link", editable = "../../plugin/comm_link" },
-    { name = "types-jsonschema" },
-]
-
-[[package]]
-name = "sage-device-sdk"
-version = "0.2.1"
-source = { editable = "../../sdk" }
-dependencies = [
-    { name = "pydantic" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "jsonschema", marker = "extra == 'test'", specifier = ">=4" },
-    { name = "pydantic", specifier = ">=2.11,<3" },
-    { name = "pytest", marker = "extra == 'test'", specifier = ">=8" },
-    { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=0.23" },
-]
-provides-extras = ["test"]
 
 [[package]]
 name = "tomli"

@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sage-plugin-demo"
+version = "1.0.0"
+description = "SAGE test plugin: the SDK demo device as an installable plugin, for the SDK and platform tests. Never shipped."
+requires-python = ">=3.11"
+dependencies = ["sage-device-sdk>=0.2,<0.3"]
+
+[project.entry-points."sage.devices"]
+demo = "sage_plugin_demo:PinnedDemo"
+demo_isolated = "sage_plugin_demo:IsolatedDemo"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+sage_plugin_demo = ["py.typed"]

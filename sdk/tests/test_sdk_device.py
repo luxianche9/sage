@@ -29,7 +29,7 @@ def test_device_declaration_shape(hh):
     assert list(document)[0] == "manifestRevision"
     assert document["contractRevision"] == CONTRACT_REVISION
     assert document["identity"] == {"deviceId": "DEMO1_MCP", "hardwareId": "DEMO1_1", "manufacturer": "Acme",
-                                    "model": "DEMO-1", "adapter": {"name": "sdk_demo", "version": "1.2.3"},
+                                    "model": "DEMO-1", "adapter": {"name": "sage_plugin_demo", "version": "1.2.3"},
                                     "sdkVersion": __version__, "dryRun": True}
     assert document["description"].startswith("Demo board")
     assert document["pinout"] is None

@@ -11,8 +11,8 @@ import { AddDeviceDialog } from "./AddDeviceDialog.js";
 const bytes = new Uint8Array([80, 75, 3, 4]);
 const report = (patch: Partial<DevicePackageInspection> = {}): DevicePackageInspection => ({
   manifest: {
-    formatVersion: 1, kind: "devicePlugin", type: "pci6208v", distribution: "sage-plugin-pci6208v",
-    version: "0.2.0", manufacturer: "ADLINK", model: "PCI-6208V", isolation: "subprocess", description: "8 AO",
+    formatVersion: 1, kind: "devicePlugin", type: "demo_isolated", distribution: "sage-plugin-demo",
+    version: "0.2.0", manufacturer: "Acme", model: "DEMO-1", isolation: "subprocess", description: "Demo board",
     sdk: ">=0.2,<0.3", vendorDrivers: ["ADLINK PCIS-DASK"], files: { "a.whl": "b".repeat(64) }
   },
   sha256: "c".repeat(64),
@@ -22,11 +22,11 @@ const report = (patch: Partial<DevicePackageInspection> = {}): DevicePackageInsp
   ...patch
 });
 const device = {
-  deviceId: "PCI6208V", label: "AO 卡", hardwareId: "PCI6208V_CARD", type: "pci6208v", settings: {},
+  deviceId: "DEMO1", label: "演示板", hardwareId: "DEMO1_HW", type: "demo_isolated", settings: {},
   enabled: true
 };
 const addDevice = vi.fn(async () => ({
-  device, status: { deviceId: "PCI6208V", transport: { state: "online" as const } }, restartRequired: false
+  device, status: { deviceId: "DEMO1", transport: { state: "online" as const } }, restartRequired: false
 }));
 const relaunch = vi.fn();
 
@@ -53,15 +53,15 @@ describe("adding a device from its device package", () => {
     const onAdded = vi.fn(async () => undefined);
     render(<AddDeviceDialog staged={{ data: bytes, report: report() }} onClose={onClose} onAdded={onAdded} />,
       { wrapper: Wrapper });
-    expect(screen.getByText("ADLINK PCI-6208V")).toBeTruthy();
+    expect(screen.getByText("Acme DEMO-1")).toBeTruthy();
     expect(screen.getByText("ADLINK PCIS-DASK")).toBeTruthy();
     expect(screen.queryByText(/类型/)).toBeNull();
     const name = screen.getByLabelText("名称");
-    expect((name as HTMLInputElement).value).toBe("PCI-6208V");
+    expect((name as HTMLInputElement).value).toBe("DEMO-1");
     await userEvent.clear(name);
-    await userEvent.type(name, "AO 卡");
+    await userEvent.type(name, "演示板");
     await userEvent.click(screen.getByRole("button", { name: "添加" }));
-    await waitFor(() => expect(addDevice).toHaveBeenCalledWith({ data: bytes, label: "AO 卡" }));
+    await waitFor(() => expect(addDevice).toHaveBeenCalledWith({ data: bytes, label: "演示板" }));
     expect(onAdded).toHaveBeenCalledOnce();
     expect(onClose).toHaveBeenCalledOnce();
   });
@@ -77,7 +77,7 @@ describe("adding a device from its device package", () => {
     unmount();
 
     addDevice.mockResolvedValueOnce({
-      device, status: { deviceId: "PCI6208V", transport: { state: "online" } }, restartRequired: true
+      device, status: { deviceId: "DEMO1", transport: { state: "online" } }, restartRequired: true
     });
     render(
       <AddDeviceDialog staged={{ data: bytes, report: report({ action: "upgrade", installedVersion: "0.1.0" }) }}

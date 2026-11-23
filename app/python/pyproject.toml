@@ -24,7 +24,7 @@ dependencies = [
 
 [tool.uv.sources]
 sage-device-sdk = { path = "../../sdk", editable = true }
-sage-plugin-comm-link = { path = "../../plugin/comm_link", editable = true }
+sage-plugin-demo = { path = "../../sdk/demo_plugin", editable = true }
 
 [build-system]
 requires = ["hatchling"]
@@ -34,10 +34,10 @@ build-backend = "hatchling.build"
 packages = ["src/sage_backend"]
 
 [dependency-groups]
-# Adapters are not part of SAGE: a release ships none and installs them as .sagedev device packages.
-# In development the generic link adapter is editable here so tests have one real plugin installed.
+# Device plugins are not part of SAGE: a release ships none and installs them as .sagedev device packages.
+# The platform never depends on a product plugin; its tests load the SDK's demo device (sdk/demo_plugin).
 dev = [
-  "sage-plugin-comm-link",
+  "sage-plugin-demo",
   "ruff",
   "mypy",
   "pytest",

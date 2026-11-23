@@ -6,7 +6,7 @@ requires-python = ">=3.11"
 dependencies = ["sage-device-sdk", "sage-plugin-pci6208v", "sage-plugin-pci1710l", "sage-plugin-pci1762", "sage-plugin-cp118u-i", "sage-plugin-jcxd-da6401", "sage-plugin-jcxd-mads3210", "sage-plugin-jcxd-sds48", "sage-plugin-art-pxi2355l", "sage-plugin-art-pxi2604", "sage-plugin-htlt-lvdt8", "sage-plugin-jcxd-rsx8", "sage-plugin-lj-co8", "sage-plugin-comm-link"]
 
 [dependency-groups]
-dev = ["pytest>=8", "pytest-asyncio>=0.23", "jsonschema>=4"]
+dev = ["pytest>=8", "pytest-asyncio>=0.23", "jsonschema>=4", "sage-plugin-demo"]
 
 [tool.uv]
 package = false
@@ -17,6 +17,8 @@ exclude = ["tools", "dist"]
 
 [tool.uv.sources]
 sage-device-sdk = { path = "../sdk", editable = true }
+# The SDK tests' demo device (sdk/demo_plugin), a test fixture only.
+sage-plugin-demo = { path = "../sdk/demo_plugin", editable = true }
 sage-plugin-pci6208v = { workspace = true }
 sage-plugin-pci1710l = { workspace = true }
 sage-plugin-pci1762 = { workspace = true }

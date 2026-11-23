@@ -46,7 +46,7 @@ test.describe.serial("monitor panel and pin list", () => {
       } });
       // A device without its card: registered, its streams not known until it connects.
       await window.sage.devices.saveDevice({ input: {
-        deviceId: "MON_RELAY", label: "继电器卡", hardwareId, type: "comm_link", settings: {}, enabled: true
+        deviceId: "MON_RELAY", label: "继电器卡", hardwareId, type: "demo", settings: {}, enabled: true
       } });
       await window.sage.wiring.updateDocument({ wiring: { nodes: [], connections: [{
         connectionId: "C1", portA: "DUT.J1", portB: "FIX.P1", pins: [{ a: "1", b: "1" }],

@@ -400,6 +400,23 @@ wheels = [
 ]
 
 [[package]]
+name = "sage-device-sdk"
+version = "0.2.1"
+source = { editable = "../sdk" }
+dependencies = [
+    { name = "pydantic" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "jsonschema", marker = "extra == 'test'", specifier = ">=4" },
+    { name = "pydantic", specifier = ">=2.11,<3" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=8" },
+    { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=0.23" },
+]
+provides-extras = ["test"]
+
+[[package]]
 name = "sage-plugin-art-pxi2355l"
 version = "1.0.0"
 source = { editable = "art_pxi2355l" }
@@ -442,6 +459,17 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [{ name = "sage-device-sdk", editable = "../sdk" }]
+
+[[package]]
+name = "sage-plugin-demo"
+version = "1.0.0"
+source = { editable = "../sdk/demo_plugin" }
+dependencies = [
+    { name = "sage-device-sdk" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "sage-device-sdk", specifier = ">=0.2,<0.3" }]
 
 [[package]]
 name = "sage-plugin-htlt-lvdt8"
@@ -543,27 +571,11 @@ dependencies = [
 requires-dist = [{ name = "sage-device-sdk", editable = "../sdk" }]
 
 [[package]]
-name = "sage-device-sdk"
-version = "0.2.1"
-source = { editable = "../sdk" }
-dependencies = [
-    { name = "pydantic" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "jsonschema", marker = "extra == 'test'", specifier = ">=4" },
-    { name = "pydantic", specifier = ">=2.11,<3" },
-    { name = "pytest", marker = "extra == 'test'", specifier = ">=8" },
-    { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=0.23" },
-]
-provides-extras = ["test"]
-
-[[package]]
 name = "sage-plugins"
 version = "0"
 source = { virtual = "." }
 dependencies = [
+    { name = "sage-device-sdk" },
     { name = "sage-plugin-art-pxi2355l" },
     { name = "sage-plugin-art-pxi2604" },
     { name = "sage-plugin-comm-link" },
@@ -577,7 +589,6 @@ dependencies = [
     { name = "sage-plugin-pci1710l" },
     { name = "sage-plugin-pci1762" },
     { name = "sage-plugin-pci6208v" },
-    { name = "sage-device-sdk" },
 ]
 
 [package.dev-dependencies]
@@ -585,10 +596,12 @@ dev = [
     { name = "jsonschema" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "sage-plugin-demo" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "sage-device-sdk", editable = "../sdk" },
     { name = "sage-plugin-art-pxi2355l", editable = "art_pxi2355l" },
     { name = "sage-plugin-art-pxi2604", editable = "art_pxi2604" },
     { name = "sage-plugin-comm-link", editable = "comm_link" },
@@ -602,7 +615,6 @@ requires-dist = [
     { name = "sage-plugin-pci1710l", editable = "pci1710l" },
     { name = "sage-plugin-pci1762", editable = "pci1762" },
     { name = "sage-plugin-pci6208v", editable = "pci6208v" },
-    { name = "sage-device-sdk", editable = "../sdk" },
 ]
 
 [package.metadata.requires-dev]
@@ -610,6 +622,7 @@ dev = [
     { name = "jsonschema", specifier = ">=4" },
     { name = "pytest", specifier = ">=8" },
     { name = "pytest-asyncio", specifier = ">=0.23" },
+    { name = "sage-plugin-demo", editable = "../sdk/demo_plugin" },
 ]
 
 [[package]]

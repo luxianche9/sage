@@ -17,7 +17,6 @@ const executablePath = resolve(process.env.SAGE_SMOKE_EXECUTABLE ?? resolve(work
 const resourcesRoot = resolve(dirname(executablePath), "resources");
 const bundledOpenCode = resolve(resourcesRoot, "opencode/opencode.exe");
 const packagedResources = resolve(resourcesRoot, "third-party");
-// The .sagedev device packages released with this build (plugin/tools/pack.py --all).
 
 const userDataDir = await mkdtemp(join(tmpdir(), "sage-packaged-smoke-"));
 const projectName = "packaged-smoke 中文 项目";
