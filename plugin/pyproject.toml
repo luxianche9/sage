@@ -10,6 +10,13 @@ dev = ["pytest>=8", "pytest-asyncio>=0.23", "jsonschema>=4", "sage-plugin-demo"]
 
 [tool.uv]
 package = false
+python-install-mirror = "https://registry.npmmirror.com/-/binary/python-build-standalone/"
+
+# Downloads go through mirrors in China (every machine of this project is there).
+[[tool.uv.index]]
+name = "aliyun"
+url = "https://mirrors.aliyun.com/pypi/simple/"
+default = true
 
 [tool.uv.workspace]
 members = ["*"]

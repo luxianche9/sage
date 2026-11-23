@@ -22,6 +22,15 @@ dependencies = [
 
 [project.entry-points."sage.result_listeners"]
 
+[tool.uv]
+python-install-mirror = "https://registry.npmmirror.com/-/binary/python-build-standalone/"
+
+# Downloads go through mirrors in China (every machine of this project is there).
+[[tool.uv.index]]
+name = "aliyun"
+url = "https://mirrors.aliyun.com/pypi/simple/"
+default = true
+
 [tool.uv.sources]
 sage-device-sdk = { path = "../../sdk", editable = true }
 sage-plugin-demo = { path = "../../sdk/demo_plugin", editable = true }

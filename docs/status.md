@@ -29,7 +29,7 @@
 
 ## 已知问题
 
-- **Electron 下载会失败**（`pnpm install` 时报 ECONNRESET）。`pnpm install` 一旦决定重建 `node_modules`，会删掉已下载的 Electron。开发机上的做法：`ELECTRON_SKIP_BINARY_DOWNLOAD=1 pnpm install --config.confirmModulesPurge=false`，再把同版本（36.9.5）的 `dist/` 和 `path.txt` 复制到 `app/node_modules/.pnpm/electron@36.9.5/node_modules/electron/`。工控机上要用镜像（如设置 `ELECTRON_MIRROR`）或离线包。
+- **依赖下载走国内镜像**（2026-11-23 起，配置在 `app/.npmrc` 和两个 `pyproject.toml`）。之前直连下载 Electron 报 ECONNRESET；如果镜像也失败，可以把同版本 Electron 的 `dist/` 和 `path.txt` 从另一份 `node_modules` 复制到 `app/node_modules/.pnpm/electron@<版本>/node_modules/electron/`，并用 `ELECTRON_SKIP_BINARY_DOWNLOAD=1` 跳过下载。
 - `pnpm install` 需要重建模块目录时会弹确认提示，非交互运行会卡住或中止；加 `--config.confirmModulesPurge=false`。
 - `control-requests.ts` 里"把控件拖到画布"的请求现在没有接收方（接收它的控制面板随组件一起删了），重做组件时接上或删掉。
 - `BenchPage.tsx` 里 `useMonitorWorkspace(undefined)` 的返回值没被使用，重做组件时确认是否还需要。

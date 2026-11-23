@@ -27,12 +27,13 @@ SAGE 是单机测试台架软件：一台 Windows 电脑上，桌面程序管理
 4. **测试电脑（工控机）上不在 `main` 上提交**：只 `git pull --ff-only`；修 bug 开 `fix/<机器>-…` 分支推上去，回开发机合并。
 5. **会让硬件动作的操作，结束时恢复安全状态**；设备都直接驱动真实硬件，实机测试的规则见 `docs/decisions/0004-多机工作流.md`。
 6. **每次工作结束更新 `docs/status.md`** 并提交，换会话、换电脑都靠它接上。
+7. **所有下载走中国镜像**（三台电脑都在国内）：npm、Electron、electron-builder 走 npmmirror（`app/.npmrc`），PyPI 走阿里云、uv 下载 Python 走 npmmirror（`app/python/pyproject.toml`、`plugin/pyproject.toml` 的 `[tool.uv]`）。清华源在开发机上连不上。新增会下载东西的工具时同样配镜像。
 
 ## 常用命令
 
 ```powershell
 # 平台（在 app/ 下）
-pnpm install; pnpm python:setup   # 装依赖；Electron 下载失败见 docs/status.md 的已知问题
+pnpm install; pnpm python:setup   # 装依赖（走国内镜像，见规则 7）
 pnpm dev                          # 开发模式启动
 pnpm verify; pnpm verify:python; pnpm test:e2e
 
