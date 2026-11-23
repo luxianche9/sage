@@ -60,8 +60,8 @@ export function RecoveryDialog({ open, onClose }: { open: boolean; onClose: () =
         size="lg"
       >
         <DialogBody className="grid gap-3">
-          <Field label="处理说明" hint="可选，会写入运行记录。">
-            <Input value={note} onChange={(event) => setNote(event.target.value)} />
+          <Field label="处理说明">
+            <Input placeholder="可选，写入运行记录" value={note} onChange={(event) => setNote(event.target.value)} />
           </Field>
           {error && <p className="text-xs text-fail">{error}</p>}
           {!list.length && <p className="text-xs text-fg-3">没有待处理的恢复项。</p>}

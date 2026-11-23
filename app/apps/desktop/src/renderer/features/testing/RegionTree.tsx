@@ -4,7 +4,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-
 import { CSS } from "@dnd-kit/utilities";
 import { ChevronDownIcon, ChevronRightIcon, CopyIcon, GripVerticalIcon, LayersIcon, Trash2Icon } from "lucide-react";
 import type { TestStep } from "@teststand/contracts/testing";
-import { Badge, Checkbox, cn, IconButton } from "../../ui";
+import { Badge, Checkbox, cn, HintIcon, IconButton } from "../../ui";
 import { containerTypes, regionLabels } from "./plan-helpers.js";
 import type { TestRegion } from "./plan-model.js";
 
@@ -39,7 +39,7 @@ export function RegionTree({ region, steps, actions }: {
     >
       <header className="flex h-8 items-center gap-2 border-b border-line px-3">
         <h2 className="tf-label text-fg-2">{regionLabels[region]}</h2>
-        {region === "cleanup" && <span className="truncate text-2xs text-fg-3">从上到下执行 · 系统安全动作随后执行</span>}
+        {region === "cleanup" && <HintIcon>从上到下执行，之后执行系统安全动作</HintIcon>}
         <Badge mono className="ml-auto">{steps.length}</Badge>
       </header>
       <SortableContext items={steps.map((step) => step.id)} strategy={verticalListSortingStrategy}>

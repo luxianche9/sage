@@ -1,10 +1,11 @@
 import { useEffect, useState, type ChangeEvent } from "react";
+import { CheckIcon } from "lucide-react";
 import type { Hardware } from "@teststand/contracts/devices";
 import type { PinPair, ProjectWiringConnection } from "@teststand/contracts/wiring";
 import { resolvePortRef } from "../../lib/hardware.js";
 import { Button, Dialog, DialogBody, DialogContent, DialogFooter, Select } from "../../ui/index.js";
 import { sortedPair, straightThrough } from "./wiring-model.js";
-import { ConnectionHead, DialogNote, FormAlert, PHYSICAL_NOTE, PinPairEditor } from "./PinPairEditor.js";
+import { ConnectionHead, FormAlert, PinPairEditor } from "./PinPairEditor.js";
 
 type CreateHandler = (portA: string, portB: string, pins: PinPair[]) => void;
 
@@ -95,9 +96,7 @@ export function ListCreateConnectionModal({ open, hardware, existing, onClose, o
             <PortPicker label="终点端口" value={portB} hardware={hardware} onChange={pick("b")} />
           </div>
           {ready && <PinPairEditor a={a} b={b} pins={pins} onChange={setPins} />}
-          {samePort && <DialogNote>同一端口接线仅在列表中显示。</DialogNote>}
           {invalidSamePort && <FormAlert>同一端口接线需要至少一对不同的针脚。</FormAlert>}
-          <DialogNote>{PHYSICAL_NOTE}</DialogNote>
           {duplicate && <FormAlert>这两个端口已经连接。</FormAlert>}
           {invalid && <FormAlert>每一对针脚的两端都要选定。</FormAlert>}
         </DialogBody>
@@ -108,7 +107,7 @@ export function ListCreateConnectionModal({ open, hardware, existing, onClose, o
             disabled={!ready || duplicate || invalid || invalidSamePort}
             onClick={() => onCreate(portA, portB, pins)}
           >
-            创建接线
+            <CheckIcon />记录为已接好
           </Button>
         </DialogFooter>
       </DialogContent>

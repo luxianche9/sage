@@ -3,11 +3,11 @@ import { ChevronRightIcon, CircleAlertIcon, CircleCheckIcon, InfoIcon } from "lu
 import { Button, Dialog, DialogBody, DialogContent, DialogFooter, PanelHeader, cn } from "../../ui";
 
 /** Title block of one settings page; the h1 is what e2e and screen readers land on. */
-export function SettingsHeader({ title, description }: { title: string; description: ReactNode }) {
+export function SettingsHeader({ title, description }: { title: string; description?: ReactNode }) {
   return (
     <header className="mb-5 grid gap-1.5 border-b border-line pb-4">
       <h1 className="text-lg leading-6 font-semibold tracking-tight text-fg">{title}</h1>
-      <p className="max-w-[68ch] text-sm leading-5 text-fg-2">{description}</p>
+      {description && <p className="max-w-[68ch] text-sm leading-5 text-fg-2">{description}</p>}
     </header>
   );
 }

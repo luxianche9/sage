@@ -39,12 +39,6 @@ export function FormAlert({ children }: { children: ReactNode }) {
   );
 }
 
-export function DialogNote({ children }: { children: ReactNode }) {
-  return <p className="mt-3 text-xs leading-5 text-fg-3">{children}</p>;
-}
-
-export const PHYSICAL_NOTE = "这里记录的是「线已经接好了」。要让操作员去接线，请通过 MCP 创建接线待办。";
-
 /** The editable grid of pin pairs between two resolved ports. Shared by every flow that creates
  *  or edits a cable: canvas drag, list create, and editing an existing connection's pins. */
 export function PinPairEditor({ a, b, pins, onChange }: {
@@ -84,7 +78,7 @@ export function PinPairEditor({ a, b, pins, onChange }: {
         >
           <PlusIcon />添加一对针脚
         </Button>
-        {!pins.length && <span className="text-xs text-fg-3">没有针脚对：记录为整根线缆的端口级连接。</span>}
+        {!pins.length && <span className="text-xs text-fg-2">整根线缆（端口对端口）</span>}
       </div>
     </div>
   );

@@ -66,6 +66,9 @@ describe("IcdEditorDialog", () => {
       valid: false, error: "ICD is invalid", issues: [{ path: "/framing", message: "unknown kind" }]
     });
     render(<IcdEditorDialog onClose={vi.fn()} />, { wrapper: Wrapper });
+    // A new protocol is checked once it has a name.
+    expect(screen.queryByRole("region", { name: "检查结果" })).toBeNull();
+    fireEvent.change(await screen.findByRole("textbox", { name: "协议名" }), { target: { value: "dut" } });
     const result = await screen.findByRole("region", { name: "检查结果" });
     await waitFor(() => expect(result.textContent).toContain("/framing：unknown kind"));
     expect((screen.getByRole("button", { name: "保存" }) as HTMLButtonElement).disabled).toBe(true);

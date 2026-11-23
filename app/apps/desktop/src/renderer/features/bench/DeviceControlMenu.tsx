@@ -47,7 +47,7 @@ export function DeviceControlMenu({ menu, label, actions, onPick, onSelfTest, on
         <button
           type="button"
           role="menuitem"
-          title="只读检查插件与板卡是否一致，不改变输出"
+          title="只读，不改变输出"
           className={cn(
             "flex h-7 w-full items-center gap-2 rounded-sm border-b border-line px-2 text-left text-sm text-fg",
             "outline-none transition-colors duration-120 hover:bg-surface-3 focus-visible:bg-surface-3"

@@ -27,10 +27,6 @@ export function EditorField({ label, required, span, error, hint, children }: {
 /** Two-column form grid used by every device editor dialog. */
 export const editorGrid = "grid grid-cols-2 gap-x-3 gap-y-3";
 
-export function EditorNote({ children }: { children: ReactNode }) {
-  return <p className="col-span-2 text-xs leading-5 text-fg-3">{children}</p>;
-}
-
 /** Framed block for the port editor inside an editor dialog. */
 export function EditorPanel({ children }: { children: ReactNode }) {
   return (

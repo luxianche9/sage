@@ -35,3 +35,24 @@ export function EmptyState({ icon, title, description, action, className, compac
     </div>
   );
 }
+
+/** An empty canvas: a dashed frame marking where things are dropped, with a short title and optional actions. */
+export function DropZone({ icon, title, children, className }: {
+  icon: React.ReactNode;
+  title: React.ReactNode;
+  children?: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn("pointer-events-none absolute inset-4 z-[1] grid place-items-center rounded-lg",
+      "border-2 border-dashed border-line-strong/70", className)}>
+      <div className="grid justify-items-center gap-3">
+        <div aria-hidden className="grid size-12 place-items-center rounded-full bg-surface-2 text-fg-3 [&_svg]:size-5">
+          {icon}
+        </div>
+        <p className="text-sm font-medium text-fg-2">{title}</p>
+        {children && <div className="pointer-events-auto flex items-center gap-2">{children}</div>}
+      </div>
+    </div>
+  );
+}

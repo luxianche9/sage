@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { useQueryClient } from "@tanstack/react-query";
 import { ReactFlowProvider, useEdgesState, useNodesState } from "@xyflow/react";
 import type { DeviceInstance, Hardware, ToolCatalogItem } from "@teststand/contracts/devices";
-import { PlusIcon, RefreshCwIcon, TriangleAlertIcon } from "lucide-react";
+import { HammerIcon, PlusIcon, RefreshCwIcon, TriangleAlertIcon } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { resolvePortRef } from "../../lib/hardware.js";
 import { invalidateDeviceData, invalidateWiringData } from "../../lib/mutations.js";
@@ -10,8 +10,8 @@ import { useDashboard } from "../../lib/queries.js";
 import { useResizableWidth } from "../../lib/resizable.js";
 import { onRunRequested } from "../../lib/run-focus.js";
 import {
-  IconButton, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger, PanelHeader, SegmentedControl, Spinner,
-  Splitter, ToolbarDivider, cn, useConfirm, useToast
+  EmptyState, IconButton, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger, PanelHeader, SegmentedControl,
+  Spinner, Splitter, ToolbarDivider, cn, useConfirm, useToast
 } from "../../ui/index.js";
 import { AddDeviceDialog, pickDevicePackage, type StagedPackage } from "../devices/AddDeviceDialog.js";
 import { importBundleFile } from "../devices/BundleActions.js";
@@ -299,17 +299,14 @@ function Bench({ panel, view, onView }: {
             active={panel === "devices"}
             onOpen={(item) => openInfo(item.hardwareId)}
             onControl={openControl}
-            footer={hardware.length > 0 && (
-              <p className="shrink-0 border-t border-line px-3 py-1.5 text-2xs text-fg-3">
-                展开设备看信号和实时值；把设备拖到端口连线画布上放置
-              </p>
-            )}
+            onAddDevice={() => void addDevice()}
+            onAddPart={() => setPartEditor({ open: true })}
           />
         </div>
         <div id="bench-side-components" className={panelClass("components")}>
           <section aria-label={SIDE_PANEL_LABELS.components} className="flex h-full flex-col bg-surface-1">
             <PanelHeader title={SIDE_PANEL_LABELS.components} />
-            <p className="p-3 text-xs text-fg-3">上位机组件正在重新设计。</p>
+            <EmptyState compact icon={<HammerIcon />} title="组件库重做中" />
           </section>
         </div>
         <div id="bench-side-log" className={panelClass("log")}><WiringLogPanel hardware={hardware} /></div>
@@ -345,9 +342,6 @@ function Bench({ panel, view, onView }: {
                 <span className="tf-num text-xs text-fg">{wiring.nodes.length}</span>
                 <span className="tf-label ml-2 text-fg-3">接线</span>
                 <span className="tf-num text-xs text-fg">{connections.length}</span>
-                <span className="ml-auto text-2xs whitespace-nowrap text-fg-3">
-                  从左侧拖设备上画布，再从端口拖线
-                </span>
               </span>
             </div>
           </div>

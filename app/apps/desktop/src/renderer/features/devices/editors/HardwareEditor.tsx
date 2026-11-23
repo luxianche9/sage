@@ -8,7 +8,7 @@ import { errorMessage } from "../../../lib/errors.js";
 import { Button, Dialog, DialogBody, DialogContent, DialogFooter, Input } from "../../../ui";
 import { PortEditor } from "../PortEditor.js";
 import { BundleActions } from "../BundleActions.js";
-import { EditorAlert, EditorField, EditorNote, EditorPanel, editorGrid } from "./EditorField.js";
+import { EditorAlert, EditorField, EditorPanel, editorGrid } from "./EditorField.js";
 
 const hardwareEditorSchema = z.object({
   hardwareId: z.string().trim().min(1, "请输入 hardwareId")
@@ -77,7 +77,6 @@ export function HardwareEditor({ open, hardware, onClose, onChanged }: {
             <EditorField label="显示名称" required error={errors.label?.message}>
               <Input {...register("label")} />
             </EditorField>
-            <EditorNote>被动硬件不由设备插件控制，只登记端口与针脚，用于接线列表。</EditorNote>
             <EditorPanel>
               <PortEditor ports={ports} onChange={setPorts} />
             </EditorPanel>

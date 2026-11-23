@@ -50,7 +50,7 @@ describe("TestPanel", () => {
     const requested = vi.fn();
     const stop = onRunRequested(requested);
     render(<Panel />, { wrapper: Wrapper });
-    expect(await screen.findByText("流程还没有步骤，点击「编辑」添加。")).toBeTruthy();
+    expect(await screen.findByRole("button", { name: "添加步骤" })).toBeTruthy();
     expect(api.testing.loadPlan).toHaveBeenCalledWith({ planId: "flow" });
     await userEvent.click(screen.getByRole("button", { name: "编辑" }));
     const dialog = await screen.findByRole("dialog");
@@ -134,7 +134,7 @@ describe("TestPanel", () => {
 
   it("protects a dirty draft when an AI flow revision arrives", async () => {
     render(<Panel />, { wrapper: Wrapper });
-    await screen.findByText("流程还没有步骤，点击「编辑」添加。");
+    await screen.findByRole("button", { name: "添加步骤" });
     await userEvent.click(screen.getByRole("button", { name: "编辑" }));
     const dialog = await screen.findByRole("dialog");
     await userEvent.click(within(dialog).getByRole("button", { name: /计划属性/ }));

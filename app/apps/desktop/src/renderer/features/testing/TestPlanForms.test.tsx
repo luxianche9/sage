@@ -59,7 +59,7 @@ describe("test plan schema forms", () => {
       references={references}
       onChange={onChange}
     />);
-    expect(screen.getByText("当前表达式超出可视编辑范围。需要重建时可使用下方按钮。")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /无法可视化编辑/ })).toBeTruthy();
     expect((screen.getByRole("textbox") as HTMLTextAreaElement).value).toBe("size(variables.values) > 0");
     expect(onChange).not.toHaveBeenCalled();
   });

@@ -14,7 +14,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { CableIcon } from "lucide-react";
-import { cn } from "../../ui/index.js";
+import { cn, DropZone } from "../../ui/index.js";
 import { wiringNodeTypes } from "./HardwareNode.js";
 import type { HardwareFlowNode, TopologyEdge } from "./wiring-model.js";
 
@@ -118,19 +118,7 @@ export function WiringCanvas({
         />
         <Controls position="bottom-right" showInteractive={false} />
       </ReactFlow>
-      {!nodes.length && (
-        <div
-          className="pointer-events-none absolute inset-0 z-[1] grid place-content-center justify-items-center gap-2"
-        >
-          <div className="grid size-10 place-items-center rounded-md border border-dashed border-line-strong text-fg-3">
-            <CableIcon className="size-4" />
-          </div>
-          <strong className="text-sm font-medium text-fg">把设备从左侧拖到画布</strong>
-          <span className="max-w-[300px] text-center text-xs text-fg-3">
-            放上画布后从端口拖线建立接线；接线和「针脚列表」里的是同一条。
-          </span>
-        </div>
-      )}
+      {!nodes.length && <DropZone icon={<CableIcon />} title="把左侧设备拖到这里，再从端口拖线" />}
     </div>
   );
 }

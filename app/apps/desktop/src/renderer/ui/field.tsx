@@ -1,6 +1,7 @@
 import * as React from "react";
 import { ChevronDownIcon } from "lucide-react";
 import { cn } from "./cn";
+import { HintIcon } from "./hint";
 
 const control = [
   "w-full min-w-0 rounded-md border border-line-strong bg-surface-0 text-sm text-fg outline-none",
@@ -48,7 +49,7 @@ export function Label({ className, ...props }: React.ComponentPropsWithoutRef<"l
   return <label className={cn("text-xs font-medium text-fg-2", className)} {...props} />;
 }
 
-/** Label + control + hint/error. The label is linked to the single child control. */
+/** Label (with an optional ⓘ hint) + control + error. The label is linked to the single child control. */
 export function Field({ label, required, error, hint, children, className, inline }: {
   label?: React.ReactNode;
   required?: boolean;
@@ -66,17 +67,16 @@ export function Field({ label, required, error, hint, children, className, inlin
   return (
     <div className={cn(inline ? "grid grid-cols-[96px_minmax(0,1fr)] items-center gap-2" : "grid gap-1", className)}>
       {label && (
-        <Label htmlFor={controlId}>
-          {label}
-          {required && <span className="ml-0.5 text-fail">*</span>}
-        </Label>
+        <span className="flex min-w-0 items-center gap-1">
+          <Label htmlFor={controlId}>
+            {label}
+            {required && <span className="ml-0.5 text-fail">*</span>}
+          </Label>
+          {hint && <HintIcon>{hint}</HintIcon>}
+        </span>
       )}
       {control}
-      {error ? (
-        <p className={cn("text-xs text-fail", inline && "col-start-2")}>{error}</p>
-      ) : hint ? (
-        <p className={cn("text-xs text-fg-3", inline && "col-start-2")}>{hint}</p>
-      ) : null}
+      {error && <p role="alert" className={cn("text-xs text-fail", inline && "col-start-2")}>{error}</p>}
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useIsMutating, useMutation, useQueryClient } from "@tanstack/react-query";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { EyeIcon, EyeOffIcon, LockIcon } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { useLlmSettings, useOpenCodeStatus } from "../../lib/queries.js";
 import { queryKeys } from "../../lib/query-keys.js";
@@ -67,16 +67,19 @@ export function ModelSettings() {
 
   return (
     <>
-      <SettingsHeader title="AI 模型" description="配置 OpenAI 兼容模型，并管理当前项目的内嵌 OpenCode。" />
+      <SettingsHeader title="AI 模型" />
       <div className="grid gap-4">
         {(error || queryError) && <Notice tone="fail">{error ?? errorMessage(queryError)}</Notice>}
         <form noValidate onSubmit={(event) => void submit(event)}>
           <SettingsCard
             title="模型接口"
-            actions={<Badge tone={keyConfigured ? "pass" : "neutral"}>{keyConfigured ? "密钥已配置" : "未配置密钥"}</Badge>}
+            actions={(
+              <Badge tone={keyConfigured ? "pass" : "neutral"} title="API Key 加密保存在本机">
+                {keyConfigured ? <><LockIcon className="size-3" />密钥已配置</> : "未配置密钥"}
+              </Badge>
+            )}
             footer={
               <>
-                <span className="text-xs text-fg-3">API Key 加密保存在本机，不会回显到界面。</span>
                 <span className="flex-1" />
                 {keyConfigured && <Button variant="danger" disabled={busy} onClick={clearKey}>清除密钥</Button>}
                 <Button type="submit" variant="primary" disabled={busy || !baseUrl.trim() || !model.trim()}>
@@ -92,11 +95,10 @@ export function ModelSettings() {
               <Field inline label="模型 ID" className={fieldRow} error={errors.model?.message}>
                 <Input className="font-mono text-xs" spellCheck={false} {...form.register("model")} />
               </Field>
-              <Field inline label="接口协议" className={fieldRow}
-                hint="大多数服务（DeepSeek、通义千问、Kimi、智谱、各类中转网关）用 Chat Completions；OpenAI 官方或工具调用参数异常时可改用 Responses。">
+              <Field inline label="接口协议" className={fieldRow}>
                 <Select {...form.register("api")}>
-                  <option value="chat">Chat Completions（OpenAI 兼容）</option>
-                  <option value="responses">Responses（OpenAI）</option>
+                  <option value="chat">Chat Completions（多数服务）</option>
+                  <option value="responses">Responses（OpenAI 官方）</option>
                 </Select>
               </Field>
               <Field inline label="API Key" className={fieldRow}>

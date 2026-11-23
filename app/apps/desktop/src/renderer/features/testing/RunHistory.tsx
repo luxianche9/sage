@@ -67,7 +67,7 @@ export function RunHistory({ selectedRunId, onOpenRun }: {
         {runs.isLoading && !items.length ? (
           <div className="grid min-h-24 place-items-center"><Spinner label="正在读取运行记录…" /></div>
         ) : !items.length ? (
-          <EmptyState compact title="没有运行记录" description="运行测试流程后，历史记录会出现在这里。" />
+          <EmptyState compact title="没有运行记录" />
         ) : (
           <ul aria-label="运行记录">
             {items.map((run) => (

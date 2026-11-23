@@ -3,7 +3,7 @@ import {
   ChevronDownIcon, ChevronRightIcon, CircleAlertIcon, CircleCheckIcon, CircleDashedIcon, CircleIcon,
   CircleMinusIcon, CircleStopIcon, CircleXIcon, LayersIcon, LoaderCircleIcon
 } from "lucide-react";
-import { Checkbox, cn } from "../../ui";
+import { AddSlot, Checkbox, cn } from "../../ui";
 import { regionLabels, regionOrder } from "./plan-helpers.js";
 import { durationText, flowChildren } from "./run-format.js";
 import type { ExecutionTrace, ExecutionTraceNode } from "./run-log-model.js";
@@ -47,7 +47,7 @@ export function PlanFlow({ trace, selectedStepId, typeLabel, selection, onSelect
   typeLabel: (type: string) => string;
   selection?: FeatureSelection | undefined;
   onSelect: (node: ExecutionTraceNode) => void;
-  onEdit: (stepId: string) => void;
+  onEdit: (stepId?: string) => void;
 }) {
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
   const toggle = (executionId: string) => setCollapsed((current) => {
@@ -78,7 +78,7 @@ export function PlanFlow({ trace, selectedStepId, typeLabel, selection, onSelect
   });
   const regions = regionOrder.filter((region) => trace.regions[region].length);
   if (!regions.length) {
-    return <p className="px-3 py-4 text-center text-xs text-fg-3">流程还没有步骤，点击「编辑」添加。</p>;
+    return <div className="p-3"><AddSlot onClick={() => onEdit()}>添加步骤</AddSlot></div>;
   }
   return (
     <ul role="tree" aria-label="测试流程" className="py-1">

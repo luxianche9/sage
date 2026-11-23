@@ -3,15 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 import type { Hardware } from "@teststand/contracts/devices";
 import type { ProtocolBindingState } from "@teststand/contracts/projects";
 import {
-  BinaryIcon, BoxIcon, CheckIcon, ChevronRightIcon, CpuIcon, FileCode2Icon, PencilIcon, PlusIcon, RotateCwIcon,
-  SlidersHorizontalIcon, Unlink2Icon
+  BinaryIcon, BoxIcon, CheckIcon, ChevronRightIcon, CpuIcon, FileCode2Icon, GripVerticalIcon, PencilIcon, PlusIcon,
+  RotateCwIcon, SlidersHorizontalIcon, Unlink2Icon
 } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { hardwareStatus } from "../../lib/hardware-status.js";
 import { useDashboard, useDevicePackages, useMonitorStreams } from "../../lib/queries.js";
 import { queryKeys } from "../../lib/query-keys.js";
 import {
-  Button, IconButton, Panel, PanelBody, StatusLamp, cn, useConfirm, useToast, type Tone
+  AddSlot, Button, IconButton, Panel, PanelBody, StatusLamp, cn, useConfirm, useToast, type Tone
 } from "../../ui/index.js";
 import { BindProtocolDialog } from "../protocols/BindProtocolDialog.js";
 import { IcdEditorDialog } from "../protocols/IcdEditorDialog.js";
@@ -49,16 +49,19 @@ type Binding = { hardwareId: string; streamId: string; streamType: string };
  * button. A row is dragged onto the 端口连线 canvas to place its card. Signals are put on 运行监控 widgets from
  * the widget's property panel.
  */
-export function DeviceList({ hardware, placed, header, footer, active, onOpen, onControl, ...props }: {
+export function DeviceList({
+  hardware, placed, header, active, onOpen, onControl, onAddDevice, onAddPart, ...props
+}: {
   hardware: Hardware[];
   /** Hardware already carded on the 端口连线 canvas. */
   placed: ReadonlySet<string>;
   header: ReactNode;
-  footer?: ReactNode;
   /** Shown: live values are polled only then. */
   active: boolean;
   onOpen: (hardware: Hardware) => void;
   onControl: (hardwareId: string, anchor: DOMRect) => void;
+  onAddDevice: () => void;
+  onAddPart: () => void;
   id?: string;
   role?: string;
 }) {
@@ -92,9 +95,9 @@ export function DeviceList({ hardware, placed, header, footer, active, onOpen, o
     return next;
   });
   const groups = [
-    { key: "managed", title: "设备", empty: "还没有设备。点上方「+」→「添加设备…」，选择设备的设备包（.tsdev）。",
+    { key: "managed", title: "设备", add: { label: "添加设备（.tsdev）", run: onAddDevice },
       items: hardware.filter((item) => item.kind === "managed") },
-    { key: "passive", title: "被测件 / 夹具", empty: "被测板、转接箱等不受控的硬件，登记端口和针脚用于接线。",
+    { key: "passive", title: "被测件 / 夹具", add: { label: "登记被测件 / 夹具", run: onAddPart },
       items: hardware.filter((item) => item.kind !== "managed") }
   ];
   return (
@@ -120,7 +123,9 @@ export function DeviceList({ hardware, placed, header, footer, active, onOpen, o
             <h3 className="tf-label flex h-6 items-center gap-1.5 px-3 text-fg-3">
               {group.title}<span className="tf-num">{group.items.length}</span>
             </h3>
-            {group.items.length === 0 && <p className="px-3 pb-2 text-xs leading-5 text-fg-3">{group.empty}</p>}
+            {group.items.length === 0 && (
+              <div className="px-3 pb-2"><AddSlot onClick={group.add.run}>{group.add.label}</AddSlot></div>
+            )}
             <ul className="grid grid-cols-[minmax(0,1fr)]">
               {group.items.map((item) => {
                 const status = statusOf(item);
@@ -140,10 +145,11 @@ export function DeviceList({ hardware, placed, header, footer, active, onOpen, o
                         type="button"
                         {...(managed ? { "aria-expanded": isOpen } : {})}
                         onClick={() => (managed ? toggle(item.hardwareId) : onOpen(item))}
-                        title={`${item.label}${placed.has(item.hardwareId) ? "（已在端口连线画布上）" : ""}：`
-                          + `${managed ? "单击展开 / 收起信号" : "单击查看信息"}，拖到端口连线画布上放置`}
-                        className={cn(rowClass, "min-w-0 flex-1 cursor-grab")}
+                        title={item.label}
+                        className={cn(rowClass, "relative min-w-0 flex-1 cursor-grab active:cursor-grabbing")}
                       >
+                        <GripVerticalIcon aria-hidden className={cn("absolute left-0 size-3 text-fg-3 opacity-0",
+                          "transition-opacity group-hover:opacity-100")} />
                         {/* Only shows whether the signals are open; the whole row toggles them. */}
                         {managed ? (
                           <ChevronRightIcon aria-hidden className={cn("size-3.5 shrink-0 text-fg-3",
@@ -188,7 +194,6 @@ export function DeviceList({ hardware, placed, header, footer, active, onOpen, o
         ))}
         <ProtocolFiles />
       </PanelBody>
-      {footer}
       {binding && <BindProtocolDialog {...binding} aliases={aliases} onClose={() => setBinding(undefined)} />}
     </Panel>
   );
@@ -310,9 +315,11 @@ function ProtocolFiles() {
       <h3 className="tf-label flex h-6 items-center gap-1.5 pr-1 pl-3 text-fg-3">
         协议（ICD）<span className="tf-num">{icds.data?.length ?? 0}</span>
         <span className="flex-1" />
-        <Button size="xs" variant="ghost" className="h-5 px-1.5" onClick={() => setEditing({})}>
-          <PlusIcon />新建协议
-        </Button>
+        {Boolean(icds.data?.length) && (
+          <Button size="xs" variant="ghost" className="h-5 px-1.5" onClick={() => setEditing({})}>
+            <PlusIcon />新建协议
+          </Button>
+        )}
       </h3>
       <ul>
         {(icds.data ?? []).map((item) => (
@@ -330,8 +337,8 @@ function ProtocolFiles() {
           </li>
         ))}
         {icds.isSuccess && !icds.data.length && (
-          <li className="px-3 pb-2 text-xs leading-5 text-fg-3">
-            还没有协议。没接设备也可以先写，贴入样本字节试解码；写好后在设备的字节流上「解析协议」。
+          <li className="px-3 pb-2">
+            <AddSlot icon={<FileCode2Icon aria-hidden />} onClick={() => setEditing({})}>新建协议</AddSlot>
           </li>
         )}
       </ul>

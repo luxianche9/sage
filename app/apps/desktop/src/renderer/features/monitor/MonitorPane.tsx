@@ -2,14 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  LayoutDashboardIcon, ListChecksIcon, PencilRulerIcon, RadioIcon, ShieldCheckIcon, TimerResetIcon, XIcon
+  HammerIcon, LayoutDashboardIcon, ListChecksIcon, PencilRulerIcon, RadioIcon, ShieldCheckIcon, TimerResetIcon, XIcon
 } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { queryKeys } from "../../lib/query-keys.js";
 import { onRunStepFocused } from "../../lib/run-focus.js";
 import {
-  Button, Dialog, DialogBody, DialogContent, DialogFooter, Field, IconButton, Input, Menu, MenuContent, MenuItem,
-  MenuSeparator, MenuTrigger, PanelHeader, useConfirm, useToast
+  Button, Dialog, DialogBody, DialogContent, DialogFooter, EmptyState, Field, IconButton, Input, Menu, MenuContent,
+  MenuItem, MenuSeparator, MenuTrigger, PanelHeader, useConfirm, useToast
 } from "../../ui/index.js";
 import { RunOverview, streamUnit, type ConsoleJump, type StreamSource } from "../streams/index.js";
 import { RunControls } from "../testing/EditorToolbar.js";
@@ -202,9 +202,7 @@ export function MonitorPane({ bench, toolbar }: {
                     <XIcon />
                   </IconButton>
                 )} />
-                <div className="min-h-0 flex-1 overflow-y-auto">
-                  <p className="p-3 text-xs text-fg-3">「{selectedPanel.title || selectedPanel.type}」的属性待组件重新设计后提供。</p>
-                </div>
+                <EmptyState compact icon={<HammerIcon />} title="属性面板重做中" />
               </aside>
             )}
           </div>
@@ -256,6 +254,7 @@ function LayoutMenu({ workspace, labelled = false, onError, onDone }: {
     setPresetName(undefined);
     onDone(`已保存预设「${name}」`);
   };
+  const overwrites = presets.some((preset) => preset.name === presetName?.trim());
   const exportFile = () => {
     const blob = new Blob([exportText(workspace.monitor)], { type: "application/json" });
     const link = document.createElement("a");
@@ -306,13 +305,15 @@ function LayoutMenu({ workspace, labelled = false, onError, onDone }: {
         <DialogContent title="保存为预设" size="sm">
           <form onSubmit={(event) => { event.preventDefault(); save(); }}>
             <DialogBody>
-              <Field label="预设名称" hint="同名预设会被覆盖；预设保存在这台电脑上，任何项目都能用。">
+              <Field label="预设名称" hint="预设存在本机，所有项目通用">
                 <Input value={presetName ?? ""} onChange={(event) => setPresetName(event.target.value)} />
               </Field>
             </DialogBody>
             <DialogFooter>
               <Button type="button" onClick={() => setPresetName(undefined)}>取消</Button>
-              <Button type="submit" variant="primary" disabled={!presetName?.trim()}>保存</Button>
+              <Button type="submit" variant={overwrites ? "danger" : "primary"} disabled={!presetName?.trim()}>
+                {overwrites ? "覆盖" : "保存"}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>

@@ -110,7 +110,7 @@ export function ObjectJsonEditor({ value, reportJsonValidity, onChange }: {
       label="完整值"
       value={value}
       required
-      description="专家模式：直接编辑完整对象。"
+      description={undefined}
       path="参数.JSON"
       reportJsonValidity={reportJsonValidity}
       validateParsed={(parsed) => (isRecord(parsed) ? undefined : "必须是 JSON object")}

@@ -28,7 +28,6 @@ export function ComponentLibrary({ enabled, onAdd, onAddDevice }: {
   const managed = (devices.data?.hardware ?? []).filter((item) => item.kind === "managed");
   return (
     <div className="grid gap-4 p-3">
-      {!enabled && <p className="text-2xs text-fg-3">测试流程读取后才能添加组件。</p>}
       {categoryOrder.map((category) => (
         <Section key={category} title={category}>
           <div className="grid gap-1">

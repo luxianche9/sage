@@ -63,9 +63,6 @@ function ThreadWelcome() {
     <div className="flex flex-1 flex-col items-center justify-center px-4 py-8 text-center">
       <span className="tf-label mb-2">OpenCode · testStand MCP</span>
       <h1 className="text-base font-semibold text-fg">今天想一起完成什么？</h1>
-      <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-fg-2">
-        可以分析当前工程、修改文件、执行测试，或通过 testStand MCP 调用设备工具。
-      </p>
     </div>
   );
 }

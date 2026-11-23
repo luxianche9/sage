@@ -105,7 +105,14 @@ export function ByteInspector({ bytes, label, doc, matched, onChange }: {
       onMouseLeave={() => setDragging(false)}>
       <div className="flex items-center gap-2 text-2xs text-fg-3">
         <span className="font-mono text-fg-2">{label}</span>
-        <span>{bytes.length} 字节 · 拖选字节定义字段；有颜色的是已定义字段，框线是识别字节</span>
+        <span className="tf-num">{bytes.length} 字节</span>
+        <span className="flex-1" />
+        <span className="flex items-center gap-1">
+          <i aria-hidden className="size-2.5 rounded-xs bg-signal/40" />字段
+        </span>
+        <span className="flex items-center gap-1">
+          <i aria-hidden className="size-2.5 rounded-xs ring-1 ring-fg-3 ring-inset" />识别
+        </span>
       </div>
       <div role="grid" aria-label="帧字节" className="flex flex-wrap gap-px font-mono text-xs select-none">
         {bytes.map((byte, at) => {
@@ -115,7 +122,9 @@ export function ByteInspector({ bytes, label, doc, matched, onChange }: {
             <button key={at} type="button" role="gridcell" aria-selected={inRange}
               aria-label={`第 ${at} 字节 ${byte.toString(16).padStart(2, "0").toUpperCase()}`}
               title={`第 ${at} 字节${coloured ? ` · ${coloured.field}` : ""}`}
-              className={cn("grid w-7 place-items-center rounded-sm py-0.5 leading-tight", coloured?.colour,
+              className={cn("grid w-7 cursor-cell place-items-center rounded-sm py-0.5 leading-tight",
+                "hover:bg-surface-3",
+                coloured?.colour,
                 matchBytes.has(at) && "ring-1 ring-fg-3 ring-inset",
                 inRange && "bg-signal text-white")}
               onMouseDown={(event) => { setDragging(true); pick(at, event.shiftKey); }}
@@ -141,7 +150,7 @@ export function ByteInspector({ bytes, label, doc, matched, onChange }: {
             </label>
             {MATCH_SIZES.has(picked.length) && (
               <Button size="xs" onClick={tellApart}
-                title="用这几个字节的值区分报文：帧在这里是这个值，就是这种报文">设为识别字节</Button>
+                title="按这几个字节的值区分报文">设为识别字节</Button>
             )}
           </div>
           <div className="flex flex-wrap items-end gap-1.5">

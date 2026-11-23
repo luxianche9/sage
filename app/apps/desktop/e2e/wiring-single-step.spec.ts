@@ -93,9 +93,9 @@ test.describe.serial("single-step wiring tasks", () => {
     await editor.getByLabel("终点端口", { exact: true }).selectOption("DUT_A.J1");
     await editor.getByLabel("起点针脚", { exact: true }).selectOption("1");
     await editor.getByLabel("终点针脚", { exact: true }).selectOption("1");
-    await expect(editor.getByRole("button", { name: "创建接线" })).toBeDisabled();
+    await expect(editor.getByRole("button", { name: "记录为已接好" })).toBeDisabled();
     await editor.getByLabel("终点针脚", { exact: true }).selectOption("2");
-    await editor.getByRole("button", { name: "创建接线" }).click();
+    await editor.getByRole("button", { name: "记录为已接好" }).click();
     await expect(cables(page)).toHaveCount(2);
     await expect(page.getByRole("region", { name: "针脚列表" })).toContainText("同端口接线");
     await page.screenshot({ animations: "disabled", path: join(artifacts, "same-port-list.png") });

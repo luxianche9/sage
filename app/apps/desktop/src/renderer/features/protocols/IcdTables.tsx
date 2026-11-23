@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { ArrowUpIcon, PlusIcon, Trash2Icon } from "lucide-react";
-import { Button, IconButton, Input, Select, cn } from "../../ui/index.js";
+import { Button, HintIcon, IconButton, Input, Select, cn } from "../../ui/index.js";
 import {
   defaultFraming, enumText, FIELD_TYPE_LABELS, FIELD_TYPES, fieldSize, FRAMING_LABELS, parseEnum, type ChecksumDoc,
   type EncoderDoc,
@@ -78,7 +78,7 @@ function Section({ title, hint, actions, children }: {
     <section aria-label={title} className="grid gap-1.5 rounded-sm border border-line bg-surface-0 p-2">
       <header className="flex items-center gap-2">
         <h3 className="text-xs font-semibold text-fg">{title}</h3>
-        {hint && <span className="min-w-0 truncate text-2xs text-fg-3">{hint}</span>}
+        {hint && <HintIcon>{hint}</HintIcon>}
         <span className="flex-1" />
         {actions}
       </header>
@@ -93,8 +93,8 @@ const labelled = "grid gap-0.5 text-2xs text-fg-3";
 export function FramingSection({ doc, onChange }: { doc: IcdDoc; onChange: (doc: IcdDoc) => void }) {
   if (doc.transport === "frames") {
     return (
-      <Section title="帧格式" hint="报文流本身就是一帧一帧的（CAN 等），不用切帧">
-        <span />
+      <Section title="帧格式" actions={<span className="text-2xs text-fg-3">报文流，无需切帧</span>}>
+        {null}
       </Section>
     );
   }
@@ -102,7 +102,7 @@ export function FramingSection({ doc, onChange }: { doc: IcdDoc; onChange: (doc:
   const set = (patch: Partial<FramingDoc>) => onChange({ ...doc, framing: { ...framing, ...patch } });
   const length = framing.lengthField ?? { offset: 2, size: 1, endian: "big", adjust: 0 };
   return (
-    <Section title="帧格式" hint="字节流怎么切成一帧一帧">
+    <Section title="帧格式">
       <div className="flex flex-wrap items-end gap-2">
         <label className={labelled}>方式
           <Select aria-label="切帧方式" className="h-6 w-52 text-xs" value={framing.kind}
@@ -202,7 +202,7 @@ export function ChecksumSection({ doc, algorithms, onChange }: {
   };
   const set = (patch: Partial<ChecksumDoc>) => checksum && onChange({ ...doc, checksum: { ...checksum, ...patch } });
   return (
-    <Section title="校验" hint={checksum ? "范围按切片：to 不含，负数从帧尾数" : "不校验"}
+    <Section title="校验" hint={checksum ? "范围按切片：to 不含，负数从帧尾数" : undefined}
       actions={(
         <Button size="xs" variant="ghost" onClick={() => enable(!checksum)}>{checksum ? "去掉校验" : "加校验"}</Button>
       )}>
@@ -441,7 +441,7 @@ export function MessagesSection({ doc, selected, highlight, onSelect, onChange }
     onSelect(doc.messages.length);
   };
   return (
-    <Section title="报文" hint="一帧是哪种报文由识别条件决定；字段的偏移从帧的第 0 字节（帧头）算起"
+    <Section title="报文" hint="字段偏移从帧的第 0 字节（帧头）算起"
       actions={<Button size="xs" variant="ghost" onClick={add}><PlusIcon />加报文</Button>}>
       <div role="tablist" aria-label="报文" className="flex flex-wrap gap-1">
         {doc.messages.map((message, index) => (
@@ -498,7 +498,9 @@ function MessageEditor({ message, frames, highlight, canMoveUp, onMoveUp, onRemo
         </IconButton>
       </div>
       <div className="grid gap-0.5">
-        <span className="text-2xs font-semibold text-fg-3">识别条件（都满足才算这种报文）</span>
+        <span className="flex items-center gap-1 text-2xs font-semibold text-fg-3">
+          识别条件<HintIcon>全部满足才算这种报文</HintIcon>
+        </span>
         <MatchTable match={message.match} frames={frames} onChange={(match) => onChange({ ...message, match })} />
       </div>
       <FieldTable fields={message.fields} highlight={highlight}
@@ -516,7 +518,7 @@ export function EncodersSection({ doc, onChange }: { doc: IcdDoc; onChange: (doc
   const setTemplate = (patch: Partial<EncoderDoc["template"]>) =>
     encoder && setEncoder(open, { ...encoder, template: { ...encoder.template, ...patch } });
   return (
-    <Section title="编码器（发送）" hint="测试步骤和控件按它组帧发送；帧头、长度、校验自动填"
+    <Section title="编码器（发送）" hint="帧头、长度、校验自动填"
       actions={(
         <Button size="xs" variant="ghost" onClick={() => {
           onChange({ ...doc, encoders: [...doc.encoders, {

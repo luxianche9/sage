@@ -50,7 +50,7 @@ export function StepInspector({ plan, step, hardware, catalogItem, references, c
       <div className="flex min-w-0 items-center gap-1.5">
         <Badge>{catalogItem?.label ?? step.type}</Badge>
         {step.hardwareId && <Badge mono tone="signal">{step.hardwareId}</Badge>}
-        <code className="ml-auto truncate text-2xs text-fg-3" title="在其他步骤的表达式中用它引用本步骤输出">
+        <code className="ml-auto truncate text-2xs text-fg-3" title="引用名">
           steps.{step.id}
         </code>
         <IconButton label="返回计划属性" size="icon-xs" onClick={() => onSelectStep(undefined)}><XIcon /></IconButton>
@@ -137,10 +137,7 @@ function PlanInspector({ plan, hardware, mutate }: { plan: TestPlan; hardware: H
         />
         任一步骤失败时停止
       </label>
-      <p className="text-2xs text-fg-3">
-        被测件报文按设备管理里字节流上的协议绑定解码；步骤以「别名.报文.字段」引用解出的数据流。
-      </p>
-      <Field label="设备绑定" hint="步骤可用绑定名代替设备；${参数} 取运行参数，批量运行时按工位展开。">
+      <Field label="设备绑定" hint="步骤可用绑定名代替设备；${参数} 取运行参数，批量运行时按工位展开">
         <DeviceBindingsEditor
           value={plan.bindings ?? {}}
           hardware={hardware}

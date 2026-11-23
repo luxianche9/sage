@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { IcdCheck } from "@teststand/contracts/testing";
-import { DownloadIcon, WandSparklesIcon } from "lucide-react";
+import { DownloadIcon, Table2Icon, WandSparklesIcon } from "lucide-react";
 import {
   Badge, Button, cn, Dialog, DialogBody, DialogContent, DialogFooter, Field, Input, SegmentedControl, Textarea
 } from "../../ui";
@@ -84,12 +84,15 @@ export function IcdEditorDialog({ name, alias, source, onClose, onSaved }: Editi
   });
   // Decode again shortly after every change, so a field defined from bytes shows its value at once.
   const signature = JSON.stringify([mode, mode === "table" ? doc : text, samples]);
+  // A new protocol has nothing to check until it is named: the schema error would only be noise.
+  const unnamed = creating && mode === "table" && !doc.name.trim();
   useEffect(() => {
     if (!opened.data) return undefined;
+    if (unnamed) { setCheck(undefined); return undefined; }
     const timer = window.setTimeout(() => run.mutate(), 350);
     return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `signature` stands for everything checked
-  }, [signature, opened.data]);
+  }, [signature, opened.data, unnamed]);
 
   const switchMode = async (next: Mode) => {
     if (next === mode) return;
@@ -164,9 +167,7 @@ export function IcdEditorDialog({ name, alias, source, onClose, onSaved }: Editi
             {mode === "table" ? (
               <>
                 <div className="flex flex-wrap items-end gap-2">
-                  <Field label="协议名" className="w-44"
-                    hint={creating
-                      ? <>保存为 <code className="font-mono">icd/{doc.name || "…"}.icd.yaml</code></> : undefined}>
+                  <Field label="协议名" className="w-44">
                     <Input aria-label="协议名" className="font-mono" value={doc.name} disabled={!creating}
                       onChange={(event) => setDoc({ ...doc, name: event.target.value })} />
                   </Field>
@@ -193,8 +194,8 @@ export function IcdEditorDialog({ name, alias, source, onClose, onSaved }: Editi
               <>
                 {creating && (
                   <p className={cn("text-xs", fileName ? "text-fg-2" : "text-fail")}>
-                    {fileName ? <>保存为项目的 <code className="font-mono">icd/{fileName}.icd.yaml</code>（文件名取 ICD 的 name）</>
-                      : "在 YAML 里写上 name（字母、数字、下划线，不以数字开头），文件以它命名"}
+                    {fileName ? <code className="font-mono">icd/{fileName}.icd.yaml</code>
+                      : <>缺少 <code className="font-mono">name</code>（字母、数字、下划线，不以数字开头）</>}
                   </p>
                 )}
                 <Textarea aria-label="ICD 内容" className="h-[62vh] font-mono text-xs" spellCheck={false} value={text}
@@ -203,9 +204,9 @@ export function IcdEditorDialog({ name, alias, source, onClose, onSaved }: Editi
             )}
           </div>
           <div className="grid min-h-0 content-start gap-2 overflow-y-auto">
-            <Field label="样本报文" error={badSample}
-              hint="每行一段十六进制字节，按到达顺序拼接后切帧；# 之后为注释。">
+            <Field label="样本报文" error={badSample} hint="每行一段十六进制，按到达顺序拼接后切帧">
               <Textarea aria-label="试解码样本" className="h-28 font-mono text-xs" spellCheck={false}
+                placeholder={"AA 55 08 01 00 3C 12 9F\n# 注释"}
                 value={samplesText} onChange={(event) => { setSamplesText(event.target.value); setRow(undefined); }} />
             </Field>
             <div className="flex flex-wrap items-center gap-1.5">
@@ -225,14 +226,16 @@ export function IcdEditorDialog({ name, alias, source, onClose, onSaved }: Editi
                 </Button>
               )}
             </div>
-            <IcdCheckResult check={check} rows={rows} selected={row} onSelect={setRow} />
+            {!unnamed && <IcdCheckResult check={check} rows={rows} selected={row} onSelect={setRow} />}
             {picked && mode === "table" && pickedBytes.length > 0 && (
               <ByteInspector bytes={pickedBytes} label={picked.label} doc={doc}
                 matched={matched >= 0 ? matched : undefined}
                 onChange={(next, index, field) => { setDoc(next); setMessage(index); setHighlight(field); }} />
             )}
             {picked && mode === "yaml" && (
-              <p className="text-2xs text-fg-3">切到「表格」可以逐字节查看这一帧并定义字段。</p>
+              <Button size="xs" variant="ghost" className="justify-self-start" onClick={() => switchMode("table")}>
+                <Table2Icon />逐字节查看这一帧
+              </Button>
             )}
           </div>
         </DialogBody>
@@ -296,7 +299,7 @@ function IcdCheckResult({ check, rows, selected, onSelect }: {
             </button>
           ))}
         </div>
-      ) : <p className="text-2xs text-fg-3">贴入样本字节或抓取最近报文，看它解出什么。</p>}
+      ) : null}
     </section>
   );
 }

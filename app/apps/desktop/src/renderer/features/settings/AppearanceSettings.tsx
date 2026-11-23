@@ -4,10 +4,10 @@ import { CheckIcon } from "lucide-react";
 import { cn } from "../../ui";
 import { SettingsCard, SettingsHeader } from "./SettingsLayout.js";
 
-const choices: Array<{ value: ThemeChoice; title: string; body: string }> = [
-  { value: "system", title: "跟随系统", body: "随操作系统自动切换浅色或深色。" },
-  { value: "light", title: "浅色", body: "始终使用浅色界面。" },
-  { value: "dark", title: "深色", body: "始终使用深色界面。" }
+const choices: Array<{ value: ThemeChoice; title: string }> = [
+  { value: "system", title: "跟随系统" },
+  { value: "light", title: "浅色" },
+  { value: "dark", title: "深色" }
 ];
 
 /*
@@ -41,7 +41,7 @@ export function AppearanceSettings({ value, onChange }: {
 }) {
   return (
     <>
-      <SettingsHeader title="外观" description="选择 testStand 的界面主题。深色为默认的测控台配色，浅色适合明亮环境。" />
+      <SettingsHeader title="外观" />
       <SettingsCard title="界面主题" meta={choices.find((choice) => choice.value === value)?.title}>
         <div className="grid grid-cols-3 gap-3 p-3">
           {choices.map((choice) => {
@@ -71,8 +71,7 @@ export function AppearanceSettings({ value, onChange }: {
                     {active && <CheckIcon className="size-2.5" strokeWidth={3} />}
                   </span>
                   {choice.title}
-                </span>{" "}
-                <span className="px-0.5 text-xs leading-4 text-fg-3">{choice.body}</span>
+                </span>
               </button>
             );
           })}

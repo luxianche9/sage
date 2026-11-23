@@ -78,7 +78,6 @@ export function PinList({ connections, hardware, busy, toolbar, onCreate, onEdit
           <EmptyState
             icon={<CableIcon />}
             title={filter ? "这台硬件没有接线" : "当前没有已确认的接线"}
-            description="点击「新建接线」，按实物填写两端的端口和针脚。"
           />
         )}
       </div>

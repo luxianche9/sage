@@ -48,12 +48,8 @@ export function BindProtocolDialog({ hardwareId, streamId, streamType, aliases, 
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent title={`解析协议：${hardwareId} / ${streamId}`} size="md">
         <DialogBody className="grid gap-3">
-          <p className="text-xs text-fg-2">
-            选一份协议（ICD），它规定这条{streamType === "frames" ? "报文" : "字节"}流怎么切成帧、每个字段在哪几个字节。
-            绑定后每个数值字段都是一个信号，带实时值，显示在设备列表里；画布控件和测试步骤都能直接引用。
-          </p>
           <Field label="协议（ICD）" error={icds.error ? errorMessage(icds.error) : undefined}
-            hint={usable.length ? undefined : `项目里还没有能解码 ${streamType} 流的 ICD，先新建一份`}>
+>
             <div className="flex items-center gap-1.5">
               <Select aria-label="ICD" className="min-w-0 flex-1" value={chosen}
                 onChange={(event) => setIcd(event.target.value)}>
@@ -66,13 +62,17 @@ export function BindProtocolDialog({ hardwareId, streamId, streamType, aliases, 
               </Select>
               <IconButton label="编辑这份 ICD" size="icon-sm" disabled={!chosen}
                 onClick={() => setEditing({ name: chosen })}><PencilIcon /></IconButton>
-              <Button size="sm" onClick={() => setEditing({})}><PlusIcon />新建 ICD</Button>
+              <Button size="sm" variant={usable.length ? "secondary" : "primary"} onClick={() => setEditing({})}>
+                <PlusIcon />新建 ICD
+              </Button>
             </div>
           </Field>
-          <Field label="别名" error={aliasError}
-            hint={`字段信号命名为「${name || "别名"}.报文.字段」，在整个项目里唯一。`}>
-            <Input aria-label="别名" className="font-mono" value={name}
-              onChange={(event) => setAlias(event.target.value)} />
+          <Field label="别名" error={aliasError}>
+            <div className="flex items-center gap-1.5">
+              <Input aria-label="别名" className="min-w-0 flex-1 font-mono" value={name}
+                onChange={(event) => setAlias(event.target.value)} />
+              <span aria-hidden className="shrink-0 font-mono text-xs text-fg-3">.报文.字段</span>
+            </div>
           </Field>
         </DialogBody>
         <DialogFooter>

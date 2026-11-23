@@ -68,10 +68,8 @@ export function WiringLogPanel({ hardware, header, ...props }: {
         >
           {visible.map((entry) => <ChangeEntry key={entry.entryId} change={entry} hardware={hardware} />)}
           {visible.length === 0 && (
-            <li className="px-3 py-4 text-xs leading-5 text-fg-3">
-              {filter === "manual"
-                ? "暂无人工更改。在针脚表中新增、修改或删除接线后会记录在这里。"
-                : "暂无接线变更。在对话中确认 AI 的接线任务、或人工更改接线后会记录在这里。"}
+            <li className="px-3 py-4 text-center text-xs text-fg-3">
+              {filter === "manual" ? "暂无人工更改" : "暂无接线变更"}
             </li>
           )}
         </LogGroup>

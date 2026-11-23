@@ -116,7 +116,7 @@ test.describe.serial("desktop controls preserve real keyboard and pointer intera
     const dialog = page.getByRole("dialog", { name: "新建接线", exact: true });
     const source = dialog.getByLabel("起点端口");
     const target = dialog.getByLabel("终点端口");
-    const create = dialog.getByRole("button", { name: "创建接线", exact: true });
+    const create = dialog.getByRole("button", { name: "记录为已接好", exact: true });
     await expect(source).toHaveValue("");
     await expect(target).toHaveValue("");
     await expect(create).toBeDisabled();

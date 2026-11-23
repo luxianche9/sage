@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { HardwarePort } from "@teststand/contracts/devices";
 import { PlusIcon } from "lucide-react";
-import { Button } from "../../ui";
+import { AddSlot, Button } from "../../ui";
 import { pinTotal, uniqueId } from "./port-model.js";
 import { PortRow } from "./PortRow.js";
 
@@ -28,7 +28,9 @@ export function PortEditor({ ports, onChange }: {
       <div className="flex items-center gap-2">
         <span className="tf-label">端口与针脚</span>
         <span className="tf-num text-2xs text-fg-3">{ports.length} 个端口 · {pinTotal(ports)} 个针脚</span>
-        <Button variant="outline" size="xs" className="ml-auto" onClick={addPort}><PlusIcon />添加端口</Button>
+        {ports.length > 0 && (
+          <Button variant="outline" size="xs" className="ml-auto" onClick={addPort}><PlusIcon />添加端口</Button>
+        )}
       </div>
       <div className="grid max-h-[340px] content-start gap-1 overflow-y-auto pr-1">
         {ports.map((port) => (
@@ -42,9 +44,7 @@ export function PortEditor({ ports, onChange }: {
           />
         ))}
         {!ports.length && (
-          <p className="rounded-md border border-dashed border-line px-2 py-4 text-center text-xs text-fg-3">
-            还没有端口。点「添加端口」登记这台设备的接口。
-          </p>
+          <AddSlot className="h-14" onClick={addPort}>添加端口</AddSlot>
         )}
       </div>
     </div>

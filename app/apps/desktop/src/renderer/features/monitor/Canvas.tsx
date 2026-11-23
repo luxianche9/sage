@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
-import { GripIcon, PuzzleIcon, XIcon } from "lucide-react";
+import { GripIcon, LayoutDashboardIcon, PuzzleIcon, XIcon } from "lucide-react";
 import {
   GRID_PX, PANEL_SIZES, type ControlWidget, type Frame, type MonitorPanel, type PanelType
 } from "@teststand/contracts/monitor";
-import { cn, IconButton } from "../../ui/index.js";
+import { cn, DropZone, IconButton } from "../../ui/index.js";
 import { BARE_TYPES, canvasExtent, cells, MIN_CELLS, moved, resized } from "./canvas-model.js";
 import { CONTROL_MIME, newControlPanelId, requestControl } from "./control-requests.js";
 import { PANEL_LABELS, PANEL_MIME, panelTitle, type MonitorWorkspace } from "./use-monitor-workspace.js";
@@ -116,13 +116,7 @@ export function Canvas({ workspace, editing, selected, onSelect, empty }: {
           ))}
         </div>
         {!panels.length && (
-          <div className="pointer-events-none absolute inset-0 grid place-items-center p-6 text-center">
-            <div className="pointer-events-auto grid max-w-md justify-items-center gap-2 text-xs text-fg-3">
-              <p className="text-sm text-fg-2">这是一整页画布，像上位机界面一样自由摆放</p>
-              <p>从活动栏「组件」把显示组件、开关、按钮拖到这里，再在属性面板里选它显示的信号或调用的设备动作；也可以让 AI 助手来搭。</p>
-              {empty}
-            </div>
-          </div>
+          <DropZone icon={<LayoutDashboardIcon />} title="从「组件」拖控件到这里">{empty}</DropZone>
         )}
       </div>
     </>
@@ -203,7 +197,7 @@ function CanvasItem({ panel, editing, selected, onSelect, onArrange, onMove, onR
       </div>
       {editing && (
         <>
-          <span aria-label={`移动 ${title}`} role="button" tabIndex={-1} title="拖动移动；单击选中，在属性面板里设置"
+          <span aria-label={`移动 ${title}`} role="button" tabIndex={-1} title="拖动移动"
             className={cn("absolute top-0 left-0 z-40 grid size-4 cursor-move place-items-center",
               "rounded-tl-md rounded-br-sm",
               "bg-signal text-signal-fg opacity-0 transition-opacity duration-120 group-hover/item:opacity-100",

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { PlusIcon, Trash2Icon } from "lucide-react";
+import { PlusIcon, Trash2Icon, TriangleAlertIcon } from "lucide-react";
 import type { TestExpressionReference } from "@teststand/contracts/testing";
 import { Button, IconButton, Input, SegmentedControl, Select, Textarea } from "../../ui";
 import {
@@ -60,11 +60,8 @@ export function ExpressionEditor({ value, references, mode, onChange }: {
             onChange={(event) => onChange(event.target.value)}
           />
           {!parsed && !blank && (
-            <p className="text-xs text-invalid">当前表达式超出可视编辑范围。需要重建时可使用下方按钮。</p>
-          )}
-          {!parsed && !blank && (
             <Button size="xs" variant="outline" className="justify-self-start" onClick={rebuild}>
-              重新用可视条件构建
+              <TriangleAlertIcon className="text-invalid" />无法可视化编辑，重新构建
             </Button>
           )}
         </>

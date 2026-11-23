@@ -62,7 +62,7 @@ function ConnectionPins({ connection, hardware }: { connection: ProjectWiringCon
   const a = resolvePortRef(connection.portA, hardware);
   const b = resolvePortRef(connection.portB, hardware);
   if (!connection.pins.length) {
-    return <p className="px-3 py-6 text-center text-xs text-fg-3">整体连接，两端都没有针脚。</p>;
+    return <p className="px-3 py-6 text-center text-xs text-fg-3">整根线缆（端口对端口）</p>;
   }
   return (
     <div className="grid">

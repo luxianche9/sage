@@ -98,8 +98,9 @@ function ManualCheckForm({ runId, request, waiting }: {
           <Field label="说明" required={request.requireNote} error={noteMissing ? "此项判定必须填写说明" : undefined}>
             <Textarea aria-label="判定说明" value={note} onChange={(event) => setNote(event.target.value)} />
           </Field>
-          <Field label="判定人" hint="留空时记录本机登录名。">
-            <Input aria-label="判定人" value={operator} onChange={(event) => setOperator(event.target.value)} />
+          <Field label="判定人">
+            <Input aria-label="判定人" placeholder="默认本机登录名" value={operator}
+              onChange={(event) => setOperator(event.target.value)} />
           </Field>
         </DialogBody>
         <DialogFooter>

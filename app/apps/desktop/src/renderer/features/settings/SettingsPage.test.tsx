@@ -67,7 +67,7 @@ describe("SettingsPage", () => {
   it("switches theme from the appearance section and navigates back", async () => {
     const { onThemeChange, onBack } = setup();
     expect(screen.getByRole("heading", { name: /外观/ })).toBeTruthy();
-    const dark = screen.getByRole("button", { name: /深色 始终使用深色界面。/ });
+    const dark = screen.getByRole("button", { name: /^深色$/ });
     await userEvent.click(dark);
     expect(onThemeChange).toHaveBeenCalledWith("dark");
     expect(screen.queryAllByRole("button", { name: "设置" })).toHaveLength(0);

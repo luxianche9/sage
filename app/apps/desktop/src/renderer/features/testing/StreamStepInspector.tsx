@@ -53,7 +53,7 @@ export function StreamStepInspector({ plan, step, hardware, catalogItem, referen
       <Field
         label="数据流"
         required
-        {...(streams.error ? { hint: "读取设备数据流失败，服务未运行时只能保留已填写的数据流。" } : {})}
+        error={streams.error ? "读取设备数据流失败" : undefined}
       >
         <Select
           value={streamId}
@@ -67,7 +67,7 @@ export function StreamStepInspector({ plan, step, hardware, catalogItem, referen
         </Select>
       </Field>
       {step.type !== "Guard" && (
-        <Field label="锚点" required hint="在「调用设备工具」步骤的锚点名中定义，窗口时间相对它的完成时刻。">
+        <Field label="锚点" required hint="在「调用设备工具」步骤中定义；窗口时间相对它的完成时刻">
           <Select value={anchor} onChange={(event) => setAnchor(event.target.value)}>
             <option value="">选择锚点</option>
             {anchors.map((name) => <option key={name} value={name}>{name}</option>)}

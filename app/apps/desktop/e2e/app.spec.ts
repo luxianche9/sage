@@ -150,7 +150,7 @@ test.describe.serial("testStand folder project desktop", () => {
   test("uses settings as the only configuration surface and switches themes", async () => {
     await page.getByRole("button", { name: "设置", exact: true }).click();
     await expect(page.getByRole("heading", { name: "外观" })).toBeVisible();
-    await page.getByRole("button", { name: "深色 始终使用深色界面。" }).click();
+    await page.getByRole("button", { name: "深色", exact: true }).click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
     await page.screenshot({ path: resolve(artifactDir, "settings-dark.png"), fullPage: true });
 

@@ -70,9 +70,6 @@ export function PortRow({ port, open, onToggle, onChange, onRemove }: {
           ))}
           <div className="flex items-center gap-2 pt-0.5">
             <Button variant="ghost" size="xs" onClick={() => onChange(addPin(port))}><PlusIcon />添加针脚</Button>
-            {port.pins.length === 0 && (
-              <span className="text-xs text-fg-3">没有针脚也可以保存，接线时按整个端口连接。</span>
-            )}
           </div>
         </div>
       )}

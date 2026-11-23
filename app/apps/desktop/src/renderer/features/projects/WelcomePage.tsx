@@ -117,9 +117,8 @@ export function WelcomePage({ onOpened }: { onOpened: (rootPath: string) => Prom
             <EmptyState
               icon={<ServerIcon />}
               title="还没有项目"
-              description="打开一个包含硬件测试用例的文件夹以开始使用"
               action={
-                <Button variant="outline" disabled={busy} onClick={() => choose.mutate()}>
+                <Button variant="primary" disabled={busy} onClick={() => choose.mutate()}>
                   <FolderOpenIcon />
                   选择文件夹
                 </Button>

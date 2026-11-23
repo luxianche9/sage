@@ -161,7 +161,7 @@ test.describe.serial("monitor panel and pin list", () => {
 
     // 端口连线 is the other half of 工位接线: the same cables, on a canvas with nothing placed yet.
     await page.getByRole("group", { name: "接线视图" }).getByRole("button", { name: "端口连线", exact: true }).click();
-    await expect(page.getByText("把设备从左侧拖到画布")).toBeVisible();
+    await expect(page.getByText("把左侧设备拖到这里，再从端口拖线")).toBeVisible();
     await expect(row.getByRole("group", { name: "端口连线工具" })).toContainText("画布设备");
     expect(errors).toEqual([]);
   });

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import type { DeviceAdded, DevicePackageInspection } from "@teststand/contracts/devices";
-import { RotateCwIcon } from "lucide-react";
+import { RotateCwIcon, ShieldAlertIcon } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { Button, Dialog, DialogBody, DialogContent, DialogFooter, Input } from "../../ui";
 import { EditorField } from "./editors/EditorField.js";
@@ -92,8 +92,9 @@ function AddDevice({ staged, onClose, onAdded }: {
             <ul className="list-disc pl-4">{report.problems.map((item) => <li key={item}>{item}</li>)}</ul>
           </div>
         ) : report.action !== "present" && (
-          <p className="text-xs text-fg-2">
-            设备包里的驱动代码会在 testStand 里运行，可以调用厂商驱动和读写文件。只添加来源可信的设备包。
+          <p className="flex items-center gap-2 rounded-sm border border-invalid/35 bg-invalid/10 px-2 py-1.5
+            text-xs text-invalid">
+            <ShieldAlertIcon className="size-3.5 shrink-0" />驱动代码将在本机运行，仅添加来源可信的设备包
           </p>
         )}
         {manifest.description && <p className="text-xs text-fg-2">{manifest.description}</p>}

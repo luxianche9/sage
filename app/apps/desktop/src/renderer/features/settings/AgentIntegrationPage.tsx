@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import type { AgentIntegrationPreview, AgentIntegrationStatus } from "@teststand/contracts/agents";
 import type { DashboardSnapshot } from "@teststand/contracts/operations";
-import { PlugZapIcon, RefreshCwIcon, Trash2Icon } from "lucide-react";
+import { LockIcon, PlugZapIcon, RefreshCwIcon, Trash2Icon } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { useAgentIntegration } from "../../lib/queries.js";
 import { Badge, Button, StatusLamp, cn, toneText, type Tone } from "../../ui";
@@ -66,10 +66,7 @@ export function AgentIntegrationPage({ gateway }: { gateway: Gateway }) {
 
   return (
     <>
-      <SettingsHeader
-        title="Agent 接入"
-        description="管理 MCP Gateway、Codex 一键接入、访问令牌、手动接入方式和 MCP 工具清单。"
-      />
+      <SettingsHeader title="Agent 接入" />
       <div className="grid gap-4">
         <GatewayCard gateway={gateway} />
         {notice && <Notice tone="pass">{notice}</Notice>}
@@ -134,7 +131,7 @@ export function AgentIntegrationPage({ gateway }: { gateway: Gateway }) {
           <PropRow label="Codex CLI" mono>{current?.cli.path ?? "未发现"}</PropRow>
           <PropRow label="手动命令" mono>{manualCommand}</PropRow>
           <div className="flex items-center justify-between gap-4 px-3 py-2">
-            <span className="text-xs text-fg-3">Gateway 令牌仅保存在主进程和受管环境变量中，不下发到渲染进程。</span>
+            <span className="flex items-center gap-1.5 text-xs text-fg-2"><LockIcon className="size-3.5" />访问令牌</span>
             <Button variant="danger" disabled={busy} onClick={() => setDialog("rotate")}>轮换令牌</Button>
           </div>
         </Disclosure>
@@ -142,10 +139,10 @@ export function AgentIntegrationPage({ gateway }: { gateway: Gateway }) {
         <Disclosure title="其他 Agent 手动接入">
           <div className="grid gap-3 p-3 sm:grid-cols-2">
             <ManualAgent name="Claude Code">
-              在 Claude Code 的 MCP 设置中添加 HTTP Server，并配置 Authorization 标头。
+              添加 HTTP MCP Server，填入下方端点与标头
             </ManualAgent>
             <ManualAgent name="OpenCode（外部）">
-              外部 OpenCode 也可手动添加相同端点与 Bearer；内嵌 OpenCode 已自动配置，无需手动接入。
+              同上；内嵌 OpenCode 已自动接入
             </ManualAgent>
             <pre
               className={cn(
@@ -179,7 +176,6 @@ export function AgentIntegrationPage({ gateway }: { gateway: Gateway }) {
             现有 <code className="font-mono">teststand</code> MCP 条目将被替换，其他 MCP 配置不受影响。
           </Notice>
         )}
-        <p className="text-xs text-fg-3">配置文件会先备份。整个过程不会把令牌写入界面或命令行参数。</p>
       </ActionDialog>
       <ActionDialog
         open={dialog === "remove"}

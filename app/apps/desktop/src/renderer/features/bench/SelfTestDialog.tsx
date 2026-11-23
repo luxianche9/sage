@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import type { ToolCatalogItem } from "@teststand/contracts/devices";
-import { RotateCwIcon } from "lucide-react";
+import { RotateCwIcon, ShieldCheckIcon } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { Button, cn, Dialog, DialogBody, DialogContent, DialogFooter, Spinner, StatusLamp, toneText } from "../../ui";
 import { selfTestReport, type SelfTestReport } from "./self-test.js";
@@ -62,8 +62,8 @@ function SelfTestRun({ tool, hardwareId, available, onClose }: {
   return (
     <>
       <DialogBody className="grid gap-3">
-        <p className="text-xs text-fg-2">
-          只读检查插件与板卡是否一致，不改变任何输出。接线和输出电压要按插件说明书的“现场验收”步骤实测。
+        <p className="flex items-center gap-1.5 text-xs text-fg-2">
+          <ShieldCheckIcon className="size-3.5 shrink-0 text-pass" />只读检查，不改变输出；接线与电压仍需现场实测
         </p>
         {!available && <p role="alert" className="text-xs text-fail">设备当前不在线，恢复在线后才能自检。</p>}
         {run.isPending && <Spinner label="正在自检" />}

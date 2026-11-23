@@ -108,7 +108,7 @@ export function RunMessages({ data, origin, jump, onPick }: {
         </div>
       ) : (
         <div ref={viewport} className="min-h-0 flex-1">
-          <EmptyState title="没有报文" description={filter === "all" ? "绑定的数据流上尚未解出报文。" : "没有符合筛选的报文。"} />
+          <EmptyState title={filter === "all" ? "没有报文" : "没有符合筛选的报文"} />
         </div>
       )}
     </section>
