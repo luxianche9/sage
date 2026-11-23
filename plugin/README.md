@@ -1,28 +1,26 @@
-# Hardware device plugins
+# SAGE device plugins
 
-霸天虎 V2 常用接口模型见 [`manuals/stm32-batianhu-v2/README.md`](manuals/stm32-batianhu-v2/README.md)。
-新硬件适配器按技能 [`plugin/tools/skill/device-plugin`](../skill/device-plugin/SKILL.md) 编写。
-
-Each hardware device is the device plugin SDK plus one adapter, loaded by the
-SAGE backend as a plugin. The adapters under `adapters/` (see the stream table
-below) are built from this directory; the board adapters of the earlier bench were removed
-and new ones (RS-485 over USB, USB to DShot) will be added here. A release of SAGE ships
-none of them: each adapter is delivered as a `.sagedev` device package and installed
-on the bench page (+ → 添加设备…), which installs its driver and adds the device in one step.
+One folder per plugin. Each is the device SDK (`../sdk`) plus one adapter, loaded by the SAGE
+backend as a plugin. A SAGE release ships none of them: each plugin is delivered on its own as a
+`.sagedev` device package and installed on the bench page (+ → 添加设备…), which installs its
+driver and adds the device in one step. Write new plugins with the skill
+[`tools/skill/device-plugin`](tools/skill/device-plugin/SKILL.md); rules for working here are in
+[`CLAUDE.md`](CLAUDE.md).
 
 ```
-sdk/                     sage_device_sdk: DeviceHost, plugin loading (in process or child
-                         process), builtin tools, envelope, lifecycle, safe_state, streams (ring
-                         buffer), /device manifest, waveform player, compliance suite
-adapters/<adapter>/      sage_plugin_<adapter>: adapter.py, driver.py, sim.py, pinout.py, tests/
-pack.py                  builds dist/<type>-<version>.sagedev device packages
-test.ps1                 local tests: SDK, every adapter, dry-run compliance
+<plugin>/                sage_plugin_<plugin>: README, pyproject.toml, src/ (adapter.py, driver.py,
+                         sim.py, pinout.py), tests/, native/ (its bridge source, if any),
+                         manuals/ (vendor manuals and which page has the pinout)
+tools/pack.py            builds dist/<type>-<version>.sagedev device packages
+tools/test.ps1           local tests: SDK, every plugin, dry-run compliance
+tools/native/            shared bridge header (jsonline.hpp) and build scripts
+tools/skill/             the device-plugin skill (contract, SDK API, scaffolding)
 ```
 
 ## Device packages
 
 ```powershell
-python pack.py --all        # tests + --check, wheel, manifest -> dist/*.sagedev
+uv run python tools\pack.py --all     # tests + --check, wheel, manifest -> dist\*.sagedev
 ```
 
 A package is a ZIP of `package.json` (type, version, manufacturer, model, isolation,

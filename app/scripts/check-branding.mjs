@@ -6,7 +6,9 @@ const workspace = fileURLToPath(new URL("..", import.meta.url));
 const repository = resolve(workspace, "..");
 // Earlier product names (TestForge, HardwareHarness, testStand) and their file extensions. CHANGELOG.md keeps the history.
 const retired = /test[\s_-]?forge|\.tfhw|hardware[\s_-]?harness|\.hhhw|hh[_-]adapter|mcp_servers|test[\s_-]?stand|\.tsdev\b|\.tshw\b/i;
-const excluded = new Set(["node_modules", ".venv", "venv", "dist", "out", "build", "__pycache__", ".pytest_cache", ".ruff_cache", ".mypy_cache", ".git", "run", "logs", "firmware"]);
+const excluded = new Set(["node_modules", ".venv", "venv", "dist", "out", "build", "__pycache__", ".pytest_cache", ".ruff_cache", ".mypy_cache", ".git", "run", "logs", "firmware",
+  // Decision records keep the history, old names included.
+  "decisions"]);
 const text = /\.(?:[cm]?[jt]sx?|py|json|toml|ya?ml|md|ps1|css|html|txt|spec|lock)$/i;
 const violations = [];
 

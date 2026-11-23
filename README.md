@@ -28,12 +28,11 @@ Python 后端（app/python，sage_backend）
 | `app/packages/contracts` | 前后端共享的 TypeScript 契约 |
 | `app/python` | Python 后端 `sage_backend`（uv 管理） |
 | `app/scripts` | 构建、校验、发布脚本 |
-| `sdk` | 设备插件 SDK `sage_device_sdk` |
-| `plugin` | 设备适配器：目前只有通用通信链路 `comm_link`（串口/TCP/UDP）；485 转 USB、USB 转 DShot 等新硬件适配待添加 |
-| `plugin/tools/pack.py` | 生成 `.sagedev` 设备包 |
-| `skill/` | 编写设备插件等的 Agent 技能 |
-| `docs/` | 设计文档、调研 |
-| `demo/` | 无被测对象时的演示：虚拟被测件（TCP）与配套 ICD |
+| `sdk` | 设备插件 SDK `sage_device_sdk`：平台和插件之间唯一的约定；`sdk/demo_plugin` 是只用于测试的演示插件 |
+| `plugin/<名>` | 设备插件，一个文件夹一个（13 个：研华、MOXA、阿尔泰、JCXD、LVDT、电容板、通用链路 `comm_link`），单独打包交付 |
+| `plugin/tools` | 插件共用：`pack.py` 生成 `.sagedev`、`test.ps1`、桥接程序编译脚本、写插件的技能 |
+| `docs/` | `status.md` 交接单、`decisions/` 决定记录、`hardware/` 被测件资料、设计文档、调研 |
+| `scripts/verify.ps1` | 全仓软件检查（合并到 main 前必须通过） |
 
 ## 环境要求
 
@@ -53,7 +52,9 @@ pnpm install          # Node 依赖（含 Electron 二进制）
 pnpm python:setup     # = uv sync --project python --frozen，创建 app/python/.venv
 ```
 
-开发环境中只有通用通信链路适配器 `comm_link` 以 editable 方式装进后端的虚拟环境，其余的按设备包（`.sagedev`）安装。设备只驱动真实硬件。
+平台的开发环境不装任何产品插件，只装测试用的演示插件 `sdk/demo_plugin`；真实设备按设备包（`.sagedev`）安装。设备只驱动真实硬件。
+
+Electron 下载失败时见 [docs/status.md](docs/status.md) 的已知问题。
 
 ## 启动（开发模式）
 
@@ -89,11 +90,11 @@ pnpm dev
 
 ## 设备包
 
-发布版不内置任何驱动，在测试台架页“+ → 添加设备…”选择 `.sagedev` 设备包即可添加设备。生成设备包：
+平台和插件分别交付：`pnpm release` 只生成 SAGE 安装包；每种设备单独打一个 `.sagedev` 设备包，在测试台架页“+ → 添加设备…”选择它即可添加设备。生成设备包：
 
 ```powershell
-cd devices
-python pack.py --all     # 测试 + 检查 + 打包 -> dist/*.sagedev
+cd plugin
+uv run python tools\pack.py <插件名>     # 测试 + 检查 + 打包 -> dist\<名>-<版本>.sagedev；--all 打全部
 ```
 
-编写新的设备适配器见 [plugin/README.md](plugin/README.md) 和 [plugin/tools/skill/device-plugin](plugin/tools/skill/device-plugin/SKILL.md)。
+编写新的设备插件见 [plugin/README.md](plugin/README.md) 和 [plugin/tools/skill/device-plugin](plugin/tools/skill/device-plugin/SKILL.md)。
