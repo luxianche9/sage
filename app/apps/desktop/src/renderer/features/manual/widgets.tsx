@@ -50,7 +50,7 @@ function useLabels(param: string): Map<number, string> {
  * A number changed by dragging (Figma / Blender style: left–right, Shift finer, Ctrl coarser),
  * the wheel, the arrow keys or typing. `onCommit` fires when a drag or an edit ends.
  */
-export function ScrubNumber({ value, widget, label, disabled, className, onChange, onCommit }: {
+function ScrubNumber({ value, widget, label, disabled, className, onChange, onCommit }: {
   value: number | undefined;
   widget: Pick<NumberWidget, "min" | "max" | "step"> & { unit?: string | undefined };
   label: string;
@@ -129,7 +129,7 @@ export function ScrubNumber({ value, widget, label, disabled, className, onChang
 }
 
 /** A bounded number: slider + drag-to-change number + preset chips (0, min, max, recent). */
-export function NumberControl({ value, widget, label, disabled, presets, onChange, onCommit }: {
+function NumberControl({ value, widget, label, disabled, presets, onChange, onCommit }: {
   value: number | undefined;
   widget: NumberWidget;
   label: string;
@@ -178,7 +178,7 @@ export function NumberControl({ value, widget, label, disabled, presets, onChang
 }
 
 /** A boolean as a switch, saying what each state means when the parameter says so. */
-export function ToggleSwitch({ checked, label, on, off, disabled, onChange }: {
+function ToggleSwitch({ checked, label, on, off, disabled, onChange }: {
   checked: boolean;
   label: string;
   on?: string | undefined;
@@ -206,7 +206,7 @@ export function ToggleSwitch({ checked, label, on, off, disabled, onChange }: {
   );
 }
 
-export function Segmented({ options, value, label, disabled, onChange }: {
+function Segmented({ options, value, label, disabled, onChange }: {
   options: readonly (string | number)[];
   value: unknown;
   label: string;
@@ -367,7 +367,7 @@ function readHistory(key: string): string[] {
 }
 
 /** Remembers `value` at the head of the history kept under `key`. */
-export function rememberText(key: string, value: string): void {
+function rememberText(key: string, value: string): void {
   if (!value.trim()) return;
   const next = [value, ...readHistory(key).filter((item) => item !== value)].slice(0, HISTORY_SIZE);
   try { globalThis.localStorage?.setItem(key, JSON.stringify(next)); } catch { /* not kept */ }

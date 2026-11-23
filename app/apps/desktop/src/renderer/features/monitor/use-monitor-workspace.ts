@@ -21,7 +21,7 @@ export function setFocusedPanel(id: string | undefined): void {
 
 const EMPTY: Monitor = { panels: [] };
 
-export function streamKey(ref: StreamRef): string {
+function streamKey(ref: StreamRef): string {
   return `${ref.hardwareId}__${ref.streamId}`;
 }
 
@@ -48,7 +48,7 @@ function declaredStreamInfo(hardwareId: string, stream: DeviceStream | undefined
 }
 
 /** Whether a panel of `type` draws a stream of `streamType` (an unknown type: any stream panel). */
-export function panelDraws(type: PanelType, streamType: string | undefined): boolean {
+function panelDraws(type: PanelType, streamType: string | undefined): boolean {
   const takes = PANEL_SOURCE_TYPES[type];
   return takes.length > 0 && (!streamType || takes.includes(streamType));
 }

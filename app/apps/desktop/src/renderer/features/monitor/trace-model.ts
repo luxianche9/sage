@@ -31,7 +31,7 @@ export interface FixedRow extends TraceRow {
   previous: number[] | undefined;
 }
 
-export type TraceColumn = "stream" | "dir" | "ident" | "data" | "decoded";
+type TraceColumn = "stream" | "dir" | "ident" | "data" | "decoded";
 export type TraceFilters = Partial<Record<TraceColumn, string>>;
 
 function hexBytes(hex: unknown): number[] {
@@ -144,7 +144,7 @@ export function fixedRows(rows: readonly TraceRow[]): FixedRow[] {
       || a.ident.localeCompare(b.ident, undefined, { numeric: true }));
 }
 
-export function decodedText(row: Pick<TraceRow, "fields" | "problem" | "checksumOk">): string {
+function decodedText(row: Pick<TraceRow, "fields" | "problem" | "checksumOk">): string {
   if (row.problem) return row.problem;
   const fields = Object.entries(row.fields ?? {}).map(([name, value]) => `${name}=${String(value)}`).join(" ");
   return row.checksumOk === false ? `校验失败 ${fields}`.trim() : fields;

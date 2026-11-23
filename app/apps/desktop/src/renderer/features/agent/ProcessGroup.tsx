@@ -12,7 +12,7 @@ function shortName(name: string | undefined): string {
 }
 
 /** "check_icd ×3、save_icd": the tools of a run of steps, most used first, at most three named. */
-export function toolSummary(names: readonly string[]): string {
+function toolSummary(names: readonly string[]): string {
   const counts = new Map<string, number>();
   for (const name of names) counts.set(shortName(name), (counts.get(shortName(name)) ?? 0) + 1);
   const ranked = [...counts].sort((left, right) => right[1] - left[1]);

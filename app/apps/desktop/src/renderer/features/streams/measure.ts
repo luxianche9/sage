@@ -15,7 +15,7 @@ export interface Measure {
   last: number;
 }
 
-export function numericValue(point: StreamPoint | undefined): number | undefined {
+function numericValue(point: StreamPoint | undefined): number | undefined {
   const value = point?.v;
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "boolean") return value ? 1 : 0;

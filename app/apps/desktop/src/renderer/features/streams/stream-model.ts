@@ -293,7 +293,7 @@ export function logicData(inputs: LogicInput[]): LogicData {
 }
 
 /** A bits mask as a code: hex padded to the width, decimal, grouped binary and the declared name. */
-export function codeText(
+function codeText(
   mask: number,
   width: number | undefined,
   codeLabels?: Record<string, string>
@@ -303,14 +303,6 @@ export function codeText(
   const bin = mask.toString(2).padStart(Math.ceil(bits / 4) * 4, "0").replace(/(.{4})(?=.)/g, "$1 ");
   const name = codeLabels?.[String(mask)];
   return { hex, dec: String(mask), bin, ...(name ? { name } : {}), short: name ?? hex };
-}
-
-/** A bits stream's number of lines: declared, else enough for every bit seen (at least 8). */
-export function bitsWidth(stream: Pick<StreamInfo, "declaration">, points: StreamPoint[] | undefined): number {
-  const declared = stream.declaration?.width;
-  if (declared) return declared;
-  const union = (points ?? []).reduce((all, point) => maskOr(all, maskOf(point.mask)), 0);
-  return Math.max(8, union ? Math.floor(Math.log2(union)) + 1 : 0);
 }
 
 /** The mask of a bits point (0 when absent). */
@@ -425,7 +417,7 @@ export function terminalLine(type: string, record: StreamRecord, mode: TerminalM
   return { tb: record.tb, dir: "value", text: record.v === undefined ? payloadText(record) : String(record.v) };
 }
 
-export function clockTime(tb: number): string {
+function clockTime(tb: number): string {
   const date = new Date(tb);
   const pad = (value: number, width = 2) => String(value).padStart(width, "0");
   const time = `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
@@ -508,9 +500,6 @@ function isNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
 }
 
-/** Scope trace colours, one per channel (theme tokens, tuned for both themes). */
-export const CHANNEL_COLORS = Array.from({ length: 8 }, (_, index) => `var(--tf-ch-${index + 1})`);
-
 /**
  * Unit of a sampled stream, from its id: analog in/out channels (`ai3`, `ao0`) are volts on every
  * card the bench carries. Unknown streams have no unit.
@@ -530,7 +519,7 @@ export function relativeTime(tb: number, origin: number, digits = 3): string {
 
 // -- run console ---------------------------------------------------------------------------------
 
-export type EntryKind = "bus" | "call" | "step" | "judge" | "event";
+type EntryKind = "bus" | "call" | "step" | "judge" | "event";
 
 /** One console line: bus traffic, a tool call, a step boundary, a verdict or a run event. */
 export interface ConsoleEntry {
