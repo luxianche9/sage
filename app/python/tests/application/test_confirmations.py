@@ -7,11 +7,11 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from teststand_backend.application import OPERATIONS, DefaultAuthorizer
-from teststand_backend.application.confirmations import ConfirmationBroker
-from teststand_backend.application.registry import OperationRegistry
-from teststand_backend.application.services import SystemApplication
-from teststand_backend.contracts.errors import AppError
+from sage_backend.application import OPERATIONS, DefaultAuthorizer
+from sage_backend.application.confirmations import ConfirmationBroker
+from sage_backend.application.registry import OperationRegistry
+from sage_backend.application.services import SystemApplication
+from sage_backend.contracts.errors import AppError
 
 AGENT = {"actor": "agent", "source": "mcp", "subjectId": "client@1"}
 HUMAN = {"actor": "human", "source": "desktop"}

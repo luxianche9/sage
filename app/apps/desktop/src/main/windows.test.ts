@@ -161,7 +161,7 @@ describe("DesktopWindows security", () => {
 
     window.isMaximized.mockReturnValue(true);
     window.windowHandlers.get("maximize")?.();
-    expect(window.webContents.send).toHaveBeenCalledWith("teststand:event", { event: "window-state", payload: { maximized: true } });
+    expect(window.webContents.send).toHaveBeenCalledWith("sage:event", { event: "window-state", payload: { maximized: true } });
 
     const sender = window.webContents as never;
     expect(windows.isTrustedSender(sender, window.webContents.mainFrame as never)).toBe(true);
@@ -170,7 +170,7 @@ describe("DesktopWindows security", () => {
   });
 
   it("restores normal window dimensions and maximization across instances", () => {
-    const root = mkdtempSync(join(tmpdir(), "teststand-window-state-"));
+    const root = mkdtempSync(join(tmpdir(), "sage-window-state-"));
     try {
       const options = { statePath: join(root, "window.json"), theme: "light" as const, authorizeOpenCode: async (_url: string, headers: Record<string, string | string[]>) => headers };
       const windows = new DesktopWindows();

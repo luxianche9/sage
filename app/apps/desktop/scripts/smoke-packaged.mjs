@@ -13,29 +13,29 @@ import { verifyAgentInterface } from "./agent-release-smoke.mjs";
 const execFileAsync = promisify(execFile);
 const desktopDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const workspaceDir = resolve(desktopDir, "../..");
-const executablePath = resolve(process.env.TESTSTAND_SMOKE_EXECUTABLE ?? resolve(workspaceDir, "dist/win-unpacked/testStand.exe"));
+const executablePath = resolve(process.env.SAGE_SMOKE_EXECUTABLE ?? resolve(workspaceDir, "dist/win-unpacked/SAGE.exe"));
 const resourcesRoot = resolve(dirname(executablePath), "resources");
 const bundledOpenCode = resolve(resourcesRoot, "opencode/opencode.exe");
 const packagedResources = resolve(resourcesRoot, "third-party");
-// The .tsdev device packages released with this build (plugin/tools/pack.py --all).
+// The .sagedev device packages released with this build (plugin/tools/pack.py --all).
 
-const userDataDir = await mkdtemp(join(tmpdir(), "teststand-packaged-smoke-"));
+const userDataDir = await mkdtemp(join(tmpdir(), "sage-packaged-smoke-"));
 const projectName = "packaged-smoke 中文 项目";
 const projectRoot = join(userDataDir, projectName);
 const gatewayPort = await availablePort();
 const gatewayTestToken = randomUUID();
 const environment = {
   ...process.env,
-  TESTSTAND_USER_DATA_DIR: userDataDir,
-  TESTSTAND_GATEWAY_PORT: String(gatewayPort),
-  TESTSTAND_AGENT_INTEGRATION_TEST_MODE: "1",
-  TESTSTAND_GATEWAY_TEST_TOKEN: gatewayTestToken,
+  SAGE_USER_DATA_DIR: userDataDir,
+  SAGE_GATEWAY_PORT: String(gatewayPort),
+  SAGE_AGENT_INTEGRATION_TEST_MODE: "1",
+  SAGE_GATEWAY_TEST_TOKEN: gatewayTestToken,
   UV_OFFLINE: "1",
   UV_CACHE_DIR: join(userDataDir, "empty-cache"),
   PATH: join(process.env.SYSTEMROOT ?? "C:\\Windows", "System32")
 };
 delete environment.ELECTRON_RUN_AS_NODE;
-delete environment.TESTSTAND_BACKEND_EXECUTABLE;
+delete environment.SAGE_BACKEND_EXECUTABLE;
 delete environment.PYTHONPATH;
 
 let application;
@@ -56,14 +56,14 @@ try {
   let rendererErrors = collectRendererErrors(page);
   await page.getByRole("heading", { name: "最近项目" }).waitFor();
   await mkdir(projectRoot);
-  await page.evaluate((rootPath) => window.teststand.projects.initializeFolder({ rootPath }), projectRoot);
-  await page.evaluate(() => window.teststand.settings.saveLlm({
+  await page.evaluate((rootPath) => window.sage.projects.initializeFolder({ rootPath }), projectRoot);
+  await page.evaluate(() => window.sage.settings.saveLlm({
     baseUrl: "https://api.openai.com/v1",
     model: "gpt-4.1",
     apiKey: "packaged-smoke-placeholder-key"
   }));
-  await poll(async () => (await page.evaluate(() => window.teststand.agents.openCodeStatus())).state === "running", 30_000);
-  await page.evaluate(() => localStorage.setItem("teststand.assistant-open", "true"));
+  await poll(async () => (await page.evaluate(() => window.sage.agents.openCodeStatus())).state === "running", 30_000);
+  await page.evaluate(() => localStorage.setItem("sage.assistant-open", "true"));
   await page.reload();
   await page.getByText(projectName, { exact: true }).first().click();
   const agentReport = await verifyAgentInterface(`http://127.0.0.1:${gatewayPort}/mcp`, gatewayTestToken);
@@ -86,7 +86,7 @@ try {
   rendererErrors = collectRendererErrors(page);
   await page.getByRole("heading", { name: "最近项目" }).waitFor();
   await page.getByText(projectName, { exact: true }).first().click();
-  await poll(async () => (await page.evaluate(() => window.teststand.agents.openCodeStatus())).state === "running", 30_000);
+  await poll(async () => (await page.evaluate(() => window.sage.agents.openCodeStatus())).state === "running", 30_000);
   await verifyAgentUi(page);
   assert.deepEqual(rendererErrors, [], `Renderer errors during automatic restart launch:\n${rendererErrors.join("\n")}`);
   const secondSidecarPid = await waitForSidecar(new Set([...baselinePids, firstSidecarPid]));
@@ -98,7 +98,7 @@ try {
   await processAudit.assertExited();
   await poll(async () => !(await openCodeProcesses()).some((item) => item.ProcessId === secondSidecarPid), 15_000);
   await processAudit.writeReport();
-  console.log(`Packaged smoke passed (OpenCode PIDs ${firstSidecarPid} and ${secondSidecarPid} stopped with testStand).`);
+  console.log(`Packaged smoke passed (OpenCode PIDs ${firstSidecarPid} and ${secondSidecarPid} stopped with SAGE).`);
 } finally {
   await application?.close().catch(() => undefined);
   processAudit.stop();
@@ -133,11 +133,11 @@ function collectRendererErrors(page) {
 async function verifyAgentUi(page) {
   // Opening a project restarts OpenCode in its folder; wait for the restarted server.
   await poll(async () => {
-    const status = await page.evaluate(() => window.teststand.agents.openCodeStatus());
+    const status = await page.evaluate(() => window.sage.agents.openCodeStatus());
     return status.state === "running" && Boolean(status.apiUrl) && status.workspaceState === "ready";
   }, 60_000);
   const agentConfiguration = await page.evaluate(async () => {
-    const status = await window.teststand.agents.openCodeStatus();
+    const status = await window.sage.agents.openCodeStatus();
     const query = `?directory=${encodeURIComponent(status.workspace)}`;
     const read = async (path) => {
       try {
@@ -185,8 +185,8 @@ $ErrorActionPreference = 'Stop'
 while ($true) {
   $items = @(Get-CimInstance Win32_Process | ForEach-Object {
     $role = 'other'
-    if ($_.Name -eq 'testStand.exe') { $role = 'electron' }
-    elseif ($_.Name -eq 'teststand-backend.exe') { $role = 'backend' }
+    if ($_.Name -eq 'SAGE.exe') { $role = 'electron' }
+    elseif ($_.Name -eq 'sage-backend.exe') { $role = 'backend' }
     elseif ($_.Name -eq 'opencode.exe') { $role = 'opencode' }
     elseif ($_.Name -eq 'python.exe') { $role = 'python' }
     [pscustomobject]@{ pid = $_.ProcessId; parent = $_.ParentProcessId; name = $_.Name;

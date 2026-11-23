@@ -1,6 +1,6 @@
 # JCXD-DA-CPCI-6401 设备插件
 
-包 `teststand_adapter_jcxd_da6401`，设备类型 `jcxd_da6401`（入口点组 `teststand.devices`），由 testStand 后端作为插件加载。`isolation = "subprocess"`：厂商 `DA6401_JC.dll` 通过内核驱动直接访问板卡，崩溃时只结束子进程，不拖垮后端；后端退出时子进程先 `safe_state` 再退出。x64 DLL 随包在 `bin/`，台架上须已安装厂商内核驱动 `DA6401_JC`（设备管理器里能看到板卡）。资料：JCXD-DA-X-6401 用户手册（硬件 V1.0、软件 V1.0）。
+包 `sage_plugin_jcxd_da6401`，设备类型 `jcxd_da6401`（入口点组 `sage.devices`），由 SAGE 后端作为插件加载。`isolation = "subprocess"`：厂商 `DA6401_JC.dll` 通过内核驱动直接访问板卡，崩溃时只结束子进程，不拖垮后端；后端退出时子进程先 `safe_state` 再退出。x64 DLL 随包在 `bin/`，台架上须已安装厂商内核驱动 `DA6401_JC`（设备管理器里能看到板卡）。资料：JCXD-DA-X-6401 用户手册（硬件 V1.0、软件 V1.0）。
 
 一个插件实例只管理一个硬件。公共工具（`get_device_info`、`list_hardware`、`get_hardware_info`、`da6401_stream_read`）、信封格式、`/device` 声明（身份、说明、引脚、流、能力）和流读取由 SDK 提供，见 `plugin/README.md`。插件只报告测量值和状态，不判定通过 / 失败。超时或错误不表示物理动作没有发生：保留原错误，查询当前状态并取证后再决定下一步。
 
@@ -30,7 +30,7 @@
 
 `self_test` 不能证明输出电压，需要一块电压表或 AI 卡（本台架可用 UMAD-X-3210 的 AI）。断开被测设备（RIU）后：
 
-1. 在 testStand 里添加本设备，运行 `self_test`，5 项全部通过。
+1. 在 SAGE 里添加本设备，运行 `self_test`，5 项全部通过。
 2. 抽测通道：至少 AO0、AO31、AO63（分别在 CON1 引脚 50、80、59），每路的回线接旁边的 AGND（例如引脚 47）。
 3. 对每一路依次 `write_voltage` 写 -9、-5、0、5、9 V，用表或 AI 读数。标准型精度 0.05 %FSR（20 V 量程约 ±10 mV），加上表的误差，读数与设定值相差应在 ±20 mV 以内。
 4. 写 5 V 时测相邻通道（例如 AO1、AO2）仍为 0 V，排查串线。
@@ -39,11 +39,11 @@
 
 ## 构建与测试
 
-适配器基于 `teststand-device-sdk`（`sdk`）。本地测试不访问硬件：
+适配器基于 `sage-device-sdk`（`sdk`）。本地测试不访问硬件：
 
 ```powershell
 cd devices
 .\test.ps1 -Target jcxd_da6401                 # pytest + 模拟器上的合规检查
 ```
 
-交付给 testStand 用设备包：`python plugin/tools/pack.py jcxd_da6401` 生成 `plugin/dist/jcxd_da6401-<版本>.tsdev`；在 testStand 测试台架点“+ → 添加设备…”选这个文件，先以模拟模式添加验证，再编辑为实物做空载验收。
+交付给 SAGE 用设备包：`python plugin/tools/pack.py jcxd_da6401` 生成 `plugin/dist/jcxd_da6401-<版本>.sagedev`；在 SAGE 测试台架点“+ → 添加设备…”选这个文件，先以模拟模式添加验证，再编辑为实物做空载验收。

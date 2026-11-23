@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import type { Hardware } from "@teststand/contracts/devices";
+import type { Hardware } from "@sage/contracts/devices";
 import type {
   TestExpressionReference, TestPlan, TestStep, TestStepCatalogItem
-} from "@teststand/contracts/testing";
+} from "@sage/contracts/testing";
 import { Field, Select } from "../../ui";
 import { queryKeys } from "../../lib/query-keys.js";
 import { schemaProperties, stripSchemaProperties, type JsonSchema } from "../manual/schema-form-model.js";
@@ -25,7 +25,7 @@ export function StreamStepInspector({ plan, step, hardware, catalogItem, referen
   const streamId = stringOf(step.streamId);
   const streams = useQuery({
     queryKey: queryKeys.deviceStreams(hardwareId),
-    queryFn: () => window.teststand.streams.listStreams({ hardwareId }),
+    queryFn: () => window.sage.streams.listStreams({ hardwareId }),
     enabled: Boolean(hardwareId)
   });
   const streamIds = withCurrent((streams.data ?? []).map((stream) => stream.id), streamId);

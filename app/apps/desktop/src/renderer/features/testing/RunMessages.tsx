@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { RunMessages as RunMessagesData } from "@teststand/contracts/observability";
+import type { RunMessages as RunMessagesData } from "@sage/contracts/observability";
 import { cn, EmptyState, Select } from "../../ui";
 import { relativeTime, type ConsoleJump } from "../streams/index.js";
 import {

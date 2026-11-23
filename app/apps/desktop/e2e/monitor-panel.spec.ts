@@ -16,12 +16,12 @@ test.describe.serial("monitor panel and pin list", () => {
   let userData: string;
   const errors: string[] = [];
   test.beforeAll(async () => {
-    userData = await mkdtemp(join(tmpdir(), "teststand-monitor-"));
+    userData = await mkdtemp(join(tmpdir(), "sage-monitor-"));
     const projectRoot = join(userData, "monitor-fixture");
     await mkdir(projectRoot);
     await mkdir(artifacts, { recursive: true });
-    const env = { ...process.env, TESTSTAND_USER_DATA_DIR: userData,
-      TESTSTAND_GATEWAY_PORT: "0", TESTSTAND_AGENT_INTEGRATION_TEST_MODE: "1" };
+    const env = { ...process.env, SAGE_USER_DATA_DIR: userData,
+      SAGE_GATEWAY_PORT: "0", SAGE_AGENT_INTEGRATION_TEST_MODE: "1" };
     delete env.ELECTRON_RUN_AS_NODE;
     app = await electron.launch({ args: [desktopDir], cwd: desktopDir, env, timeout: 90_000 });
     page = await rendererReady(await app.firstWindow());
@@ -33,31 +33,31 @@ test.describe.serial("monitor panel and pin list", () => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await expect(page.getByRole("heading", { name: "最近项目" })).toBeVisible();
     await page.evaluate(async ({ root, hardwareId }) => {
-      await window.teststand.projects.initializeFolder({ rootPath: root });
-      await window.teststand.devices.saveHardware({ input: {
+      await window.sage.projects.initializeFolder({ rootPath: root });
+      await window.sage.devices.saveHardware({ input: {
         formatVersion: 2, hardwareId: "DUT", label: "被测板", kind: "passive",
         ports: [{ portId: "J1", name: "J1", pins: [
           { pinId: "1", position: 1, label: "EN" }, { pinId: "2", position: 2, label: "GND" }
         ] }]
       } });
-      await window.teststand.devices.saveHardware({ input: {
+      await window.sage.devices.saveHardware({ input: {
         formatVersion: 2, hardwareId: "FIX", label: "转接箱", kind: "passive",
         ports: [{ portId: "P1", name: "P1", pins: [{ pinId: "1", position: 1, label: "" }] }]
       } });
       // A device without its card: registered, its streams not known until it connects.
-      await window.teststand.devices.saveDevice({ input: {
+      await window.sage.devices.saveDevice({ input: {
         deviceId: "MON_RELAY", label: "继电器卡", hardwareId, type: "comm_link", settings: {}, enabled: true
       } });
-      await window.teststand.wiring.updateDocument({ wiring: { nodes: [], connections: [{
+      await window.sage.wiring.updateDocument({ wiring: { nodes: [], connections: [{
         connectionId: "C1", portA: "DUT.J1", portB: "FIX.P1", pins: [{ a: "1", b: "1" }],
         confirmedAt: "2026-10-07T00:00:00.000Z", confirmedBy: "user"
       }] } });
-      await window.teststand.monitor.update({ input: { operations: [{ op: "addPanel", panel: {
+      await window.sage.monitor.update({ input: { operations: [{ op: "addPanel", panel: {
         id: "scope", type: "scope", title: "示波器",
         sources: [{ hardwareId, streamId: "relay" }, { hardwareId, streamId: "di" }]
       } }] } });
-      await window.teststand.projects.saveProject();
-      await window.teststand.projects.leaveProject();
+      await window.sage.projects.saveProject();
+      await window.sage.projects.leaveProject();
     }, { root: projectRoot, hardwareId });
     await reloadAfterLeave(page);
     await page.getByText("monitor-fixture", { exact: true }).first().click();
@@ -72,7 +72,7 @@ test.describe.serial("monitor panel and pin list", () => {
   test("places the panels the Agent adds, and moves, resizes and removes them in edit mode", async () => {
     const panel = page.getByRole("region", { name: "运行监控" });
     await page.evaluate(async (id) => {
-      await window.teststand.monitor.update({ input: { operations: [
+      await window.sage.monitor.update({ input: { operations: [
         { op: "addPanel", panel: { id: "dio", type: "digital", title: "继电器", sources: [{ hardwareId: id, streamId: "di" }] } },
         { op: "addPanel", panel: { type: "results" } }
       ] } });
@@ -82,7 +82,7 @@ test.describe.serial("monitor panel and pin list", () => {
     await expect(panel.locator("[data-canvas-item='results']")).toBeVisible();
     // New panels take the first free spot: none overlaps another.
     const frames = await page.evaluate(async () =>
-      (await window.teststand.monitor.get()).panels.map((item) => item.frame!));
+      (await window.sage.monitor.get()).panels.map((item) => item.frame!));
     for (const [index, a] of frames.entries()) {
       for (const b of frames.slice(index + 1)) {
         expect(a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y).toBe(true);
@@ -100,7 +100,7 @@ test.describe.serial("monitor panel and pin list", () => {
     await page.mouse.move(box.x + 120, box.y + 60);
     await page.mouse.up();
     await expect.poll(async () => page.evaluate(async () =>
-      (await window.teststand.monitor.get()).panels.find((item) => item.id === "dio")?.frame?.x)).toBe(before.x + 5);
+      (await window.sage.monitor.get()).panels.find((item) => item.id === "dio")?.frame?.x)).toBe(before.x + 5);
     const grip = relays.getByRole("separator", { name: "调整 继电器 的大小" });
     await grip.scrollIntoViewIfNeeded();
     const corner = (await grip.boundingBox())!;
@@ -109,21 +109,21 @@ test.describe.serial("monitor panel and pin list", () => {
     await page.mouse.move(corner.x + 44, corner.y + 44);
     await page.mouse.up();
     await expect.poll(async () => page.evaluate(async () =>
-      (await window.teststand.monitor.get()).panels.find((item) => item.id === "dio")?.frame?.w)).toBe(before.w + 2);
+      (await window.sage.monitor.get()).panels.find((item) => item.id === "dio")?.frame?.w)).toBe(before.w + 2);
     await panel.getByRole("button", { name: "删除 结果" }).click();
     await expect(panel.locator("[data-canvas-item='results']")).toHaveCount(0);
     await page.screenshot({ path: join(artifacts, "workspace.png") });
     await tools.getByRole("button", { name: "编辑布局" }).click();
     const ids = await page.evaluate(async () =>
-      (await window.teststand.monitor.get()).panels.map((item) => item.id));
+      (await window.sage.monitor.get()).panels.map((item) => item.id));
     expect(ids).toEqual(["scope", "dio"]);
   });
 
 
   test("shows a run started from the test panel with its event timeline from the first step", async () => {
     await page.evaluate(async () => {
-      const flow = await window.teststand.testing.loadPlan({ planId: "flow" });
-      await window.teststand.testing.applyPlanOperations({ input: {
+      const flow = await window.sage.testing.loadPlan({ planId: "flow" });
+      await window.sage.testing.applyPlanOperations({ input: {
         planId: flow.id, baseRevision: flow.revision, requestId: crypto.randomUUID(),
         operations: [
           { type: "set_plan_fields", patch: { name: "运行监控运行" } },

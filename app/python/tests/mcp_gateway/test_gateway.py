@@ -10,8 +10,8 @@ from unittest.mock import AsyncMock, Mock
 import httpx
 import pytest
 
-from teststand_backend.application import TestStandApplication
-from teststand_backend.mcp_gateway import LocalMcpGateway
+from sage_backend.application import SageApplication
+from sage_backend.mcp_gateway import LocalMcpGateway
 
 PREFIX = "packages/mcp-gateway/src/gateway.test.ts::"
 
@@ -55,7 +55,7 @@ def application(overrides: dict[str, Any] | None = None) -> tuple[Any, Any, Any]
         list_tasks=Mock(return_value=[]),
         cancel_task=AsyncMock(),
     )
-    app = TestStandApplication(
+    app = SageApplication(
         {
             "devices": devices,
             "catalog": catalog,

@@ -1,8 +1,8 @@
 import { expect, type Page } from "@playwright/test";
 
-/** The renderer installs `window.teststand` when its bundle runs, after the window exists. */
+/** The renderer installs `window.sage` when its bundle runs, after the window exists. */
 export async function rendererReady(page: Page): Promise<Page> {
-  await page.waitForFunction(() => typeof window.teststand === "object");
+  await page.waitForFunction(() => typeof window.sage === "object");
   return page;
 }
 

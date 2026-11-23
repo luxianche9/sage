@@ -7,12 +7,12 @@ const desktopDir = fileURLToPath(new URL(".", import.meta.url));
 const require = createRequire(import.meta.url);
 
 const config: Configuration = {
-  appId: "com.teststand.desktop",
-  productName: "testStand",
+  appId: "com.sage.desktop",
+  productName: "SAGE",
   // The per-user install directory (%LOCALAPPDATA%\Programs\<name>) comes from the package name;
-  // "@teststand/desktop" would become "@teststanddesktop".
-  extraMetadata: { name: "teststand" },
-  artifactName: "testStand-${version}-windows-${arch}.${ext}",
+  // "@sage/desktop" would become "@sagedesktop".
+  extraMetadata: { name: "sage" },
+  artifactName: "SAGE-${version}-windows-${arch}.${ext}",
   directories: {
     output: resolve(desktopDir, "../../dist"),
     buildResources: resolve(desktopDir, "resources")
@@ -20,7 +20,7 @@ const config: Configuration = {
   files: ["out/**/*", "package.json"],
   extraResources: [
     {
-      from: resolve(desktopDir, "../../python/dist/teststand-backend"),
+      from: resolve(desktopDir, "../../python/dist/sage-backend"),
       to: "backend"
     },
     {

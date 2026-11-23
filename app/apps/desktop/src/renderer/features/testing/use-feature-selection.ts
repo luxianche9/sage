@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import type { FeatureSelection } from "./PlanFlow.js";
 
-const storagePrefix = "teststand.unselected-features:";
+const storagePrefix = "sage.unselected-features:";
 
 function readUnselected(key: string): string[] {
   try {

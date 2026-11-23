@@ -1,7 +1,7 @@
-import type { TestStandLiveApi } from "@teststand/contracts/desktop";
-import type { LiveFrame, LiveQuery } from "@teststand/contracts/observability";
+import type { SageLiveApi } from "@sage/contracts/desktop";
+import type { LiveFrame, LiveQuery } from "@sage/contracts/observability";
 
-type Live = TestStandLiveApi["live"];
+type Live = SageLiveApi["live"];
 
 interface Consumer {
   query: LiveQuery;

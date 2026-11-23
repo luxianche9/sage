@@ -1,6 +1,6 @@
 import { useId } from "react";
-import type { Hardware } from "@teststand/contracts/devices";
-import type { PlanBinding } from "@teststand/contracts/testing";
+import type { Hardware } from "@sage/contracts/devices";
+import type { PlanBinding } from "@sage/contracts/testing";
 import { XIcon } from "lucide-react";
 import { Button, IconButton, Input } from "../../ui";
 

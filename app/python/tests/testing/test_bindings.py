@@ -3,9 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from teststand_backend.testing.bindings import expand_bindings
-from teststand_backend.testing.compiler import compile_plan
-from teststand_backend.testing.validation import validate_plan
+from sage_backend.testing.bindings import expand_bindings
+from sage_backend.testing.compiler import compile_plan
+from sage_backend.testing.validation import validate_plan
 
 from .test_features import make_app, run_flow
 from .test_testing import HUMAN, Resolver, plan_with

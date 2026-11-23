@@ -1,4 +1,4 @@
-const OPEN_RUN = "teststand:open-run";
+const OPEN_RUN = "sage:open-run";
 let pending: string | undefined;
 
 /** Shows a run on the bench's signal view (the shell switches to the bench; the view picks the run up). */
@@ -28,7 +28,7 @@ export function onRunRequested(listener: (runId: string) => void): () => void {
   return () => window.removeEventListener(OPEN_RUN, handler);
 }
 
-const FOCUS_STEP = "teststand:focus-step";
+const FOCUS_STEP = "sage:focus-step";
 
 /** Zooms the signal view to the time one step of the shown run took. */
 export function focusRunStep(executionId: string) {

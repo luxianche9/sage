@@ -1,5 +1,5 @@
-import type { Hardware } from "@teststand/contracts/devices";
-import type { PortSide, ProjectCanvasNode, ProjectWiringConnection } from "@teststand/contracts/wiring";
+import type { Hardware } from "@sage/contracts/devices";
+import type { PortSide, ProjectCanvasNode, ProjectWiringConnection } from "@sage/contracts/wiring";
 import {
   DEFAULT_CARD_HEIGHT,
   DEFAULT_CARD_WIDTH,

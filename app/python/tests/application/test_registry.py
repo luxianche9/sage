@@ -8,19 +8,19 @@ from typing import Any
 
 import pytest
 
-from teststand_backend.application.authorization import (
+from sage_backend.application.authorization import (
     AGENT_REQUEST_CONTEXT,
     HUMAN_REQUEST_CONTEXT,
     DefaultAuthorizer,
 )
-from teststand_backend.application.registry import OperationRegistry
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.contracts.operations import (
+from sage_backend.application.registry import OperationRegistry
+from sage_backend.contracts.errors import AppError
+from sage_backend.contracts.operations import (
     OperationDefinition,
     collect_operations,
     operation,
 )
-from teststand_backend.util import Record
+from sage_backend.util import Record
 
 
 class Bench:

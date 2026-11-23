@@ -3,23 +3,23 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "teststand-adapter-jcxd-mads3210"
+name = "sage-plugin-jcxd-mads3210"
 version = "1.0.2"
-description = "testStand device plugin for the Devices-JC JCXD-MADS-CPCI-3210"
+description = "SAGE device plugin for the Devices-JC JCXD-MADS-CPCI-3210"
 requires-python = ">=3.11"
-dependencies = ["teststand-device-sdk>=0.2.1,<0.3"]
+dependencies = ["sage-device-sdk>=0.2.1,<0.3"]
 
-[project.entry-points."teststand.devices"]
-jcxd_mads3210 = "teststand_adapter_jcxd_mads3210:DEVICE"
+[project.entry-points."sage.devices"]
+jcxd_mads3210 = "sage_plugin_jcxd_mads3210:DEVICE"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-teststand_adapter_jcxd_mads3210 = ["py.typed", "bin/*.dll"]
+sage_plugin_jcxd_mads3210 = ["py.typed", "bin/*.dll"]
 
-# Read by plugin/tools/pack.py into the .tsdev manifest: vendor drivers the bench must have installed,
+# Read by plugin/tools/pack.py into the .sagedev manifest: vendor drivers the bench must have installed,
 # and package files that must be in the wheel (e.g. "bin/<bridge>.exe").
-[tool.teststand.package]
+[tool.sage.package]
 vendorDrivers = ["Devices-JC UMADX3210 kernel driver"]
 requiredFiles = ["bin/UMADX3210_x64.dll"]

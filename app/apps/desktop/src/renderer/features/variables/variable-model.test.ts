@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { DeviceStreams } from "@teststand/contracts/monitor";
-import type { ProtocolBindingState } from "@teststand/contracts/projects";
+import type { DeviceStreams } from "@sage/contracts/monitor";
+import type { ProtocolBindingState } from "@sage/contracts/projects";
 import { deviceVariables, formatValue, liveKeys } from "./variable-model.js";
 
 const field = (id: string, label?: string) => ({

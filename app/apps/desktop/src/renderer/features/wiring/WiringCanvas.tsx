@@ -21,7 +21,7 @@ import type { HardwareFlowNode, TopologyEdge } from "./wiring-model.js";
 const fitOptions = { padding: 0.2, maxZoom: 1 };
 
 /** Drag payload of a device list row: its hardwareId. */
-export const HARDWARE_MIME = "application/teststand-hardware";
+export const HARDWARE_MIME = "application/sage-hardware";
 export type ManualPair = { portA: string; portB: string };
 export type NodeMenu = { hardwareId: string; x: number; y: number };
 

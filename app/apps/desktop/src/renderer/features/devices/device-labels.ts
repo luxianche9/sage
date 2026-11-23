@@ -1,4 +1,4 @@
-import type { HardwareAvailability, DeviceStatus } from "@teststand/contracts/devices";
+import type { HardwareAvailability, DeviceStatus } from "@sage/contracts/devices";
 import { hardwareStatus } from "../../lib/hardware-status.js";
 import type { Tone } from "../../ui";
 

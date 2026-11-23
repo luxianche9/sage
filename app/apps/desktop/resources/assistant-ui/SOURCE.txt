@@ -1,4 +1,4 @@
-testStand's Agent sidebar is adapted from the official assistant-ui OpenCode
+SAGE's Agent sidebar is adapted from the official assistant-ui OpenCode
 example and UI components.
 
 Project: https://github.com/assistant-ui/assistant-ui

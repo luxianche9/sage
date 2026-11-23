@@ -4,9 +4,9 @@ from typing import Any
 
 import pytest
 
-from teststand_backend.streams import judge
-from teststand_backend.streams.data import StreamData
-from teststand_backend.streams.judge import Anchor, Window
+from sage_backend.streams import judge
+from sage_backend.streams.data import StreamData
+from sage_backend.streams.judge import Anchor, Window
 
 
 def scalar(values: list[float], *, start: float = 0.0, step: float = 10.0) -> list[dict[str, Any]]:

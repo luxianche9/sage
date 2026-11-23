@@ -1,4 +1,4 @@
-import type { Hardware, HardwarePin, HardwarePort } from "@teststand/contracts/devices";
+import type { Hardware, HardwarePin, HardwarePort } from "@sage/contracts/devices";
 
 /**
  * Wiring references a port as `<hardwareId>.<portId>` and a pin by its port-local id. Profile and

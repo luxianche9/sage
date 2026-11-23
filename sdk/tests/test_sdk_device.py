@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import hashlib
 
-from teststand_device_sdk import (
+from sage_device_sdk import (
     CONTRACT_REVISION,
     __version__,
     function,
     single_connector_pinout,
 )
-from teststand_device_sdk.manifest import canonical_json
-from teststand_device_sdk.testing import check_device, serve
+from sage_device_sdk.manifest import canonical_json
+from sage_device_sdk.testing import check_device, serve
 
 from sdk_demo import DemoDevice
 
@@ -44,7 +44,7 @@ def test_device_declaration_shape(hh):
     assert set(tools) == set(hh.tools)
     assert tools["demo_set_level"] == "actuate" and tools["demo_safe_state"] == "safe"
     assert tools["demo_configure"] == "configure" and tools["demo_read_level"] == "read"
-    assert tools["teststand_prepare_shutdown"] == "internal" and tools["get_device_info"] == "read"
+    assert tools["sage_prepare_shutdown"] == "internal" and tools["get_device_info"] == "read"
     assert document["capabilities"]["declarationPath"] == "/device"
 
 

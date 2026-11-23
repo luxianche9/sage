@@ -14,7 +14,7 @@ from typing import Any
 import pytest
 import pytest_asyncio
 
-from teststand_backend.host.opencode import (
+from sage_backend.host.opencode import (
     OPENCODE_VERSION,
     LlmChoice,
     OpenCodeRuntime,
@@ -22,7 +22,7 @@ from teststand_backend.host.opencode import (
     opencode_config,
     redact,
 )
-from teststand_backend.mcp_gateway.agent_instructions import AGENT_INSTRUCTIONS
+from sage_backend.mcp_gateway.agent_instructions import AGENT_INSTRUCTIONS
 
 ROOT = Path(__file__).resolve().parents[3]
 BUNDLED = ROOT / "apps/desktop/node_modules/opencode-windows-x64-baseline/bin/opencode.exe"
@@ -37,7 +37,7 @@ if mode == "silent":
     import time
     time.sleep(120)
 names = ["OPENCODE_SERVER_USERNAME", "OPENCODE_SERVER_PASSWORD", "OPENCODE_CONFIG_CONTENT",
-         "TESTSTAND_MCP_TOKEN", "TESTSTAND_LLM_API_KEY", "XDG_DATA_HOME", "XDG_CONFIG_HOME",
+         "SAGE_MCP_TOKEN", "SAGE_LLM_API_KEY", "XDG_DATA_HOME", "XDG_CONFIG_HOME",
          "NO_PROXY", "OPENCODE_DISABLE_PROJECT_CONFIG"]
 with open(os.environ["FAKE_OPENCODE_RECORD"], "w", encoding="utf-8") as record:
     json.dump({"argv": sys.argv[1:], "cwd": os.getcwd(),
@@ -110,15 +110,15 @@ def test_config_names_the_secrets_and_gives_both_agents_the_instructions() -> No
     assert permission["webfetch"] == permission["websearch"] == "deny"
     assert config["provider"]["llm"]["options"] == {
         "baseURL": "https://llm/v1",
-        "apiKey": "{env:TESTSTAND_LLM_API_KEY}",
+        "apiKey": "{env:SAGE_LLM_API_KEY}",
         "headerTimeout": 180_000,
         "chunkTimeout": 180_000,
     }
     assert config["model"] == config["small_model"] == "llm/m"
-    assert config["mcp"]["teststand"] == {
+    assert config["mcp"]["sage"] == {
         "type": "remote",
         "url": "http://127.0.0.1:8000/mcp",
-        "headers": {"Authorization": "Bearer {env:TESTSTAND_MCP_TOKEN}"},
+        "headers": {"Authorization": "Bearer {env:SAGE_MCP_TOKEN}"},
         "enabled": True,
         "timeout": 120_000,
     }
@@ -154,14 +154,14 @@ async def test_starts_in_the_project_with_isolated_storage_and_secrets_in_the_en
     env = recorded["env"]
     assert env["OPENCODE_SERVER_PASSWORD"] == runtime.password
     # Secrets live in the private configuration file only: the agent's shell inherits the env.
-    hidden = ("TESTSTAND_MCP_TOKEN", "TESTSTAND_LLM_API_KEY", "OPENCODE_CONFIG_CONTENT")
+    hidden = ("SAGE_MCP_TOKEN", "SAGE_LLM_API_KEY", "OPENCODE_CONFIG_CONTENT")
     assert all(env[name] is None for name in hidden)
     assert "llm-secret" not in json.dumps(env) and "gateway-secret" not in json.dumps(env)
     config = json.loads(
         (Path(env["XDG_CONFIG_HOME"]) / "opencode" / "opencode.json").read_text("utf-8")
     )
     assert config["provider"]["llm"]["options"]["apiKey"] == "llm-secret"
-    assert config["mcp"]["teststand"]["headers"]["Authorization"] == "Bearer gateway-secret"
+    assert config["mcp"]["sage"]["headers"]["Authorization"] == "Bearer gateway-secret"
     assert env["OPENCODE_DISABLE_PROJECT_CONFIG"] == "1"
     assert "127.0.0.1" in env["NO_PROXY"]
     assert Path(env["XDG_DATA_HOME"]).parts[-2:] == ("opencode", "data")
@@ -359,8 +359,8 @@ def _bundled_environment(root: Path) -> dict[str, str]:
         "OPENCODE_CONFIG_CONTENT": opencode_config(
             "http://127.0.0.1:1/mcp", "http://127.0.0.1:1/v1", "contract-test"
         ),
-        "TESTSTAND_MCP_TOKEN": "contract-test-placeholder",
-        "TESTSTAND_LLM_API_KEY": "contract-test-placeholder",
+        "SAGE_MCP_TOKEN": "contract-test-placeholder",
+        "SAGE_LLM_API_KEY": "contract-test-placeholder",
     }
     environment.pop("OPENCODE_CONFIG", None)
     environment.pop("OPENCODE_CONFIG_DIR", None)
@@ -412,14 +412,14 @@ async def test_the_bundled_opencode_starts_and_stops(tmp_path: Path) -> None:
     assert runtime.status()["state"] == "stopped"
 
 
-def test_the_agent_is_offline_and_kept_out_of_testStand_folders(tmp_path: Path) -> None:
-    from teststand_backend.host.opencode import (
+def test_the_agent_is_offline_and_kept_out_of_sage_folders(tmp_path: Path) -> None:
+    from sage_backend.host.opencode import (
         AGENT_ENVIRONMENT,
         HIDDEN_ENVIRONMENT,
         permission_policy,
     )
 
-    protected = tmp_path / "teststand"
+    protected = tmp_path / "sage"
     policy = permission_policy([protected])
     backslash, slash = str(protected), str(protected).replace("\\", "/")
     for key in ("external_directory", "read"):
@@ -429,11 +429,11 @@ def test_the_agent_is_offline_and_kept_out_of_testStand_folders(tmp_path: Path) 
     assert policy["bash"]["* Invoke-WebRequest *"] == policy["bash"]["git clone *"] == "deny"
     assert policy["webfetch"] == policy["websearch"] == policy["codesearch"] == "deny"
     assert AGENT_ENVIRONMENT["OPENCODE_DISABLE_PROJECT_CONFIG"] == "1"
-    assert {"TESTSTAND_LLM_API_KEY", "TESTSTAND_PLUGINS_DIR"} <= set(HIDDEN_ENVIRONMENT)
+    assert {"SAGE_LLM_API_KEY", "SAGE_PLUGINS_DIR"} <= set(HIDDEN_ENVIRONMENT)
 
 
 def test_installation_folders_cover_the_checkout_and_user_data(tmp_path: Path) -> None:
-    from teststand_backend.host.runtime import installation_folders
+    from sage_backend.host.runtime import installation_folders
 
     opencode = tmp_path / "bin" / "opencode.exe"
     folders = installation_folders(tmp_path / "data", opencode)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import threading
 
-from teststand_device_sdk import RingBuffer, now_ms
+from sage_device_sdk import RingBuffer, now_ms
 
 
 def test_sequence_and_cursor_resume():

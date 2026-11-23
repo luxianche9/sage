@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { app, BrowserWindow, dialog, nativeTheme, type WebContents, type WebFrameMain } from "electron";
-import type { TestStandEventName } from "@teststand/contracts/desktop";
+import type { SageEventName } from "@sage/contracts/desktop";
 import { DESKTOP_EVENT_CHANNEL, type DesktopEventMessage } from "../shared/desktop-ipc.js";
 import type { OpenCodeAuthorization } from "./opencode-auth.js";
 import { readWindowState, writeWindowState } from "./window-state.js";
@@ -79,7 +79,7 @@ export class DesktopWindows {
   }
 
   /** Events that originate in main (the window state); Python's go over SSE. */
-  private publish(event: TestStandEventName, payload: unknown): void {
+  private publish(event: SageEventName, payload: unknown): void {
     const contents = this.mainWindow?.webContents;
     if (!contents || contents.isDestroyed()) return;
     contents.send(DESKTOP_EVENT_CHANNEL, { event, payload } satisfies DesktopEventMessage);

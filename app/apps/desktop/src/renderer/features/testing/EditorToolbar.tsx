@@ -3,7 +3,7 @@ import {
   CheckCircle2Icon, CircleStopIcon, FileCogIcon, ListChecksIcon, PauseIcon, PlayIcon, Redo2Icon, SaveIcon,
   Undo2Icon
 } from "lucide-react";
-import type { TestPlan, TestPlanIssue, TestRunSnapshot } from "@teststand/contracts/testing";
+import type { TestPlan, TestPlanIssue, TestRunSnapshot } from "@sage/contracts/testing";
 import { errorMessage } from "../../lib/errors.js";
 import { Badge, Button, IconButton, Toolbar, ToolbarDivider, useToast } from "../../ui";
 import { isActiveRun } from "./plan-helpers.js";
@@ -90,8 +90,8 @@ export function RunControls({ run, disabled, confirm, onStart, onChanged }: {
     finally { setBusy(false); }
   };
   const togglePause = () => act(() => paused
-    ? window.teststand.testing.resumeRun({ runId: run.runId })
-    : window.teststand.testing.pauseRun({ runId: run.runId }));
+    ? window.sage.testing.resumeRun({ runId: run.runId })
+    : window.sage.testing.pauseRun({ runId: run.runId }));
   const abort = async () => {
     const ok = await confirm({
       title: "终止运行？",
@@ -99,7 +99,7 @@ export function RunControls({ run, disabled, confirm, onStart, onChanged }: {
       confirmLabel: "终止",
       danger: true
     });
-    if (ok) await act(() => window.teststand.testing.abortRun({ runId: run.runId }));
+    if (ok) await act(() => window.sage.testing.abortRun({ runId: run.runId }));
   };
   return (
     <div className="flex items-center gap-1">

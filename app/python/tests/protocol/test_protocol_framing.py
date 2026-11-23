@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 from pydantic import TypeAdapter
 
-from teststand_backend.protocol.framing import (
+from sage_backend.protocol.framing import (
     CobsFramer,
     DelimiterFramer,
     FixedFramer,
@@ -20,7 +20,7 @@ from teststand_backend.protocol.framing import (
     slip_decode,
     slip_encode,
 )
-from teststand_backend.protocol.icd import Framing
+from sage_backend.protocol.icd import Framing
 
 from .icd_fixtures import ack_frame, dut_cmd, status_frame
 

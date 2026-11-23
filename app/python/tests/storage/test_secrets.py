@@ -7,15 +7,15 @@ from typing import Any, cast
 
 import pytest
 
-from teststand_backend.storage import SecretStore, atomic_json, read_json
-from teststand_backend.storage.secrets import (
+from sage_backend.storage import SecretStore, atomic_json, read_json
+from sage_backend.storage.secrets import (
     CHUNK,
     INDEX_FILE,
     SERVICE,
     FileSecretBackend,
     MemorySecretBackend,
 )
-from teststand_backend.util import UNDEFINED
+from sage_backend.util import UNDEFINED
 
 
 @pytest.mark.ts_case(

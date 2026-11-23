@@ -1,13 +1,13 @@
 import { lazy, Suspense, useCallback, useEffect, useReducer, useState } from "react";
 import { QueryClient, QueryClientProvider, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { ProjectDocument, ProjectFolderSelection } from "@teststand/contracts/projects";
+import type { ProjectDocument, ProjectFolderSelection } from "@sage/contracts/projects";
 import { ToastProvider, TooltipProvider, useToast } from "../ui";
 import { useDashboard, useProjectDocument } from "../lib/queries.js";
 import { useTheme } from "../lib/theme.js";
 import { errorMessage } from "../lib/errors.js";
 import { queryKeys } from "../lib/query-keys.js";
 import { REOPEN_AFTER_RELAUNCH } from "../lib/host/api.js";
-import { useTestStandEvents } from "../lib/hooks/useTestStandEvents.js";
+import { useSageEvents } from "../lib/hooks/useSageEvents.js";
 import { useKeyboardShortcut } from "../lib/hooks/useKeyboardShortcut.js";
 import { useDirtyGuard } from "../lib/hooks/useDirtyGuard.js";
 import { chooseProjectFolder } from "../lib/projects.js";
@@ -48,7 +48,7 @@ export function App() {
 }
 
 function beforeNavigation(detail: Record<string, unknown>) {
-  return window.dispatchEvent(new CustomEvent("teststand:before-navigation", { cancelable: true, detail }));
+  return window.dispatchEvent(new CustomEvent("sage:before-navigation", { cancelable: true, detail }));
 }
 
 function Shell() {
@@ -63,7 +63,7 @@ function Shell() {
   const toast = useToast();
   const setError = useCallback((message?: string) => { if (message) toast.error(message); }, [toast]);
 
-  useTestStandEvents(client);
+  useSageEvents(client);
 
   const syncProject = useCallback(async (document?: ProjectDocument | null) => {
     if (document !== undefined) client.setQueryData(queryKeys.projectDocument, document);
@@ -76,14 +76,14 @@ function Shell() {
   }, [client]);
 
   const save = useMutation({
-    mutationFn: () => window.teststand.projects.saveProject(),
+    mutationFn: () => window.sage.projects.saveProject(),
     onSuccess: (document) => void syncProject(document),
     onError: (reason) => setError(errorMessage(reason))
   });
 
   const dirtyGuard = useDirtyGuard(
     Boolean(project.data?.dirty),
-    () => window.teststand.projects.saveProject(),
+    () => window.sage.projects.saveProject(),
     syncProject,
     (message) => setError(message)
   );
@@ -112,18 +112,18 @@ function Shell() {
     setAssistantOpen(readAssistantOpen());
   }, [syncProject]);
 
-  // After 重启 testStand (a driver update), open the project the restart left.
+  // After 重启 SAGE (a driver update), open the project the restart left.
   useEffect(() => {
     const rootPath = localStorage.getItem(REOPEN_AFTER_RELAUNCH);
     if (!rootPath) return;
     localStorage.removeItem(REOPEN_AFTER_RELAUNCH);
-    void window.teststand.projects.openFolder({ rootPath })
+    void window.sage.projects.openFolder({ rootPath })
       .then(() => enterProject())
       .catch((reason: unknown) => setError(errorMessage(reason)));
   }, [enterProject, setError]);
 
   const goWelcome = useCallback(async () => {
-    await window.teststand.projects.leaveProject();
+    await window.sage.projects.leaveProject();
     await syncProject(null);
     setAssistantOpen(false);
     navigate({ type: "show-content", page: "welcome" });
@@ -134,7 +134,7 @@ function Shell() {
     if (!selection) return;
     if (selection.state === "invalid") throw new Error(selection.message ?? "项目清单无法读取。");
     if (selection.state === "uninitialized") { setPendingSelection(selection); return; }
-    await window.teststand.projects.openFolder({ rootPath: selection.rootPath });
+    await window.sage.projects.openFolder({ rootPath: selection.rootPath });
     await enterProject();
   }, [enterProject]);
 
@@ -164,7 +164,7 @@ function Shell() {
   const initializeSelected = async () => {
     if (!pendingSelection) return;
     try {
-      await window.teststand.projects.initializeFolder({ rootPath: pendingSelection.rootPath });
+      await window.sage.projects.initializeFolder({ rootPath: pendingSelection.rootPath });
       setPendingSelection(undefined);
       await enterProject();
     } catch (reason) { setError(errorMessage(reason)); }

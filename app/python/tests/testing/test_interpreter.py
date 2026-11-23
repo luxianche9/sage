@@ -6,7 +6,7 @@ import asyncio
 import itertools
 from typing import Any
 
-from teststand_backend.testing.interpreter import RunInterpreter, RunPorts
+from sage_backend.testing.interpreter import RunInterpreter, RunPorts
 
 Record = dict[str, Any]
 

@@ -3,8 +3,8 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { Hardware } from "@teststand/contracts/devices";
-import type { TestPlan, TestStep } from "@teststand/contracts/testing";
+import type { Hardware } from "@sage/contracts/devices";
+import type { TestPlan, TestStep } from "@sage/contracts/testing";
 import { StreamStepInspector } from "./StreamStepInspector.js";
 
 afterEach(() => cleanup());
@@ -21,7 +21,7 @@ function plan(steps: TestStep[]): TestPlan {
 
 function renderInspector(step: TestStep, update = vi.fn()) {
   const listStreams = vi.fn(async () => [{ id: "ch1", type: "f32" }]);
-  Object.defineProperty(window, "teststand", {
+  Object.defineProperty(window, "sage", {
     configurable: true, value: { streams: { listStreams } }
   });
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });

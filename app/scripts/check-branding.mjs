@@ -4,7 +4,8 @@ import { fileURLToPath } from "node:url";
 
 const workspace = fileURLToPath(new URL("..", import.meta.url));
 const repository = resolve(workspace, "..");
-const retired = /test[\s_-]?forge|\.tfhw|hardware[\s_-]?harness|\.hhhw|hh[_-]adapter|mcp_servers/i;
+// Earlier product names (TestForge, HardwareHarness, testStand) and their file extensions. CHANGELOG.md keeps the history.
+const retired = /test[\s_-]?forge|\.tfhw|hardware[\s_-]?harness|\.hhhw|hh[_-]adapter|mcp_servers|test[\s_-]?stand|\.tsdev\b|\.tshw\b/i;
 const excluded = new Set(["node_modules", ".venv", "venv", "dist", "out", "build", "__pycache__", ".pytest_cache", ".ruff_cache", ".mypy_cache", ".git", "run", "logs", "firmware"]);
 const text = /\.(?:[cm]?[jt]sx?|py|json|toml|ya?ml|md|ps1|css|html|txt|spec|lock)$/i;
 const violations = [];
@@ -20,9 +21,9 @@ async function visit(directory) {
 }
 
 for (const directory of ["apps", "packages", "python/src"]) await visit(resolve(workspace, directory));
-await visit(resolve(repository, "devices"));
+for (const directory of ["sdk", "plugin", "docs"]) await visit(resolve(repository, directory));
 for (const name of ["package.json", "pnpm-lock.yaml", "python/pyproject.toml", "python/uv.lock", "python/backend.spec"]) {
   if (retired.test(await readFile(resolve(workspace, name), "utf8"))) violations.push(name);
 }
 if (violations.length) throw new Error(`Retired branding in active files:\n${violations.join("\n")}`);
-console.log("testStand branding verified across desktop, backend, contracts and device plugins.");
+console.log("SAGE branding verified across desktop, backend, contracts and device plugins.");

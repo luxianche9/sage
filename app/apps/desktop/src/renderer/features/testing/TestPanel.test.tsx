@@ -5,7 +5,7 @@ import { ToastProvider } from "../../ui/toast";
 import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
-import type { TestPlan, TestRunEvent } from "@teststand/contracts/testing";
+import type { TestPlan, TestRunEvent } from "@sage/contracts/testing";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { onRunRequested } from "../../lib/run-focus.js";
 import { useBenchRun } from "../monitor/use-bench-run.js";

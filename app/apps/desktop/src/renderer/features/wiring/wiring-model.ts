@@ -1,12 +1,12 @@
 import type { Edge, Node, Position } from "@xyflow/react";
-import type { Hardware, HardwarePort } from "@teststand/contracts/devices";
+import type { Hardware, HardwarePort } from "@sage/contracts/devices";
 import type {
   PinPair,
   PortPosition,
   PortSide,
   ProjectWiringConnection,
   WiringTask
-} from "@teststand/contracts/wiring";
+} from "@sage/contracts/wiring";
 import type { Tone } from "../../ui/cn.js";
 
 type CanvasNodeData = {

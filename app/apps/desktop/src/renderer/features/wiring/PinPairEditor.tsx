@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import type { Hardware, HardwarePort } from "@teststand/contracts/devices";
-import type { PinPair } from "@teststand/contracts/wiring";
+import type { Hardware, HardwarePort } from "@sage/contracts/devices";
+import type { PinPair } from "@sage/contracts/wiring";
 import { ArrowRightIcon, PlusIcon, Trash2Icon, TriangleAlertIcon } from "lucide-react";
 import { pinText } from "../../lib/hardware.js";
 import { Button, IconButton, Select } from "../../ui/index.js";

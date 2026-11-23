@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import type { ToolCatalogItem } from "@teststand/contracts/devices";
-import { activeExecutionActivities } from "@teststand/contracts/execution";
+import type { ToolCatalogItem } from "@sage/contracts/devices";
+import { activeExecutionActivities } from "@sage/contracts/execution";
 import { errorMessage } from "../../lib/errors.js";
 import { useDashboard } from "../../lib/queries.js";
 import { queryKeys } from "../../lib/query-keys.js";
@@ -70,7 +70,7 @@ export function useManualControl() {
       throw new Error(`${hardwareId} 没有工具 ${name}（设备离线？）`);
     }
     try {
-      const result = await window.teststand.manual.invokeTool({
+      const result = await window.sage.manual.invokeTool({
         raw: { hardwareId, toolName: tool.externalName, arguments: args, timeoutMs: TIMEOUT_MS }
       });
       record(true, JSON.stringify(result.output));

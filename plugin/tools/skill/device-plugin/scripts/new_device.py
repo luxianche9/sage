@@ -1,13 +1,13 @@
-"""Scaffold a testStand device plugin adapter from ``assets/adapter-template``.
+"""Scaffold a SAGE device plugin adapter from ``assets/adapter-template``.
 
     python plugin/tools/skill/device-plugin/scripts/new_device.py pci1234 --prefix pci1234 --model PCI-1234 --manufacturer Acme
 
 Creates ``plugin/<adapter>/`` (its ``pyproject.toml`` declares the
-``teststand.devices`` entry point ``<adapter>``, the device type) and registers
+``sage.devices`` entry point ``<adapter>``, the device type) and registers
 the package in the ``plugin`` uv workspace (``pyproject.toml``). The generated
 adapter is a digital I/O skeleton that already passes the compliance suite on its
 simulator; every ``TODO(new_device)`` marker must be resolved from the manual before
-review. It never edits the testStand backend project and never touches hardware.
+review. It never edits the SAGE backend project and never touches hardware.
 """
 
 from __future__ import annotations
@@ -35,10 +35,10 @@ def class_name(adapter: str) -> str:
 
 
 def sdk_range(root: Path) -> str:
-    text = (root.parent / "sdk" / "src" / "teststand_device_sdk" / "_version.py").read_text(encoding="utf-8")
+    text = (root.parent / "sdk" / "src" / "sage_device_sdk" / "_version.py").read_text(encoding="utf-8")
     match = re.search(r'__version__\s*=\s*"(\d+)\.(\d+)\.', text)
     if match is None:
-        raise SystemExit("Cannot read the SDK version from sdk/src/teststand_device_sdk/_version.py")
+        raise SystemExit("Cannot read the SDK version from sdk/src/sage_device_sdk/_version.py")
     major, minor = int(match[1]), int(match[2])
     return f">={major}.{minor},<{major}.{minor + 1}" if major == 0 else f">={major}.{minor},<{major + 1}"
 
@@ -110,7 +110,7 @@ def main(argv: list[str] | None = None) -> int:
     dest: Path = (args.dest or root / adapter).resolve()
     if dest.exists():
         parser.error(f"{dest} already exists; refusing to overwrite an adapter")
-    package, dist = f"teststand_adapter_{adapter}", f"teststand-adapter-{adapter.replace('_', '-')}"
+    package, dist = f"sage_plugin_{adapter}", f"sage-plugin-{adapter.replace('_', '-')}"
     values = {
         "__ADAPTER__": adapter, "__PACKAGE__": package, "__DIST__": dist, "__PREFIX__": prefix,
         "__PREFIX_UPPER__": prefix.upper(), "__CLASS__": cls, "__MODEL__": args.model,
@@ -127,9 +127,9 @@ Next steps (see plugin/tools/skill/device-plugin/SKILL.md):
   1. Replace every TODO(new_device) and the hypothetical digital I/O tools with the manual's operations;
      set Device.isolation = "subprocess" if the driver prints to stdout or may crash.
   2. Run plugin/tools/skill/device-plugin/scripts/check_adapter.ps1 -Adapter {adapter}  (pytest + compliance + TODO scan).
-  3. Build its device package: python plugin/tools/pack.py {adapter}  ->  plugin/dist/{adapter}-<version>.tsdev
-     (list vendor drivers and required files under [tool.teststand.package] in its pyproject.toml).
-  4. In testStand: 测试台架 -> + -> 添加设备…, pick that .tsdev: mode sim first, then edit it to real.""")
+  3. Build its device package: python plugin/tools/pack.py {adapter}  ->  plugin/dist/{adapter}-<version>.sagedev
+     (list vendor drivers and required files under [tool.sage.package] in its pyproject.toml).
+  4. In SAGE: 测试台架 -> + -> 添加设备…, pick that .sagedev: mode sim first, then edit it to real.""")
     return 0
 
 

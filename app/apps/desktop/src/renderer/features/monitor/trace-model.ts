@@ -1,4 +1,4 @@
-import type { StreamRecord } from "@teststand/contracts/observability";
+import type { StreamRecord } from "@sage/contracts/observability";
 import { decodeReason } from "../protocols/icd-model.js";
 
 /**

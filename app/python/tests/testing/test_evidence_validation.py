@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from teststand_backend.testing.compiler import compile_plan
-from teststand_backend.testing.models import empty_plan
-from teststand_backend.testing.validation import validate_plan
+from sage_backend.testing.compiler import compile_plan
+from sage_backend.testing.models import empty_plan
+from sage_backend.testing.validation import validate_plan
 
 DESCRIPTORS: dict[str, dict[str, Any]] = {
     "ai0": {"id": "ai0", "type": "scalar", "kind": "measured", "unit": "V"},

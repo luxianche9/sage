@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { PlusIcon, Trash2Icon, TriangleAlertIcon } from "lucide-react";
-import type { TestExpressionReference } from "@teststand/contracts/testing";
+import type { TestExpressionReference } from "@sage/contracts/testing";
 import { Button, IconButton, Input, SegmentedControl, Select, Textarea } from "../../ui";
 import {
   emptyClause, operatorOptions, parseCondition, parseValue, serializeCondition, serializeValue, type Clause

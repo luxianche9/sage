@@ -1,6 +1,6 @@
 # __MODEL__ 设备插件
 
-包 `__PACKAGE__`，设备类型 `__ADAPTER__`（入口点组 `teststand.devices`），由 testStand 后端作为插件加载。`isolation`：`inproc`。TODO(new_device)：驱动加载时写 stdout、可能崩溃或要求独占进程时改为 `subprocess`，并在这里写明理由。
+包 `__PACKAGE__`，设备类型 `__ADAPTER__`（入口点组 `sage.devices`），由 SAGE 后端作为插件加载。`isolation`：`inproc`。TODO(new_device)：驱动加载时写 stdout、可能崩溃或要求独占进程时改为 `subprocess`，并在这里写明理由。
 
 一个插件实例只管理一个硬件。公共工具（`get_device_info`、`list_hardware`、`get_hardware_info`、`__PREFIX___stream_read`）、信封格式、`/device` 声明（身份、说明、引脚、流、能力）和流读取由 SDK 提供，见 `plugin/README.md`。插件只报告测量值和状态，不判定通过 / 失败。超时或错误不表示物理动作没有发生：保留原错误，查询当前状态并取证后再决定下一步。
 
@@ -18,11 +18,11 @@ TODO(new_device)：列出实例 `settings` 的每个键（含默认值），例�
 
 ## 构建与测试
 
-适配器基于 `teststand-device-sdk`（`sdk`）。本地测试不访问硬件：
+适配器基于 `sage-device-sdk`（`sdk`）。本地测试不访问硬件：
 
 ```powershell
 cd devices
 .\test.ps1 -Target __ADAPTER__                 # pytest + 模拟器上的合规检查
 ```
 
-交付给 testStand 用设备包：`python plugin/tools/pack.py __ADAPTER__` 生成 `plugin/dist/__ADAPTER__-<版本>.tsdev`；在 testStand 测试台架点“+ → 添加设备…”选这个文件，先以模拟模式添加验证，再编辑为实物做空载验收。
+交付给 SAGE 用设备包：`python plugin/tools/pack.py __ADAPTER__` 生成 `plugin/dist/__ADAPTER__-<版本>.sagedev`；在 SAGE 测试台架点“+ → 添加设备…”选这个文件，先以模拟模式添加验证，再编辑为实物做空载验收。

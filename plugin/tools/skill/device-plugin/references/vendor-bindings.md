@@ -115,7 +115,7 @@ def sio_read(self, port: int, max_len: int) -> tuple[int, bytes]:
 Python 端用 SDK 的 `JsonLineCli`：
 
 ```python
-from teststand_device_sdk import JsonLineBackend, JsonLineCli, find_executable, unwrap
+from sage_device_sdk import JsonLineBackend, JsonLineCli, find_executable, unwrap
 
 EXECUTABLE = "hwcli_pci1710l.exe"
 

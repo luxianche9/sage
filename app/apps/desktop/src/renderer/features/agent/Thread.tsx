@@ -61,7 +61,7 @@ function ThreadMessage() {
 function ThreadWelcome() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-4 py-8 text-center">
-      <span className="tf-label mb-2">OpenCode · testStand MCP</span>
+      <span className="tf-label mb-2">OpenCode · SAGE MCP</span>
       <h1 className="text-base font-semibold text-fg">今天想一起完成什么？</h1>
     </div>
   );

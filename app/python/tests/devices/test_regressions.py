@@ -9,16 +9,16 @@ from unittest.mock import Mock
 
 import pytest
 
-from teststand_backend.application.authorization import (
+from sage_backend.application.authorization import (
     HUMAN_REQUEST_CONTEXT,
     DefaultAuthorizer,
 )
-from teststand_backend.application.services import DevicesApplication
-from teststand_backend.devices import (
+from sage_backend.application.services import DevicesApplication
+from sage_backend.devices import (
     DeviceCatalogService,
     DeviceStore,
 )
-from teststand_backend.devices.device_store import safe_segment
+from sage_backend.devices.device_store import safe_segment
 
 
 def hardware(identifier: str = "H") -> dict[str, Any]:

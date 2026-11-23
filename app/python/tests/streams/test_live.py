@@ -7,8 +7,8 @@ from typing import Any
 
 import pytest
 
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.streams.live import LiveStreams
+from sage_backend.contracts.errors import AppError
+from sage_backend.streams.live import LiveStreams
 
 from .fake_service import FakeStreamService
 

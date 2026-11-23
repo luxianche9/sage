@@ -7,8 +7,8 @@ import sys
 from pathlib import Path
 
 import pytest
-from teststand_device_sdk import DeviceError, claim_resource
-from teststand_device_sdk.claim import CLAIMS_ENV
+from sage_device_sdk import DeviceError, claim_resource
+from sage_device_sdk.claim import CLAIMS_ENV
 
 
 @pytest.fixture(autouse=True)
@@ -38,7 +38,7 @@ def test_different_resources_do_not_conflict() -> None:
 def test_another_process_cannot_claim_what_this_one_holds(claims_dir: Path) -> None:
     script = (
         "import sys\n"
-        "from teststand_device_sdk import DeviceError, claim_resource\n"
+        "from sage_device_sdk import DeviceError, claim_resource\n"
         "try:\n"
         "    claim_resource('vendor/card0', owner='child')\n"
         "except DeviceError as error:\n"

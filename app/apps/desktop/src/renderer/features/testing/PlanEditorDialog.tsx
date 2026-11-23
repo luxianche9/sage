@@ -5,8 +5,8 @@ import {
   type DragEndEvent, type DragStartEvent
 } from "@dnd-kit/core";
 import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import type { Hardware } from "@teststand/contracts/devices";
-import type { TestPlan, TestStep, TestStepCatalogItem } from "@teststand/contracts/testing";
+import type { Hardware } from "@sage/contracts/devices";
+import type { TestPlan, TestStep, TestStepCatalogItem } from "@sage/contracts/testing";
 import { Dialog, DialogContent, cn } from "../../ui";
 import { ComponentLibrary, type DragDescriptor } from "./ComponentLibrary.js";
 import { PlanEditorPane } from "./PlanEditorPane.js";

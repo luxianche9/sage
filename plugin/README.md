@@ -4,31 +4,31 @@
 新硬件适配器按技能 [`plugin/tools/skill/device-plugin`](../skill/device-plugin/SKILL.md) 编写。
 
 Each hardware device is the device plugin SDK plus one adapter, loaded by the
-testStand backend as a plugin. The adapters under `adapters/` (see the stream table
+SAGE backend as a plugin. The adapters under `adapters/` (see the stream table
 below) are built from this directory; the board adapters of the earlier bench were removed
-and new ones (RS-485 over USB, USB to DShot) will be added here. A release of testStand ships
-none of them: each adapter is delivered as a `.tsdev` device package and installed
+and new ones (RS-485 over USB, USB to DShot) will be added here. A release of SAGE ships
+none of them: each adapter is delivered as a `.sagedev` device package and installed
 on the bench page (+ → 添加设备…), which installs its driver and adds the device in one step.
 
 ```
-sdk/                     teststand_device_sdk: DeviceHost, plugin loading (in process or child
+sdk/                     sage_device_sdk: DeviceHost, plugin loading (in process or child
                          process), builtin tools, envelope, lifecycle, safe_state, streams (ring
                          buffer), /device manifest, waveform player, compliance suite
-adapters/<adapter>/      teststand_adapter_<adapter>: adapter.py, driver.py, sim.py, pinout.py, tests/
-pack.py                  builds dist/<type>-<version>.tsdev device packages
+adapters/<adapter>/      sage_plugin_<adapter>: adapter.py, driver.py, sim.py, pinout.py, tests/
+pack.py                  builds dist/<type>-<version>.sagedev device packages
 test.ps1                 local tests: SDK, every adapter, dry-run compliance
 ```
 
 ## Device packages
 
 ```powershell
-python pack.py --all        # tests + --check, wheel, manifest -> dist/*.tsdev
+python pack.py --all        # tests + --check, wheel, manifest -> dist/*.sagedev
 ```
 
 A package is a ZIP of `package.json` (type, version, manufacturer, model, isolation,
 SDK range, vendor drivers, SHA-256 of every wheel) and `wheels/*.whl`. List the
 vendor drivers the bench needs and the files that must be in the wheel under
-`[tool.teststand.package]` in the adapter's `pyproject.toml`.
+`[tool.sage.package]` in the adapter's `pyproject.toml`.
 
 Vendor DLLs shipped inside a package live in `src/<package>/bin/`, which git ignores;
 copy them from the vendor delivery before `pack.py` (it refuses to build without them).
@@ -36,11 +36,11 @@ copy them from the vendor delivery before `pack.py` (it refuses to build without
 ## Device plugins
 
 An adapter package registers its `Device` subclass under the entry point group
-`teststand.devices`; the entry point name is the device type:
+`sage.devices`; the entry point name is the device type:
 
 ```toml
-[project.entry-points."teststand.devices"]
-comm_link = "teststand_adapter_comm_link:DEVICE"
+[project.entry-points."sage.devices"]
+comm_link = "sage_plugin_comm_link:DEVICE"
 ```
 
 The backend calls `open_device(type, config)`. `config` is a `DeviceConfig`, usually
@@ -59,12 +59,12 @@ driver) is for the adapter's own tests and `--check` only.
 | `isolation` | Handle | Runs |
 |---|---|---|
 | `inproc` (default) | `InprocDevice` | a `DeviceHost` in the backend process |
-| `subprocess` | `SubprocessDevice` | a `DeviceHost` in `python -m teststand_device_sdk.child`, JSON lines over stdio; stdout noise of the driver goes to stderr, stdin EOF drives the device safe and exits, and on Windows the child dies with the backend |
+| `subprocess` | `SubprocessDevice` | a `DeviceHost` in `python -m sage_device_sdk.child`, JSON lines over stdio; stdout noise of the driver goes to stderr, stdin EOF drives the device safe and exits, and on Windows the child dies with the backend |
 
 `DeviceHost` holds one device, its lifecycle (open, `safe_state` after open and
 before close, retry of a failed open), its tools and its streams. Tools are
 described as plain dicts (`name`, `description`, `inputSchema`, `outputSchema`,
-`annotations`, `_meta.teststand`); `call(name, arguments, operation_id=)`
+`annotations`, `_meta.sage`); `call(name, arguments, operation_id=)`
 validates the arguments and returns the JSON envelope `{ok, data|error, meta}`.
 `manifest()` is the generated `/device` declaration. `now_ms()` (`clock.py`) is the
 shared clock of every record, watermark and tool timing.
@@ -86,14 +86,14 @@ true. Simulation switches, all off by default so simulated inputs read idle valu
 .\test.ps1                  # SDK tests, then every adapter's tests and dry-run compliance check
 .\test.ps1 -Target sdk
 .\test.ps1 -Target comm_link
-uv run python -m teststand_device_sdk --adapter comm_link --check   # compliance only
+uv run python -m sage_device_sdk --adapter comm_link --check   # compliance only
 ```
 
 `--check` runs the compliance suite in process against the dry-run simulator: tool
 contract and semantics, range rejection, `operationId` echo, streams (record format,
 increasing `seq`/`t`, advancing watermark, idle-driven event streams), the `/device`
 shape, revision and identity, and an idempotent `safe_state`. Adapter tests use
-`teststand_device_sdk.testing.serve(Device)`, which starts the host on a
+`sage_device_sdk.testing.serve(Device)`, which starts the host on a
 background event loop: `hh.call("tool", **args)` returns the envelope, `hh.device()`
 the declaration and `hh.subscribe(streamId)` reads a stream as `hello`, `batch`,
 `gap` and `status` events.
@@ -103,7 +103,7 @@ the declaration and `hh.subscribe(streamId)` reads a stream as `hello`, `batch`,
 Contract revision `2026-10-08.1`. Builtin tools: `get_device_info`, `list_hardware`,
 `get_hardware_info`, `<prefix>_stream_read`, plus `<prefix>_transact` when a byte
 stream has a writer, `<prefix>_blob_read` when a blob stream exists, `self_test` when
-the device overrides `Device.self_test()`, and `teststand_prepare_shutdown`. The declaration `{manifestRevision,
+the device overrides `Device.self_test()`, and `sage_prepare_shutdown`. The declaration `{manifestRevision,
 contractRevision, identity, description, pinout, streams, capabilities, tools[{name,
 kind}]}` carries the pinout and the stream declarations; `manifestRevision` (sha256
 over the canonical declaration) says when to read it again.

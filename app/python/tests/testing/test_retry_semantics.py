@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from teststand_backend.testing.compiler import compile_plan
+from sage_backend.testing.compiler import compile_plan
 
 from .test_testing import Resolver, plan_with
 

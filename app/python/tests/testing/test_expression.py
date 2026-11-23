@@ -6,10 +6,10 @@ from typing import Any
 
 import pytest
 
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.testing.expression import check, evaluate
-from teststand_backend.testing.models import empty_plan
-from teststand_backend.testing.validation import validate_plan
+from sage_backend.contracts.errors import AppError
+from sage_backend.testing.expression import check, evaluate
+from sage_backend.testing.models import empty_plan
+from sage_backend.testing.validation import validate_plan
 
 CONTEXT: dict[str, Any] = {
     "parameters": {"limit": 3, "name": "dut-01", "raw": "0a0b0c0d"},

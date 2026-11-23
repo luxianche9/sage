@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from teststand_device_sdk.testing import check_device, dry_run_config, serve
-from teststand_adapter_art_pxi2604 import DEVICE, ArtPxi2604
-from teststand_adapter_art_pxi2604.pinout import position, table
+from sage_device_sdk.testing import check_device, dry_run_config, serve
+from sage_plugin_art_pxi2604 import DEVICE, ArtPxi2604
+from sage_plugin_art_pxi2604.pinout import position, table
 
 PUBLIC_TOOLS = {
     "get_device_info", "list_hardware", "get_hardware_info", "self_test", "pxi2604_stream_read",
@@ -33,7 +33,7 @@ def test_entry_point_and_compliance():
 
 
 def test_public_contract(hh):
-    internal = {name for name, item in hh.tools.items() if item["_meta"]["teststand"]["kind"] == "internal"}
+    internal = {name for name, item in hh.tools.items() if item["_meta"]["sage"]["kind"] == "internal"}
     assert set(hh.tools) - internal == PUBLIC_TOOLS
     relay = hh.tools["pxi2604_set_relay"]["inputSchema"]["properties"]["relay"]
     assert (relay["minimum"], relay["maximum"]) == (0, 39)

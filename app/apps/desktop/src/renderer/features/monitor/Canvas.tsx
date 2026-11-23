@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointer
 import { GripIcon, LayoutDashboardIcon, PuzzleIcon, XIcon } from "lucide-react";
 import {
   GRID_PX, PANEL_SIZES, type ControlWidget, type Frame, type MonitorPanel, type PanelType
-} from "@teststand/contracts/monitor";
+} from "@sage/contracts/monitor";
 import { cn, DropZone, IconButton } from "../../ui/index.js";
 import { BARE_TYPES, canvasExtent, cells, MIN_CELLS, moved, resized } from "./canvas-model.js";
 import { CONTROL_MIME, newControlPanelId, requestControl } from "./control-requests.js";

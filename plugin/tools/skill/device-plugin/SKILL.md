@@ -1,11 +1,11 @@
 ---
 name: device-plugin
-description: Create, extend, review and troubleshoot testStand device plugins built on the teststand_device_sdk (sdk + plugin/<model>), from a device manual, vendor SDK header/DLL or native CLI. Covers the Device subclass, the teststand.devices entry point, Device.isolation (inproc / subprocess), @tool operation semantics, parameter ranges and units, safe_state, typed read-only streams (scalar/bits/bytes/frames/block/blob: sampled readings, scan groups, write-then-publish readback, serial byte traffic with writer/transact/idle, stream metadata), the generated /device declaration (description, pinout, streams, capabilities), software waveforms, simulators (mode sim / dry-run), the in-process test harness and the --check compliance suite. Use for explicit $device-plugin requests and for any task that adds or changes a device adapter under devices/. Do not use for the desktop app itself.
+description: Create, extend, review and troubleshoot SAGE device plugins built on the sage_device_sdk (sdk + plugin/<model>), from a device manual, vendor SDK header/DLL or native CLI. Covers the Device subclass, the sage.devices entry point, Device.isolation (inproc / subprocess), @tool operation semantics, parameter ranges and units, safe_state, typed read-only streams (scalar/bits/bytes/frames/block/blob: sampled readings, scan groups, write-then-publish readback, serial byte traffic with writer/transact/idle, stream metadata), the generated /device declaration (description, pinout, streams, capabilities), software waveforms, simulators (mode sim / dry-run), the in-process test harness and the --check compliance suite. Use for explicit $device-plugin requests and for any task that adds or changes a device adapter under devices/. Do not use for the desktop app itself.
 ---
 
-# testStand 设备插件
+# SAGE 设备插件
 
-本技能把一台硬件变成一个 testStand 设备插件。插件由 SDK 包 `teststand_device_sdk` 加一个适配器包组成，由 testStand 后端在本机加载：默认在后端进程内运行，适配器声明需要隔离时在一个 stdio 子进程里运行。SDK 已经提供工具注册、公共工具、结果信封、操作号、生命周期与 `safe_state` 调度、`/device` 设备声明、流的时间戳 / 缓冲 / 采样线程 / 水位、软件波形、子进程隔离、进程内测试工具和合规检查；适配器只写三件事：驱动映射、声明（设备描述、工具语义、流及其元数据、引脚）、模拟器。
+本技能把一台硬件变成一个 SAGE 设备插件。插件由 SDK 包 `sage_device_sdk` 加一个适配器包组成，由 SAGE 后端在本机加载：默认在后端进程内运行，适配器声明需要隔离时在一个 stdio 子进程里运行。SDK 已经提供工具注册、公共工具、结果信封、操作号、生命周期与 `safe_state` 调度、`/device` 设备声明、流的时间戳 / 缓冲 / 采样线程 / 水位、软件波形、子进程隔离、进程内测试工具和合规检查；适配器只写三件事：驱动映射、声明（设备描述、工具语义、流及其元数据、引脚）、模拟器。
 
 只以本技能的 `references/`、`assets/`、`scripts/` 和仓库里的 `sdk`、`plugin/*` 为依据。手册里没有的事实（引脚、量程、安全值、上电状态）不要编：写成 `TODO(new_device)`，或者返回 `not_supported`，再向用户要资料或实测结果。
 
@@ -25,9 +25,9 @@ description: Create, extend, review and troubleshoot testStand device plugins bu
    ```powershell
    uv run --project devices python plugin/tools/skill/device-plugin/scripts/new_device.py <adapter> --prefix <prefix> --model <MODEL> --manufacturer <Vendor>
    ```
-   生成 `plugin/<adapter>/`，在它的 `pyproject.toml` 里声明入口点 `[project.entry-points."teststand.devices"] <adapter> = "teststand_adapter_<adapter>:DEVICE"`，并登记到 `devices/pyproject.toml` 的 uv 工作区。入口点名就是设备类型。骨架是一张数字 I/O 卡，开箱即通过合规检查，但带有若干 `TODO(new_device)`。
+   生成 `plugin/<adapter>/`，在它的 `pyproject.toml` 里声明入口点 `[project.entry-points."sage.devices"] <adapter> = "sage_plugin_<adapter>:DEVICE"`，并登记到 `devices/pyproject.toml` 的 uv 工作区。入口点名就是设备类型。骨架是一张数字 I/O 卡，开箱即通过合规检查，但带有若干 `TODO(new_device)`。
 3. **写驱动 `driver.py`**。只做厂商调用的类型化封装，返回原始返回码和数据，不做业务判断。写法见 `references/vendor-bindings.md`。
-4. **写模拟器 `sim.py`**。与驱动同接口，忠实模拟控制器状态（影子寄存器、配置门槛），输入读成空闲值（0 V、低电平、无 RX）。演示用的噪声、回环只能用环境变量开启。适配器单元测试和 `--check` 用 SDK 的 `dry_run` 让 `select_driver` 选它；testStand 里的设备总是用真实驱动，没有模拟运行。
+4. **写模拟器 `sim.py`**。与驱动同接口，忠实模拟控制器状态（影子寄存器、配置门槛），输入读成空闲值（0 V、低电平、无 RX）。演示用的噪声、回环只能用环境变量开启。适配器单元测试和 `--check` 用 SDK 的 `dry_run` 让 `select_driver` 选它；SAGE 里的设备总是用真实驱动，没有模拟运行。
 5. **写适配器 `adapter.py`**。按 `references/sdk-api.md` 把每个操作写成 `@tool`：声明 `kind`、`requires`、`effects`、`evidence`、`safety_action`；每个参数用 `param()` 写清范围和单位；失败时抛 `DeviceError`，`details` 里带上部分效果。模板默认 `isolation = "subprocess"`（ctypes 调用出错只影响这台设备）；只有纯 Python / 标准库驱动才改成 `inproc`。
 6. **声明流和引脚**。按 `references/streams.md` 为运行中需要看到的量声明类型化的流（采样型给 `sample()`，输出写后发布回读，串口给写入器、写 `mark`、每次读返回调 `idle()`），并用构造参数写上元数据：`unit`、`label`、`kind`（`measured` 测量 / `setpoint` 设定值影子）、位流的 `width` / `bit_labels`。按手册连接器表填 `pinout.py`。给 `Device.description` 写一段设备描述。这些都出现在 `/device` 里，`--check` 对缺失的描述给出警告。
 7. **本地验证**：
@@ -35,7 +35,7 @@ description: Create, extend, review and troubleshoot testStand device plugins bu
    .\skill\device-plugin\scripts\check_adapter.ps1 -Adapter <adapter>
    ```
    依次运行适配器的 pytest、模拟器上的合规检查（`--check`），并扫描遗留的 `TODO(new_device)`。全部通过前不要交付。补充测试时对照 `references/checklist.md`。
-8. **打成设备包**。在适配器 `pyproject.toml` 的 `[tool.teststand.package]` 写上 `vendorDrivers`（台架需预装的厂商驱动，安装时显示给用户）和 `requiredFiles`（必须进 wheel 的文件，如 `bin/*.exe`），再运行 `python plugin/tools/pack.py <adapter>`：它先跑测试和 `--check`，再构建 wheel（连同第三方依赖的 wheel）写出 `plugin/dist/<类型>-<版本>.tsdev`。testStand 本身不改、不重新打包：用户在测试台架点“+ → 添加设备…”选这个文件，确认清单（设备、厂商驱动、SHA-256）、填名称和实物/模拟后添加，设备立即可调用；驱动升级在重启 testStand 后生效。
+8. **打成设备包**。在适配器 `pyproject.toml` 的 `[tool.sage.package]` 写上 `vendorDrivers`（台架需预装的厂商驱动，安装时显示给用户）和 `requiredFiles`（必须进 wheel 的文件，如 `bin/*.exe`），再运行 `python plugin/tools/pack.py <adapter>`：它先跑测试和 `--check`，再构建 wheel（连同第三方依赖的 wheel）写出 `plugin/dist/<类型>-<版本>.sagedev`。SAGE 本身不改、不重新打包：用户在测试台架点“+ → 添加设备…”选这个文件，确认清单（设备、厂商驱动、SHA-256）、填名称和实物/模拟后添加，设备立即可调用；驱动升级在重启 SAGE 后生效。
 9. **首次上架验收交给人**。在测试台架上添加设备，把它拖到画布上，空载（不接被测对象）用卡片的“控制”逐个动作执行，对照万用表、回环线或继电器动作声确认，结束后执行 `safe_state`。这一步由人完成，本技能不替人确认。
 
 ## 硬性规则

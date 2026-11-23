@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import type { Hardware } from "@teststand/contracts/devices";
-import type { ProjectWiringConnection } from "@teststand/contracts/wiring";
+import type { Hardware } from "@sage/contracts/devices";
+import type { ProjectWiringConnection } from "@sage/contracts/wiring";
 import { CableIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { pinText, resolvePortRef } from "../../lib/hardware.js";
 import { Button, EmptyState, IconButton, Select, cn } from "../../ui/index.js";

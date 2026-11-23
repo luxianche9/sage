@@ -7,16 +7,16 @@ from types import SimpleNamespace
 
 import pytest
 
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.streams import judge
-from teststand_backend.streams.store import (
+from sage_backend.contracts.errors import AppError
+from sage_backend.streams import judge
+from sage_backend.streams.store import (
     StreamStore,
     check_keys,
     column_ms,
     record_end,
 )
-from teststand_backend.testing import TestEngine
-from teststand_backend.testing.derived_views import DerivedViews
+from sage_backend.testing import TestEngine
+from sage_backend.testing.derived_views import DerivedViews
 
 
 def scalar_store(path: Path, count: int = 10) -> StreamStore:

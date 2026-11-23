@@ -1,5 +1,5 @@
-import type { RecentProjectSummary } from "@teststand/contracts/projects";
-import type { WelcomeLayout } from "@teststand/contracts/storage";
+import type { RecentProjectSummary } from "@sage/contracts/projects";
+import type { WelcomeLayout } from "@sage/contracts/storage";
 import { ActivityIcon, CableIcon, EllipsisIcon, Trash2Icon } from "lucide-react";
 import { Button, Menu, MenuContent, MenuItem, MenuTrigger, StatusLamp, cn } from "../../ui";
 

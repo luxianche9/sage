@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { ManualCheckRequest, ManualVerdict } from "@teststand/contracts/testing";
+import type { ManualCheckRequest, ManualVerdict } from "@sage/contracts/testing";
 import { errorMessage } from "../../lib/errors.js";
 import { queryKeys } from "../../lib/query-keys.js";
 import { useCurrentTestRun } from "../../lib/queries.js";
 import { Button, Dialog, DialogBody, DialogContent, DialogFooter, Field, Input, Textarea, useToast } from "../../ui";
 
-const OPERATOR_KEY = "teststand.manualCheck.operator";
+const OPERATOR_KEY = "sage.manualCheck.operator";
 const variants: Record<ManualVerdict, "primary" | "danger" | "outline"> = {
   pass: "primary",
   fail: "danger",
@@ -59,7 +59,7 @@ function ManualCheckForm({ runId, request, waiting }: {
     mutationFn: (option: string) => {
       const name = operator.trim();
       if (name) localStorage.setItem(OPERATOR_KEY, name);
-      return window.teststand.testing.answerManualCheck({
+      return window.sage.testing.answerManualCheck({
         input: {
           runId, executionId: request.executionId, option,
           ...(note.trim() ? { note: note.trim() } : {}),

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { TestRunSnapshot } from "@teststand/contracts/testing";
+import type { TestRunSnapshot } from "@sage/contracts/testing";
 import { useCurrentTestRun } from "../../lib/queries.js";
 import { onRunRequested, peekRequestedRun, takeRequestedRun } from "../../lib/run-focus.js";
 import { isActiveRun } from "../testing/plan-helpers.js";

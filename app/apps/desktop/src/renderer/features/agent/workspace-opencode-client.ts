@@ -14,7 +14,7 @@ const SCOPED_NAMESPACES = new Set([
   "v2"
 ]);
 
-const THREAD_STORAGE_PREFIX = "teststand.opencode-thread";
+const THREAD_STORAGE_PREFIX = "sage.opencode-thread";
 
 type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 type UnknownRecord = Record<PropertyKey, unknown>;

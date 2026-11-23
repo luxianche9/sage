@@ -1,4 +1,4 @@
-import type { HardwarePort } from "@teststand/contracts/devices";
+import type { HardwarePort } from "@sage/contracts/devices";
 
 /** Ports and pins are identified by hand-typed ids, so a new row only needs a free default. */
 export function uniqueId(prefix: string, taken: Set<string>): string {

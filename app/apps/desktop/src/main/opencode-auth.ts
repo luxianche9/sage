@@ -1,4 +1,4 @@
-import type { OpenCodeConnection } from "@teststand/contracts/operations";
+import type { OpenCodeConnection } from "@sage/contracts/operations";
 
 type OpenCodeRequestHeaders = Record<string, string | string[]>;
 export type OpenCodeAuthorization = (requestUrl: string, requestHeaders: OpenCodeRequestHeaders) => Promise<OpenCodeRequestHeaders>;

@@ -4,15 +4,15 @@ from typing import Any
 
 import pytest
 
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.protocol import (
+from sage_backend.contracts.errors import AppError
+from sage_backend.protocol import (
     DerivedRecord,
     ProtocolDecoder,
     decode_records,
     derived_streams,
     parse_icd,
 )
-from teststand_backend.protocol.framing import slip_encode
+from sage_backend.protocol.framing import slip_encode
 
 from .icd_fixtures import ack_frame, dut_cmd, status_frame
 

@@ -1,6 +1,6 @@
 import type {
   TestOperationSnapshot, TestPlan, TestResult, TestRunEvent, TestStep
-} from "@teststand/contracts/testing";
+} from "@sage/contracts/testing";
 
 /** `notSelected`: a 功能组 the run was not asked to run (a skip with reason `notSelected`). */
 type StepRunState = "waiting" | "running" | "Pass" | "Fail" | "Error" | "skipped" | "notSelected" | "Aborted";

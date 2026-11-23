@@ -7,10 +7,10 @@ from typing import Any
 
 import pytest
 
-from teststand_backend.application import DefaultAuthorizer, ExecutionCoordinator
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.testing import TestEngine, TestingApplication, TestPlanStore
-from teststand_backend.testing.validation import validate_plan
+from sage_backend.application import DefaultAuthorizer, ExecutionCoordinator
+from sage_backend.contracts.errors import AppError
+from sage_backend.testing import TestEngine, TestingApplication, TestPlanStore
+from sage_backend.testing.validation import validate_plan
 
 from .test_testing import Devices, Projects, Resolver, finish, plan_with
 

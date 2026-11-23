@@ -1,5 +1,5 @@
-import type { OpenCodeRuntimeStatus } from "@teststand/contracts/agents";
-import type { LlmSettings } from "@teststand/contracts/storage";
+import type { OpenCodeRuntimeStatus } from "@sage/contracts/agents";
+import type { LlmSettings } from "@sage/contracts/storage";
 import { AlertCircleIcon, BotIcon, KeyRoundIcon, SettingsIcon, SquareIcon, XIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { errorMessage } from "../../lib/errors.js";

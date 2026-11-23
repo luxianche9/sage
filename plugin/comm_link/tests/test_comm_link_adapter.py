@@ -7,9 +7,9 @@ from collections.abc import Iterator
 from typing import Any
 
 import pytest
-from teststand_device_sdk.testing import check_device, dry_run_config, serve
+from sage_device_sdk.testing import check_device, dry_run_config, serve
 
-from teststand_adapter_comm_link import DEVICE, CommLink
+from sage_plugin_comm_link import DEVICE, CommLink
 
 PUBLIC_TOOLS = {
     "get_device_info", "list_hardware", "get_hardware_info", "self_test",
@@ -95,9 +95,9 @@ def test_entry_point_and_compliance():
 
 
 def test_public_contract(hh):
-    internal = {name for name, item in hh.tools.items() if item["_meta"]["teststand"]["kind"] == "internal"}
+    internal = {name for name, item in hh.tools.items() if item["_meta"]["sage"]["kind"] == "internal"}
     assert set(hh.tools) - internal == PUBLIC_TOOLS
-    semantics = hh.tools["link_write_hex"]["_meta"]["teststand"]["operationSemantics"]
+    semantics = hh.tools["link_write_hex"]["_meta"]["sage"]["operationSemantics"]
     assert semantics["kind"] == "actuate" and semantics["retry"] == "never_after_dispatch"
     assert semantics["stateRequirements"] == []  # a link made from settings needs no tool call first
     port = hh.tools["link_connect_tcp"]["inputSchema"]["properties"]["port"]

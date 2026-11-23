@@ -45,7 +45,7 @@ export function ModelSettings() {
   ]);
   const save = useMutation({
     mutationFn: ({ values, clearApiKey }: { values: ModelForm; clearApiKey: boolean }) =>
-      window.teststand.settings.saveLlm({ ...values, clearApiKey }),
+      window.sage.settings.saveLlm({ ...values, clearApiKey }),
     onSuccess: async () => {
       form.setValue("apiKey", "");
       setShowKey(false);

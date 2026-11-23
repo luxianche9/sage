@@ -9,15 +9,15 @@ from typing import Any
 
 import pytest
 
-from teststand_backend.application import DefaultAuthorizer
-from teststand_backend.application.protocols import ProtocolsApplication
-from teststand_backend.application.streams import StreamsApplication
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.projects.icd_library import IcdLibrary
-from teststand_backend.projects.protocol_bindings import ProjectProtocols
-from teststand_backend.streams.live import LiveStreams
-from teststand_backend.streams.source import StreamSources
-from teststand_backend.testing import TestPlanStore
+from sage_backend.application import DefaultAuthorizer
+from sage_backend.application.protocols import ProtocolsApplication
+from sage_backend.application.streams import StreamsApplication
+from sage_backend.contracts.errors import AppError
+from sage_backend.projects.icd_library import IcdLibrary
+from sage_backend.projects.protocol_bindings import ProjectProtocols
+from sage_backend.streams.live import LiveStreams
+from sage_backend.streams.source import StreamSources
+from sage_backend.testing import TestPlanStore
 
 from ..protocol.icd_fixtures import DUT_CMD_YAML, status_frame
 from ..streams.fake_service import FakeStreamService
@@ -208,5 +208,5 @@ async def test_plans_decode_with_the_project_bindings_and_never_store_them(
     assert "dut_cmd" in compiled["compiledPlan"]["icds"]
     projects.bindings = []
     assert store.compile("alpha")["compiledPlan"]["icds"] == {}
-    text = (tmp_path / ".teststand" / "plans" / "alpha.hhplan.yaml").read_text(encoding="utf-8")
+    text = (tmp_path / ".sage" / "plans" / "alpha.hhplan.yaml").read_text(encoding="utf-8")
     assert "protocolBindings" not in text

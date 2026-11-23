@@ -9,7 +9,7 @@ import { verifyAgentInterface } from "./agent-release-smoke.mjs";
 
 const [backendInput, reportInput] = process.argv.slice(2);
 assert.ok(backendInput && reportInput, "Usage: node smoke-agent-frozen.mjs <frozen-backend-directory> <report.json>");
-const root = await mkdtemp(join(tmpdir(), "testStand 发行接口 "));
+const root = await mkdtemp(join(tmpdir(), "SAGE 发行接口 "));
 const backend = join(root, "resources", "backend");
 const project = join(root, "用户工程 中文");
 const token = randomUUID();
@@ -21,15 +21,15 @@ try {
   await mkdir(project);
   const env = { ...process.env };
   for (const key of Object.keys(env)) {
-    if (/^(PYTHON|UV_|VIRTUAL_ENV|TESTSTAND_)/i.test(key)) delete env[key];
+    if (/^(PYTHON|UV_|VIRTUAL_ENV|SAGE_)/i.test(key)) delete env[key];
   }
   Object.assign(env, {
     PATH: join(process.env.SYSTEMROOT ?? "C:\\Windows", "System32"),
     UV_OFFLINE: "1", UV_CACHE_DIR: join(root, "empty-cache"), UV_PYTHON_DOWNLOADS: "never",
     PYTHONUTF8: "1"
   });
-  env.TESTSTAND_GATEWAY_TEST_TOKEN = token;
-  child = spawn(join(backend, "teststand-backend.exe"), [
+  env.SAGE_GATEWAY_TEST_TOKEN = token;
+  child = spawn(join(backend, "sage-backend.exe"), [
     "--user-data", join(root, "profile"), "--gateway-port", "0", "--integration-test-mode"
   ], { cwd: root, env, windowsHide: true, stdio: ["pipe", "pipe", "pipe"] });
   console.log(`Frozen smoke: relocated backend PID ${child.pid} at ${root}`);

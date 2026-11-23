@@ -8,10 +8,10 @@ const desktopDir = resolve(import.meta.dirname, "..");
 const gatewayPort = 18082;
 
 test("settings returns to the page that opened it", async () => {
-  const userDataDir = await mkdtemp(resolve(tmpdir(), "teststand-settings-navigation-"));
+  const userDataDir = await mkdtemp(resolve(tmpdir(), "sage-settings-navigation-"));
   const projectRoot = join(userDataDir, "settings-navigation-project");
   await mkdir(projectRoot);
-  const env = { ...process.env, TESTSTAND_USER_DATA_DIR: userDataDir, TESTSTAND_GATEWAY_PORT: String(gatewayPort), TESTSTAND_AGENT_INTEGRATION_TEST_MODE: "1" };
+  const env = { ...process.env, SAGE_USER_DATA_DIR: userDataDir, SAGE_GATEWAY_PORT: String(gatewayPort), SAGE_AGENT_INTEGRATION_TEST_MODE: "1" };
   delete env.ELECTRON_RUN_AS_NODE;
   const application = await electron.launch({ args: [desktopDir], cwd: desktopDir, env, timeout: 90_000 });
   try {
@@ -20,8 +20,8 @@ test("settings returns to the page that opened it", async () => {
 
     await openSettingsAndReturn(page, () => expect(page.getByRole("heading", { name: "最近项目" })).toBeVisible());
 
-    await page.evaluate((rootPath) => window.teststand.projects.initializeFolder({ rootPath }), projectRoot);
-    await page.evaluate(() => window.teststand.projects.leaveProject());
+    await page.evaluate((rootPath) => window.sage.projects.initializeFolder({ rootPath }), projectRoot);
+    await page.evaluate(() => window.sage.projects.leaveProject());
     await reloadAfterLeave(page);
     await page.getByText("settings-navigation-project", { exact: true }).first().click();
 

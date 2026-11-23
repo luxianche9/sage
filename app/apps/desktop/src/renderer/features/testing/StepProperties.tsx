@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { TestStep } from "@teststand/contracts/testing";
+import type { TestStep } from "@sage/contracts/testing";
 import { useDeviceCatalog, useTestStepCatalog } from "../../lib/queries.js";
 import { collectReferenceConsumers, patchStep } from "./plan-helpers.js";
 import { StepInspector } from "./StepInspector.js";

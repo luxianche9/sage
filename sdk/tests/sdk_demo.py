@@ -5,7 +5,7 @@ from __future__ import annotations
 import threading
 from typing import Any, Literal
 
-from teststand_device_sdk import (
+from sage_device_sdk import (
     BitsStream,
     BlobStream,
     BlockStream,

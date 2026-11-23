@@ -6,9 +6,9 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from teststand_backend.application import HUMAN_REQUEST_CONTEXT as HUMAN
-from teststand_backend.application import DefaultAuthorizer, StreamsApplication
-from teststand_backend.application.cancellation import (
+from sage_backend.application import HUMAN_REQUEST_CONTEXT as HUMAN
+from sage_backend.application import DefaultAuthorizer, StreamsApplication
+from sage_backend.application.cancellation import (
     AbortController,
     AbortError,
     abortable_delay,

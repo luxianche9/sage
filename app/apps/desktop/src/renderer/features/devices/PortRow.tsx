@@ -1,4 +1,4 @@
-import type { HardwarePort } from "@teststand/contracts/devices";
+import type { HardwarePort } from "@sage/contracts/devices";
 import { ChevronRightIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { Badge, Button, cn, IconButton, Input } from "../../ui";
 import { addPin, removePin, updatePin } from "./port-model.js";

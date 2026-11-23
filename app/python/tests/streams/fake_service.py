@@ -10,8 +10,8 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any
 
-from teststand_backend.streams.clock import backend_ms
-from teststand_backend.streams.source import StreamSources
+from sage_backend.streams.clock import backend_ms
+from sage_backend.streams.source import StreamSources
 
 
 @dataclass

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { invocationReadings } from "./invocation-readings.js";
 
 describe("invocationReadings", () => {
-  it("unwraps MCP structured content and testStand envelopes", () => {
+  it("unwraps MCP structured content and SAGE envelopes", () => {
     const output = { structuredContent: { ok: true, data: { hardwareId: "E2E_CARD", voltage: 4.2 } } };
     expect(invocationReadings(output)).toEqual([
       { key: "hardwareId", value: "E2E_CARD" },

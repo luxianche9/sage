@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { TestResult } from "@teststand/contracts/testing";
+import type { TestResult } from "@sage/contracts/testing";
 import { engineering, resultRows } from "./result-rows.js";
 
 const invoke = (actual: number, passed = true): TestResult => ({

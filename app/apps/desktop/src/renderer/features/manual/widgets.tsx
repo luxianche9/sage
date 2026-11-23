@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import type { DeviceDeclaration } from "@teststand/contracts/devices";
+import type { DeviceDeclaration } from "@sage/contracts/devices";
 import { queryKeys } from "../../lib/query-keys.js";
 import { Button, cn, Input } from "../../ui";
 import { formatHex, parseHex, snap, type Widget } from "./widget-model.js";
@@ -39,7 +39,7 @@ function useLabels(param: string): Map<number, string> {
   const { hardwareId, tool } = useContext(ToolFieldContext);
   const definition = useQuery({
     queryKey: queryKeys.deviceDefinition(hardwareId ?? ""),
-    queryFn: () => window.teststand.devices.getDefinition({ hardwareId: hardwareId ?? "" }),
+    queryFn: () => window.sage.devices.getDefinition({ hardwareId: hardwareId ?? "" }),
     enabled: Boolean(hardwareId)
   });
   const document = definition.data?.document;
@@ -428,6 +428,6 @@ export function InferredInput({ widget, name, label, value, disabled, onChange, 
       return <HexField value={value} label={label} disabled={Boolean(disabled)} onChange={onChange} />;
     case "text":
       return <HistoryText value={value} label={label} disabled={Boolean(disabled)}
-        historyKey={`teststand.args.${hardwareId ?? ""}.${tool ?? ""}.${name}`} onChange={onChange} />;
+        historyKey={`sage.args.${hardwareId ?? ""}.${tool ?? ""}.${name}`} onChange={onChange} />;
   }
 }

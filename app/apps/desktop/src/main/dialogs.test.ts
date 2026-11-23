@@ -25,7 +25,7 @@ afterEach(async () => {
 });
 
 async function temporaryDirectory(): Promise<string> {
-  const root = await mkdtemp(join(tmpdir(), "teststand-dialogs-"));
+  const root = await mkdtemp(join(tmpdir(), "sage-dialogs-"));
   roots.push(root);
   return root;
 }
@@ -47,7 +47,7 @@ describe("DesktopDialogs", () => {
 
   it("round-trips device bundle bytes without JSON conversion", async () => {
     const root = await temporaryDirectory();
-    const destination = join(root, "CARD.tshw");
+    const destination = join(root, "CARD.sagehw");
     const bytes = new Uint8Array([0, 1, 2, 255]);
     const dialogs = new DesktopDialogs(() => ({}) as never);
 

@@ -1,11 +1,11 @@
 import { vi } from "vitest";
-import type { RunMessages } from "@teststand/contracts/observability";
+import type { RunMessages } from "@sage/contracts/observability";
 import type {
   IcdDocumentResult, IcdRenderResult,
   IcdCheck, IcdDocument, IcdSummary, TestPlan, TestRunSnapshot, TestRunSummary
-} from "@teststand/contracts/testing";
+} from "@sage/contracts/testing";
 
-/** Test-only fake of `window.teststand` for the 测试 panel tests. */
+/** Test-only fake of `window.sage` for the 测试 panel tests. */
 
 const startedAt = "2026-09-17T00:00:00.000Z";
 
@@ -127,7 +127,7 @@ export function installTestingApi(plans: TestPlan[]) {
     rejudgeRun: vi.fn(async ({ runId }: { runId: string }) => ({ runId, results: [], consistent: true })),
     answerManualCheck: vi.fn(async ({ input }: { input: { runId: string } }) => makeRun(first, { runId: input.runId }))
   };
-  Object.defineProperty(window, "teststand", {
+  Object.defineProperty(window, "sage", {
     configurable: true,
     value: {
       system: {

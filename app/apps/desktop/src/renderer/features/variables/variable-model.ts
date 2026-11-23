@@ -1,6 +1,6 @@
-import type { DeviceStreams } from "@teststand/contracts/monitor";
-import type { DeviceStream } from "@teststand/contracts/observability";
-import type { ProtocolBindingState } from "@teststand/contracts/projects";
+import type { DeviceStreams } from "@sage/contracts/monitor";
+import type { DeviceStream } from "@sage/contracts/observability";
+import type { ProtocolBindingState } from "@sage/contracts/projects";
 
 /** Raw streams a protocol (ICD) can decode. */
 const RAW_TYPES: ReadonlySet<string> = new Set(["bytes", "frames"]);

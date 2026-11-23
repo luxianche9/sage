@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { TestOperationSnapshot, TestPlan, TestResult, TestRunEvent } from "@teststand/contracts/testing";
+import type { TestOperationSnapshot, TestPlan, TestResult, TestRunEvent } from "@sage/contracts/testing";
 import { buildExecutionTrace } from "./run-log-model.js";
 
 const at = "2026-09-18T00:00:00Z";

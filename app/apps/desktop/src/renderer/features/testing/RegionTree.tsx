@@ -3,7 +3,7 @@ import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ChevronDownIcon, ChevronRightIcon, CopyIcon, GripVerticalIcon, LayersIcon, Trash2Icon } from "lucide-react";
-import type { TestStep } from "@teststand/contracts/testing";
+import type { TestStep } from "@sage/contracts/testing";
 import { Badge, Checkbox, cn, HintIcon, IconButton } from "../../ui";
 import { containerTypes, regionLabels } from "./plan-helpers.js";
 import type { TestRegion } from "./plan-model.js";

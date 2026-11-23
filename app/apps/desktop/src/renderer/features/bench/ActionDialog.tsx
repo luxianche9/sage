@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { ToolCatalogItem } from "@teststand/contracts/devices";
+import type { ToolCatalogItem } from "@sage/contracts/devices";
 import { PlayIcon } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { queryKeys } from "../../lib/query-keys.js";
@@ -62,7 +62,7 @@ function ActionForm({ action, hardwareId, available, onClose }: {
     mutationFn: () => {
       started.current = performance.now();
       setOutcome(undefined);
-      return window.teststand.manual.invokeTool({
+      return window.sage.manual.invokeTool({
         raw: { hardwareId, toolName: action.externalName, arguments: values, timeoutMs: TIMEOUT_MS }
       });
     },

@@ -4,14 +4,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
-import type { DevicePackageInspection } from "@teststand/contracts/devices";
+import type { DevicePackageInspection } from "@sage/contracts/devices";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AddDeviceDialog } from "./AddDeviceDialog.js";
 
 const bytes = new Uint8Array([80, 75, 3, 4]);
 const report = (patch: Partial<DevicePackageInspection> = {}): DevicePackageInspection => ({
   manifest: {
-    formatVersion: 1, kind: "devicePlugin", type: "pci6208v", distribution: "teststand-adapter-pci6208v",
+    formatVersion: 1, kind: "devicePlugin", type: "pci6208v", distribution: "sage-plugin-pci6208v",
     version: "0.2.0", manufacturer: "ADLINK", model: "PCI-6208V", isolation: "subprocess", description: "8 AO",
     sdk: ">=0.2,<0.3", vendorDrivers: ["ADLINK PCIS-DASK"], files: { "a.whl": "b".repeat(64) }
   },
@@ -36,7 +36,7 @@ function Wrapper({ children }: { children: ReactNode }) {
 }
 
 beforeEach(() => {
-  Object.defineProperty(window, "teststand", {
+  Object.defineProperty(window, "sage", {
     configurable: true,
     value: { devices: { addDevice }, window: { relaunch } }
   });
@@ -86,7 +86,7 @@ describe("adding a device from its device package", () => {
     );
     expect(screen.getByText("0.1.0 → 0.2.0")).toBeTruthy();
     await userEvent.click(screen.getByRole("button", { name: "添加" }));
-    await userEvent.click(await screen.findByRole("button", { name: /重启 testStand/ }));
+    await userEvent.click(await screen.findByRole("button", { name: /重启 SAGE/ }));
     expect(relaunch).toHaveBeenCalledOnce();
   });
 });

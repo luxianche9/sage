@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { StreamLatest } from "@teststand/contracts/observability";
+import type { StreamLatest } from "@sage/contracts/observability";
 
 export type LatestEntry = StreamLatest["streams"][string];
 
@@ -22,7 +22,7 @@ export function useLatestValues(keys: readonly string[], active: boolean, interv
     const poll = async () => {
       const chunks: string[][] = [];
       for (let start = 0; start < wanted.length; start += MAX_KEYS) chunks.push(wanted.slice(start, start + MAX_KEYS));
-      const results = await Promise.allSettled(chunks.map((chunk) => window.teststand.streams.latest({ keys: chunk })));
+      const results = await Promise.allSettled(chunks.map((chunk) => window.sage.streams.latest({ keys: chunk })));
       if (stopped) return;
       setValues((current) => {
         const next = new Map(current);

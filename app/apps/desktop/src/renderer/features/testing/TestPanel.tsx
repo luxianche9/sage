@@ -59,8 +59,8 @@ export function TestPanel({ bench }: { bench: BenchRun }) {
         danger: true
       }).then((ok) => { if (ok) void guardState.current.discard(); });
     };
-    window.addEventListener("teststand:before-navigation", guard);
-    return () => window.removeEventListener("teststand:before-navigation", guard);
+    window.addEventListener("sage:before-navigation", guard);
+    return () => window.removeEventListener("sage:before-navigation", guard);
   }, [confirm]);
 
   // The flow shows the state its steps have in the run on the signal view, or else in its latest run.

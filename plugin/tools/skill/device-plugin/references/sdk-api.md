@@ -1,14 +1,14 @@
-# SDK API（`teststand_device_sdk` 0.2）
+# SDK API（`sage_device_sdk` 0.2）
 
-全部从包根导入：`from teststand_device_sdk import Device, tool, param, model, ...`。适配器包 `teststand_adapter_<adapter>` 的 `__init__.py` 导出 `DEVICE = <类>`，`pyproject.toml` 用入口点把它登记为一个设备类型，后端由此找到设备类。
+全部从包根导入：`from sage_device_sdk import Device, tool, param, model, ...`。适配器包 `sage_plugin_<adapter>` 的 `__init__.py` 导出 `DEVICE = <类>`，`pyproject.toml` 用入口点把它登记为一个设备类型，后端由此找到设备类。
 
 ## 适配器目录
 
 ```
 plugin/<adapter>/
-  pyproject.toml              依赖 teststand-device-sdk>=0.2,<0.3；入口点 teststand.devices
+  pyproject.toml              依赖 sage-device-sdk>=0.2,<0.3；入口点 sage.devices
   README.md                   设备语义、流、settings、构建与测试
-  src/teststand_adapter_<adapter>/
+  src/sage_plugin_<adapter>/
     __init__.py               DEVICE = <类>
     adapter.py                Device 子类：工具、流、声明
     driver.py                 厂商调用的类型化封装
@@ -21,13 +21,13 @@ plugin/<adapter>/
 ## 入口点
 
 ```toml
-[project.entry-points."teststand.devices"]
-pci1234 = "teststand_adapter_pci1234:DEVICE"
+[project.entry-points."sage.devices"]
+pci1234 = "sage_plugin_pci1234:DEVICE"
 ```
 
 - 入口点名就是设备类型（实例记录里的 `type`），用适配器 id，小写、唯一。
-- `device_types()` 返回 `{类型: "module:attr"}`；`load_device(spec)` 先按入口点名查找，找不到再把 `spec` 当作模块（取 `DEVICE`）或 `module:ClassName`。所以 `--check` 既能写 `--adapter pci1234`，也能写 `--adapter teststand_adapter_pci1234`。
-- 入口点元数据在安装时生成：改了 `pyproject.toml` 的入口点要重新 `uv sync`（`devices/` 下）或 `pnpm python:setup`（`app/` 下，开发环境把四个现有适配器作为内置类型装在 dev 组里）。发布版不带任何适配器，设备类型都由 `.tsdev` 设备包安装。
+- `device_types()` 返回 `{类型: "module:attr"}`；`load_device(spec)` 先按入口点名查找，找不到再把 `spec` 当作模块（取 `DEVICE`）或 `module:ClassName`。所以 `--check` 既能写 `--adapter pci1234`，也能写 `--adapter sage_plugin_pci1234`。
+- 入口点元数据在安装时生成：改了 `pyproject.toml` 的入口点要重新 `uv sync`（`devices/` 下）或 `pnpm python:setup`（`app/` 下，开发环境把四个现有适配器作为内置类型装在 dev 组里）。发布版不带任何适配器，设备类型都由 `.sagedev` 设备包安装。
 
 ## `Device`
 
@@ -139,7 +139,7 @@ raise DeviceError(f"AO_VWriteChannel failed rc={rc}", category=DEVICE_ERROR,
 |---|---|
 | `device_id`、`hardware_id` | 实例身份，来自实例记录 |
 | `manufacturer`、`model` | 必须与设备类的类属性一致，否则 `DeviceHost` 拒绝启动；后端从设备类取 |
-| `dry_run` | 适配器测试、`--check`，或环境变量 `HARDWARE_DRY_RUN`（testStand 后端从不设置） |
+| `dry_run` | 适配器测试、`--check`，或环境变量 `HARDWARE_DRY_RUN`（SAGE 后端从不设置） |
 | `settings` | 适配器专用、非秘密：`cardIndex`、`dllPath`、`hwcliPath`、`safeVolts`、采样率等 |
 | `build` | 可选的构建信息（源码版本），由 `get_device_info` 报告 |
 
@@ -167,9 +167,9 @@ self.waveform = SoftwareWaveform(self._waveform_write, lock=self.io_lock,
 - 忠实模拟控制器状态：输出影子、配置门槛（未配置就读要返回相同错误）、句柄。
 - 输入默认读空闲值。演示效果只能由环境变量开启：`HARDWARE_DRY_RUN_AI_NOISE`（`sim.ai_noise_enabled()`、`demo_voltage()`）、`HARDWARE_DRY_RUN_SERIAL_LOOPBACK`（`sim.serial_loopback_enabled()`）。
 - 记录写入历史（如 `writes` 列表），测试用它证明越界值没有到达驱动。
-- 模拟器只用于：适配器单元测试和 `--check`；testStand 里的设备总是驱动真实硬件。它不在设备之间回送接线（没有虚拟台架）。
+- 模拟器只用于：适配器单元测试和 `--check`；SAGE 里的设备总是驱动真实硬件。它不在设备之间回送接线（没有虚拟台架）。
 
-## 测试工具（`teststand_device_sdk.testing`）
+## 测试工具（`sage_device_sdk.testing`）
 
 全部在进程内运行，不开端口、不起子进程（`isolation` 不影响测试）：
 
@@ -187,6 +187,6 @@ self.waveform = SoftwareWaveform(self._waveform_write, lock=self.io_lock,
 | `receive_until(events, predicate)` | 读事件直到谓词成立 |
 | `dry_run_config(cls, **overrides)` | 构造模拟模式的 `DeviceConfig`，可直接构造设备做单元测试 |
 
-命令行等价物：`uv run python -m teststand_device_sdk --adapter <adapter> --check`，输出一行 JSON `{adapter, ok, failures, warnings}`；有失败时退出码 1，警告不影响退出码。它只用模拟器，从不访问硬件。
+命令行等价物：`uv run python -m sage_device_sdk --adapter <adapter> --check`，输出一行 JSON `{adapter, ok, failures, warnings}`；有失败时退出码 1，警告不影响退出码。它只用模拟器，从不访问硬件。
 
 `--check` 检查：工具元数据（描述长度、注解、`operationSemantics`、`actuate` 不可重试、参数描述）、`list_hardware` 恰好一项且 `open`、`/device` 的形状、修订号与身份、`safe` 工具连续两次成功、`operationId` 回传与 `streamRefs`、每条流的记录格式、`seq`/`t` 递增与水位推进、事件流的 `idle()`、有界数值参数越界被拒绝。

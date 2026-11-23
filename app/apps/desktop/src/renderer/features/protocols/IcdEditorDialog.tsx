@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { IcdCheck } from "@teststand/contracts/testing";
+import type { IcdCheck } from "@sage/contracts/testing";
 import { DownloadIcon, Table2Icon, WandSparklesIcon } from "lucide-react";
 import {
   Badge, Button, cn, Dialog, DialogBody, DialogContent, DialogFooter, Field, Input, SegmentedControl, Textarea
@@ -46,8 +46,8 @@ export function IcdEditorDialog({ name, alias, source, onClose, onSaved }: Editi
     queryFn: async () => {
       if (!name) return { text: icdTemplate(""), document: undefined, algorithms: undefined };
       const [file, parsed] = await Promise.all([
-        window.teststand.testing.readIcd({ name }),
-        window.teststand.testing.icdDocument({ input: { name } })
+        window.sage.testing.readIcd({ name }),
+        window.sage.testing.icdDocument({ input: { name } })
       ]);
       return { text: file.text, document: parsed.valid ? parsed.document : undefined, algorithms: parsed.algorithms };
     },
@@ -77,7 +77,7 @@ export function IcdEditorDialog({ name, alias, source, onClose, onSaved }: Editi
   const badSample = sampleIssue(samples);
   const input = mode === "table" ? { document: doc } : { text };
   const run = useMutation({
-    mutationFn: () => window.teststand.testing.checkIcd({
+    mutationFn: () => window.sage.testing.checkIcd({
       input: { ...input, ...(alias ? { alias } : {}), ...(samples.length && !badSample ? { samples } : {}) }
     }),
     onSuccess: setCheck
@@ -98,11 +98,11 @@ export function IcdEditorDialog({ name, alias, source, onClose, onSaved }: Editi
     if (next === mode) return;
     try {
       if (next === "yaml") {
-        const rendered = await window.teststand.testing.renderIcd({ input: { document: doc } });
+        const rendered = await window.sage.testing.renderIcd({ input: { document: doc } });
         if (!rendered.valid || rendered.text === undefined) throw new Error(rendered.error ?? "表格里有错误");
         setText(rendered.text);
       } else {
-        const parsed = await window.teststand.testing.icdDocument({ input: { text } });
+        const parsed = await window.sage.testing.icdDocument({ input: { text } });
         if (!parsed.valid || !parsed.document) throw new Error(parsed.error ?? "YAML 无效");
         setDoc(parsed.document as unknown as IcdDoc);
         setMessage(0);
@@ -115,7 +115,7 @@ export function IcdEditorDialog({ name, alias, source, onClose, onSaved }: Editi
 
   const fileName = mode === "table" ? doc.name : creating ? declaredName(text) ?? "" : name;
   const save = useMutation({
-    mutationFn: () => window.teststand.testing.saveIcd({
+    mutationFn: () => window.sage.testing.saveIcd({
       input: mode === "table" ? { name: fileName ?? "", document: doc } : { name: fileName ?? "", text }
     }),
     onSuccess: async (result) => {
@@ -130,7 +130,7 @@ export function IcdEditorDialog({ name, alias, source, onClose, onSaved }: Editi
     onError: (error) => toast.error(errorMessage(error))
   });
   const capture = useMutation({
-    mutationFn: () => window.teststand.streams.recent({
+    mutationFn: () => window.sage.streams.recent({
       key: `${source?.hardwareId ?? ""}__${source?.streamId ?? ""}`, limit: 200
     }),
     onSuccess: (recent) => {

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import type { Hardware } from "@teststand/contracts/devices";
+import type { Hardware } from "@sage/contracts/devices";
 import type {
   TestExpressionReference, TestPlan, TestStep, TestStepCatalogItem
-} from "@teststand/contracts/testing";
+} from "@sage/contracts/testing";
 import { XIcon } from "lucide-react";
 import { Badge, Button, Checkbox, Field, IconButton, Input, Section, Select, Textarea } from "../../ui";
 import { useTestDeviceTools } from "../../lib/queries.js";

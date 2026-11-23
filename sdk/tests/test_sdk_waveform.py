@@ -7,14 +7,14 @@ import time
 
 import pytest
 
-from teststand_device_sdk import (
+from sage_device_sdk import (
     DeviceError,
     ScalarStream,
     SoftwareWaveform,
     sample_value,
     waveform_capability,
 )
-from teststand_device_sdk.clock import now_ms
+from sage_device_sdk.clock import now_ms
 
 
 def test_sample_value_shapes():

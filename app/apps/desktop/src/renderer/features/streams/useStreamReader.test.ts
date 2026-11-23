@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { LiveFrame, LiveStreamEntry, StreamWindow } from "@teststand/contracts/observability";
+import type { LiveFrame, LiveStreamEntry, StreamWindow } from "@sage/contracts/observability";
 import { mergeFrame, trimBuffers } from "./useStreamReader.js";
 
 function entry(overrides: Partial<LiveStreamEntry>): LiveStreamEntry {

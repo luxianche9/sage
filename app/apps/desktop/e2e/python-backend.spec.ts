@@ -13,7 +13,7 @@ async function backendPid(application: ElectronApplication): Promise<number> {
   const parent = await application.evaluate(() => process.pid);
   if (!parent) throw new Error("Electron PID is unavailable");
   const result = await execute("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command",
-    `Get-CimInstance Win32_Process -Filter 'ParentProcessId = ${parent}' | Where-Object { $_.Name -eq 'python.exe' -or $_.Name -eq 'teststand-backend.exe' } | Select-Object -ExpandProperty ProcessId`
+    `Get-CimInstance Win32_Process -Filter 'ParentProcessId = ${parent}' | Where-Object { $_.Name -eq 'python.exe' -or $_.Name -eq 'sage-backend.exe' } | Select-Object -ExpandProperty ProcessId`
   ], { windowsHide: true });
   const ids = result.stdout.trim().split(/\s+/).filter(Boolean).map(Number);
   expect(ids).toHaveLength(1);
@@ -29,17 +29,17 @@ async function expectExited(pid: number): Promise<void> {
 }
 
 test("Python backend exits with the window and leaves no orphan", async () => {
-  const userData = await mkdtemp(join(tmpdir(), "teststand 中文 profile "));
-  const env = { ...process.env, TESTSTAND_USER_DATA_DIR: userData,
-    TESTSTAND_GATEWAY_PORT: "0", TESTSTAND_AGENT_INTEGRATION_TEST_MODE: "1" };
+  const userData = await mkdtemp(join(tmpdir(), "sage 中文 profile "));
+  const env = { ...process.env, SAGE_USER_DATA_DIR: userData,
+    SAGE_GATEWAY_PORT: "0", SAGE_AGENT_INTEGRATION_TEST_MODE: "1" };
   delete env.ELECTRON_RUN_AS_NODE;
-  const executablePath = process.env.TESTSTAND_DESKTOP_EXECUTABLE;
+  const executablePath = process.env.SAGE_DESKTOP_EXECUTABLE;
   if (executablePath) {
     env.PATH = join(process.env.SystemRoot ?? "C:\\Windows", "System32");
     delete env.PYTHONPATH;
     delete env.PYTHONHOME;
     delete env.VIRTUAL_ENV;
-    delete env.TESTSTAND_BACKEND_EXECUTABLE;
+    delete env.SAGE_BACKEND_EXECUTABLE;
   }
   const launch = () => electron.launch({
     ...(executablePath ? { executablePath } : {}),

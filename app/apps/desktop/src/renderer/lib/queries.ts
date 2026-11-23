@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import type { AgentKind } from "@teststand/contracts/agents";
-import type { TestRunListInput } from "@teststand/contracts/testing";
+import type { AgentKind } from "@sage/contracts/agents";
+import type { TestRunListInput } from "@sage/contracts/testing";
 import { queryKeys } from "./query-keys.js";
 
 /**
@@ -14,20 +14,20 @@ import { queryKeys } from "./query-keys.js";
 export function useDeviceCatalog() {
   return useQuery({
     queryKey: queryKeys.deviceCatalog,
-    queryFn: async () => ({ hardware: await window.teststand.devices.listHardware() })
+    queryFn: async () => ({ hardware: await window.sage.devices.listHardware() })
   });
 }
 
 /** Every device with the streams it declares; refetched on `devices` and `availability` events. */
 export function useMonitorStreams() {
-  return useQuery({ queryKey: queryKeys.monitorStreams, queryFn: () => window.teststand.monitor.streams() });
+  return useQuery({ queryKey: queryKeys.monitorStreams, queryFn: () => window.sage.monitor.streams() });
 }
 
 /** Refetched on `availability`, `devices`, `gateway`, `execution` and `testRun` events. */
 export function useDashboard() {
   return useQuery({
     queryKey: queryKeys.dashboard,
-    queryFn: () => window.teststand.system.dashboard()
+    queryFn: () => window.sage.system.dashboard()
   });
 }
 
@@ -35,24 +35,24 @@ export function useDashboard() {
 export function useDevicePackages() {
   return useQuery({
     queryKey: queryKeys.devicePackages,
-    queryFn: () => window.teststand.devices.listPackages()
+    queryFn: () => window.sage.devices.listPackages()
   });
 }
 
 /** The open project document: path, dirty flag, and the single file contents. */
 export function useProjectDocument() {
-  return useQuery({ queryKey: queryKeys.projectDocument, queryFn: () => window.teststand.projects.document() });
+  return useQuery({ queryKey: queryKeys.projectDocument, queryFn: () => window.sage.projects.document() });
 }
 
 export function useRecentProjects() {
-  return useQuery({ queryKey: queryKeys.recentProjects, queryFn: () => window.teststand.projects.listRecent() });
+  return useQuery({ queryKey: queryKeys.recentProjects, queryFn: () => window.sage.projects.listRecent() });
 }
 
 /** AI 发起的人工接线任务（含调用历史）。刷新由 wiringTask/project 事件驱动（lib/event-invalidation.ts）。 */
 export function useWiringTasks() {
   return useQuery({
     queryKey: queryKeys.wiringTasks,
-    queryFn: () => window.teststand.wiring.listTasks({ input: { limit: 500 } })
+    queryFn: () => window.sage.wiring.listTasks({ input: { limit: 500 } })
   });
 }
 
@@ -60,27 +60,27 @@ export function useWiringTasks() {
 export function useWiringChanges() {
   return useQuery({
     queryKey: queryKeys.wiringChanges,
-    queryFn: () => window.teststand.wiring.listChanges({ input: { limit: 500 } })
+    queryFn: () => window.sage.wiring.listChanges({ input: { limit: 500 } })
   });
 }
 
 export function useTestStepCatalog() {
   return useQuery({
     queryKey: queryKeys.testStepCatalog,
-    queryFn: () => window.teststand.testing.listStepCatalog(),
+    queryFn: () => window.sage.testing.listStepCatalog(),
     staleTime: Infinity
   });
 }
 
 /** Refetched on `testRun` events; a dropped event arrives as `gap`, which refetches everything. */
 export function useCurrentTestRun() {
-  return useQuery({ queryKey: queryKeys.testRun, queryFn: () => window.teststand.testing.currentRun() });
+  return useQuery({ queryKey: queryKeys.testRun, queryFn: () => window.sage.testing.currentRun() });
 }
 
 export function useTestRuns(filters: TestRunListInput, enabled = true) {
   return useQuery({
     queryKey: queryKeys.testRuns(filters),
-    queryFn: () => window.teststand.testing.listRuns({ input: filters }),
+    queryFn: () => window.sage.testing.listRuns({ input: filters }),
     enabled
   });
 }
@@ -88,7 +88,7 @@ export function useTestRuns(filters: TestRunListInput, enabled = true) {
 export function useTestDeviceTools(hardwareId: string) {
   return useQuery({
     queryKey: queryKeys.testDeviceTools(hardwareId),
-    queryFn: () => window.teststand.testing.listDeviceTools({ hardwareId }),
+    queryFn: () => window.sage.testing.listDeviceTools({ hardwareId }),
     enabled: Boolean(hardwareId)
   });
 }
@@ -97,7 +97,7 @@ export function useTestDeviceTools(hardwareId: string) {
 export function useTestRecoveryItems() {
   return useQuery({
     queryKey: queryKeys.testRecovery,
-    queryFn: () => window.teststand.testing.listRecoveryItems()
+    queryFn: () => window.sage.testing.listRecoveryItems()
   });
 }
 
@@ -106,7 +106,7 @@ export function useTestRecoveryItems() {
 export function useDeviceDefinition(hardwareId: string) {
   return useQuery({
     queryKey: queryKeys.deviceDefinition(hardwareId),
-    queryFn: () => window.teststand.devices.getDefinition({ hardwareId })
+    queryFn: () => window.sage.devices.getDefinition({ hardwareId })
   });
 }
 
@@ -115,22 +115,22 @@ export function useDeviceDefinition(hardwareId: string) {
 export function useOpenCodeStatus() {
   return useQuery({
     queryKey: queryKeys.openCodeStatus,
-    queryFn: () => window.teststand.agents.openCodeStatus()
+    queryFn: () => window.sage.agents.openCodeStatus()
   });
 }
 
 /** OpenAI-compatible model settings (the API key itself never reaches the renderer). */
 export function useLlmSettings() {
-  return useQuery({ queryKey: queryKeys.llmSettings, queryFn: () => window.teststand.settings.getLlm() });
+  return useQuery({ queryKey: queryKeys.llmSettings, queryFn: () => window.sage.settings.getLlm() });
 }
 
 /** External agent (Codex) integration state. The one poll left: Codex's config.toml and the user
- *  environment change outside testStand (the Codex CLI, another program), so no backend
+ *  environment change outside SAGE (the Codex CLI, another program), so no backend
  *  event can announce them. Gateway changes still refetch at once (`gateway`). */
 export function useAgentIntegration(agent: AgentKind) {
   return useQuery({
     queryKey: queryKeys.agentIntegration(agent),
-    queryFn: () => window.teststand.agents.status({ agent }),
+    queryFn: () => window.sage.agents.status({ agent }),
     refetchInterval: 15_000
   });
 }
@@ -140,6 +140,6 @@ export function useAgentIntegration(agent: AgentKind) {
 export function useAgentTools() {
   return useQuery({
     queryKey: queryKeys.agentTools,
-    queryFn: () => window.teststand.agents.listTools()
+    queryFn: () => window.sage.agents.listTools()
   });
 }

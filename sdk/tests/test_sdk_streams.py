@@ -5,7 +5,7 @@ import time
 
 import pytest
 
-from teststand_device_sdk import (
+from sage_device_sdk import (
     BitsStream,
     BlockStream,
     ByteStream,
@@ -13,8 +13,8 @@ from teststand_device_sdk import (
     ScalarStream,
     StreamRegistry,
 )
-from teststand_device_sdk.operation import CURRENT, Operation
-from teststand_device_sdk.testing import receive_until
+from sage_device_sdk.operation import CURRENT, Operation
+from sage_device_sdk.testing import receive_until
 
 
 def batch(events, limit: int = 200) -> dict:
@@ -261,7 +261,7 @@ def test_failed_attempt_counts_error_and_still_advances_watermark():
 
 
 def test_describe_declares_metadata():
-    from teststand_device_sdk import BitsStream, BlockStream, ByteStream, FrameStream, ScalarStream
+    from sage_device_sdk import BitsStream, BlockStream, ByteStream, FrameStream, ScalarStream
 
     assert ScalarStream("ao0", unit="V", label="AO0", kind="setpoint").describe() == {
         "id": "ao0", "type": "scalar", "unit": "V", "label": "AO0", "kind": "setpoint"}
@@ -283,7 +283,7 @@ def test_describe_declares_metadata():
 
 
 def test_idle_advances_event_stream_watermark():
-    from teststand_device_sdk import ByteStream, FrameStream
+    from sage_device_sdk import ByteStream, FrameStream
 
     for stream in (ByteStream("s"), FrameStream("f")):
         assert stream.idle_driven is False
@@ -296,7 +296,7 @@ def test_idle_advances_event_stream_watermark():
 
 
 def _reader_device(period: float | None):
-    from teststand_device_sdk import ByteStream
+    from sage_device_sdk import ByteStream
 
     from sdk_demo import DemoDevice
 
@@ -320,7 +320,7 @@ def _reader_device(period: float | None):
 
 
 def test_compliance_checks_idle_driven_watermark():
-    from teststand_device_sdk.testing import check_device
+    from sage_device_sdk.testing import check_device
 
     assert check_device(_reader_device(0.05)) == []
     failures = check_device(_reader_device(None))

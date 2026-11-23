@@ -72,16 +72,16 @@ async function verifySourceFirstBundles() {
   const leaked = [];
   for (const artifact of artifacts) {
     const code = await readFile(artifact, "utf8");
-    if (/\brequire\(\s*["']@teststand\//.test(code)) leaked.push(artifact);
+    if (/\brequire\(\s*["']@sage\//.test(code)) leaked.push(artifact);
   }
   if (leaked.length) {
     throw new Error(`Source-first workspace imports were externalized from Electron bundles:\n${leaked.join("\n")}`);
   }
   const mainCode = await readFile(artifacts[0], "utf8");
-  const businessImplementations = ["class DeviceStore", "class DeviceService", "class ProjectService", "class ProjectWiringService", "class TaskOrchestrationService", "class TestStandApplication", "class LocalMcpGateway", "class SettingsStore", "class SecretStore", "class ProjectRunLogStore"];
+  const businessImplementations = ["class DeviceStore", "class DeviceService", "class ProjectService", "class ProjectWiringService", "class TaskOrchestrationService", "class SageApplication", "class LocalMcpGateway", "class SettingsStore", "class SecretStore", "class ProjectRunLogStore"];
   const businessLeaks = businessImplementations.filter((name) => mainCode.includes(name));
   if (businessLeaks.length) throw new Error(`Python-owned business implementation leaked into Main: ${businessLeaks.join(", ")}`);
-  if (!mainCode.includes("--gateway-port") || !mainCode.includes("teststand-backend.exe")) throw new Error("Main does not contain the Python child-process integration");
+  if (!mainCode.includes("--gateway-port") || !mainCode.includes("sage-backend.exe")) throw new Error("Main does not contain the Python child-process integration");
   console.log("Electron Main and Preload contain no externalized workspace package imports.");
 }
 

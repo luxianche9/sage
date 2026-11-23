@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
-import type { ToolCatalogItem } from "@teststand/contracts/devices";
+import type { ToolCatalogItem } from "@sage/contracts/devices";
 import { RotateCwIcon, ShieldCheckIcon } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { Button, cn, Dialog, DialogBody, DialogContent, DialogFooter, Spinner, StatusLamp, toneText } from "../../ui";
@@ -42,7 +42,7 @@ function SelfTestRun({ tool, hardwareId, available, onClose }: {
 }) {
   const run = useMutation({
     mutationFn: async (): Promise<SelfTestReport> => {
-      const result = await window.teststand.manual.invokeTool({
+      const result = await window.sage.manual.invokeTool({
         raw: { hardwareId, toolName: tool.externalName, arguments: {}, timeoutMs: TIMEOUT_MS }
       });
       const report = selfTestReport(result.output);

@@ -9,7 +9,7 @@ from typing import Any
 
 import pytest
 
-from teststand_backend.host.codex import (
+from sage_backend.host.codex import (
     CODEX_TOKEN_ENV,
     CodexIntegration,
     CommandFailed,
@@ -33,11 +33,11 @@ class FakeCodex:
         self.calls.append(args)
         if args == ["--version"]:
             return "codex-cli 1.0.0\n"
-        if args == ["mcp", "get", "teststand", "--json"]:
+        if args == ["mcp", "get", "sage", "--json"]:
             if self.config is None:
                 raise CommandFailed("MCP server not found")
             return json.dumps(self.config)
-        if args == ["mcp", "remove", "teststand"]:
+        if args == ["mcp", "remove", "sage"]:
             self.config = None
             self.config_path.write_text("removed", encoding="utf-8")
             return ""
@@ -142,18 +142,18 @@ async def test_install_replaces_an_entry_and_sets_the_user_token(setup: Setup) -
     result = await setup.service.install()
     assert result["state"] == "configured"
     assert setup.environment.values[CODEX_TOKEN_ENV] == "gateway-token"
-    assert ["mcp", "remove", "teststand"] in setup.codex.calls
+    assert ["mcp", "remove", "sage"] in setup.codex.calls
     assert [
         "mcp",
         "add",
-        "teststand",
+        "sage",
         "--url",
         ENDPOINT,
         "--bearer-token-env-var",
         CODEX_TOKEN_ENV,
     ] in setup.codex.calls
     assert setup.probes == [(ENDPOINT, "gateway-token")]
-    assert (await setup.service.test())["message"].startswith("testStand Gateway")
+    assert (await setup.service.test())["message"].startswith("SAGE Gateway")
     assert not any((setup.home.parent / "backups").glob("*"))
 
 
@@ -244,17 +244,15 @@ async def test_the_memory_codex_used_by_integration_test_mode() -> None:
     runner = MemoryCodexRunner()
     assert (await runner.run("codex", ["--version"])).startswith("codex-cli")
     with pytest.raises(CommandFailed, match="not found"):
-        await runner.run("codex", ["mcp", "get", "teststand", "--json"])
+        await runner.run("codex", ["mcp", "get", "sage", "--json"])
     await runner.run(
-        "codex", ["mcp", "add", "teststand", "--url", ENDPOINT, "--bearer-token-env-var", "V"]
+        "codex", ["mcp", "add", "sage", "--url", ENDPOINT, "--bearer-token-env-var", "V"]
     )
     assert (
-        json.loads(await runner.run("codex", ["mcp", "get", "teststand", "--json"]))["transport"][
-            "url"
-        ]
+        json.loads(await runner.run("codex", ["mcp", "get", "sage", "--json"]))["transport"]["url"]
         == ENDPOINT
     )
-    await runner.run("codex", ["mcp", "remove", "teststand"])
+    await runner.run("codex", ["mcp", "remove", "sage"])
     assert runner.config is None
     with pytest.raises(CommandFailed, match="Unexpected"):
         await runner.run("codex", ["other"])

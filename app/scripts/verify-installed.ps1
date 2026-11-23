@@ -10,16 +10,16 @@ if (-not $installTarget.StartsWith($distRoot + [System.IO.Path]::DirectorySepara
 $existing = Get-ItemProperty @('HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
   'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
   'HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*') -ErrorAction SilentlyContinue |
-  Where-Object { $_.DisplayName -eq 'testStand' }
+  Where-Object { $_.DisplayName -eq 'SAGE' }
 foreach ($entry in $existing) {
   if (-not $entry.InstallLocation -or $entry.InstallLocation.TrimEnd('\') -ne $installTarget.TrimEnd('\')) {
-    throw "An existing testStand installation must be preserved: $($entry.InstallLocation)"
+    throw "An existing SAGE installation must be preserved: $($entry.InstallLocation)"
   }
 }
-$existingProcesses = Get-CimInstance Win32_Process -Filter "Name = 'testStand.exe'"
-if ($existingProcesses) { throw 'An existing testStand process must be preserved' }
+$existingProcesses = Get-CimInstance Win32_Process -Filter "Name = 'SAGE.exe'"
+if ($existingProcesses) { throw 'An existing SAGE process must be preserved' }
 $version = (Get-Content -Raw -Encoding UTF8 (Join-Path $workspace 'apps/desktop/package.json') | ConvertFrom-Json).version
-$installer = Join-Path $distRoot "testStand-$version-windows-x64.exe"
+$installer = Join-Path $distRoot "SAGE-$version-windows-x64.exe"
 if (-not (Test-Path -LiteralPath $installer)) { throw "Installer not found: $installer" }
 $process = Start-Process -FilePath $installer -ArgumentList "/S /D=$installTarget" -WindowStyle Hidden -PassThru -Wait
 if ($process.ExitCode -ne 0) { throw "Installer failed: $($process.ExitCode)" }
@@ -38,8 +38,8 @@ if (Test-Path -LiteralPath $payloadReport) {
   Write-Output "Verified $($installedFiles.Count) installed backend file hashes"
 }
 $originalAcl = Get-Acl -LiteralPath $installTarget
-$originalExecutable = $env:TESTSTAND_DESKTOP_EXECUTABLE
-$originalSmokeExecutable = $env:TESTSTAND_SMOKE_EXECUTABLE
+$originalExecutable = $env:SAGE_DESKTOP_EXECUTABLE
+$originalSmokeExecutable = $env:SAGE_SMOKE_EXECUTABLE
 try {
   $testAcl = Get-Acl -LiteralPath $installTarget
   $identity = [System.Security.Principal.WindowsIdentity]::GetCurrent().User
@@ -55,8 +55,8 @@ try {
   catch [System.UnauthorizedAccessException] { $writeDenied = $true }
   if (-not $writeDenied) { throw 'Installation write denial was not effective' }
   Write-Output 'Confirmed read-only installation in a Chinese and space-containing path'
-  $env:TESTSTAND_DESKTOP_EXECUTABLE = Join-Path $installTarget 'testStand.exe'
-  $env:TESTSTAND_SMOKE_EXECUTABLE = $env:TESTSTAND_DESKTOP_EXECUTABLE
+  $env:SAGE_DESKTOP_EXECUTABLE = Join-Path $installTarget 'SAGE.exe'
+  $env:SAGE_SMOKE_EXECUTABLE = $env:SAGE_DESKTOP_EXECUTABLE
   Push-Location (Join-Path $workspace 'apps/desktop')
   try {
     & pnpm.cmd exec playwright test e2e/python-backend.spec.ts
@@ -66,10 +66,10 @@ try {
   } finally { Pop-Location }
 } finally {
   Set-Acl -LiteralPath $installTarget -AclObject $originalAcl
-  $env:TESTSTAND_DESKTOP_EXECUTABLE = $originalExecutable
-  $env:TESTSTAND_SMOKE_EXECUTABLE = $originalSmokeExecutable
+  $env:SAGE_DESKTOP_EXECUTABLE = $originalExecutable
+  $env:SAGE_SMOKE_EXECUTABLE = $originalSmokeExecutable
   if (-not $KeepInstall) {
-    $uninstaller = Join-Path $installTarget 'Uninstall testStand.exe'
+    $uninstaller = Join-Path $installTarget 'Uninstall SAGE.exe'
     if (Test-Path -LiteralPath $uninstaller) {
       $uninstallProcess = Start-Process -FilePath $uninstaller -ArgumentList '/S' -WindowStyle Hidden -PassThru -Wait
       if ($uninstallProcess.ExitCode -ne 0) { throw "Uninstall failed: $($uninstallProcess.ExitCode)" }

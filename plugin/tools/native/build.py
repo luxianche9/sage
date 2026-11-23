@@ -5,7 +5,7 @@
 Compiles ``hwcli_pci1710l.cpp`` and ``hwcli_pci1762.cpp`` with MinGW-w64 ``g++`` (64-bit,
 statically linked, so the exe needs no MinGW runtime) against the DAQNavi SDK header
 ``bdaqctrl.h``; the header loads ``biodaq.dll`` at run time, so nothing is linked from DAQNavi.
-Each exe is written to ``plugin/<card>/src/teststand_adapter_<card>/bin/``, where the adapter looks
+Each exe is written to ``plugin/<card>/src/sage_plugin_<card>/bin/``, where the adapter looks
 for it first. ``g++`` is taken from ``--gxx``, ``$GXX`` or ``PATH``; the SDK from ``--daqnavi``,
 ``$DAQNAVI_ROOT`` or ``C:\\Advantech\\DAQNavi``.
 """
@@ -46,7 +46,7 @@ def main() -> int:
     args = parser.parse_args()
     gxx, sdk = compiler(args.gxx), daqnavi(args.daqnavi)
     for card in BRIDGES:
-        target = ADAPTERS / card / "src" / f"teststand_adapter_{card}" / "bin" / f"hwcli_{card}.exe"
+        target = ADAPTERS / card / "src" / f"sage_plugin_{card}" / "bin" / f"hwcli_{card}.exe"
         target.parent.mkdir(parents=True, exist_ok=True)
         command = [gxx, *FLAGS, f"-I{HERE}", f"-I{sdk / 'Inc'}", "-o", str(target), str(ADAPTERS / card / "native" / f"hwcli_{card}.cpp")]
         print(" ".join(command), flush=True)

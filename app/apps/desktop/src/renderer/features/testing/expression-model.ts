@@ -1,4 +1,4 @@
-import type { TestExpressionReference } from "@teststand/contracts/testing";
+import type { TestExpressionReference } from "@sage/contracts/testing";
 
 /** One visual comparison `left <op> right`; value mode uses only `left` (reference) or `right` (literal). */
 export type Clause = { left: string; operator: string; rightKind: "literal" | "reference"; right: string };

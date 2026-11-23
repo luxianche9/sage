@@ -6,10 +6,10 @@ import { fileURLToPath } from "node:url";
 
 export default defineConfig({
   main: {
-    resolve: { conditions: ["teststand-source", ...defaultServerConditions] },
-    ssr: { resolve: { conditions: ["teststand-source", ...defaultServerConditions], externalConditions: ["teststand-source", ...defaultServerConditions] } },
+    resolve: { conditions: ["sage-source", ...defaultServerConditions] },
+    ssr: { resolve: { conditions: ["sage-source", ...defaultServerConditions], externalConditions: ["sage-source", ...defaultServerConditions] } },
     plugins: [externalizeDepsPlugin({ exclude: [
-      "@teststand/contracts",
+      "@sage/contracts",
       "electron-log"
     ] })],
     build: {
@@ -19,9 +19,9 @@ export default defineConfig({
     }
   },
   preload: {
-    resolve: { conditions: ["teststand-source", ...defaultServerConditions] },
-    ssr: { resolve: { conditions: ["teststand-source", ...defaultServerConditions], externalConditions: ["teststand-source", ...defaultServerConditions] } },
-    plugins: [externalizeDepsPlugin({ exclude: ["@teststand/contracts"] })],
+    resolve: { conditions: ["sage-source", ...defaultServerConditions] },
+    ssr: { resolve: { conditions: ["sage-source", ...defaultServerConditions], externalConditions: ["sage-source", ...defaultServerConditions] } },
+    plugins: [externalizeDepsPlugin({ exclude: ["@sage/contracts"] })],
     build: {
       rollupOptions: {
         output: {
@@ -32,7 +32,7 @@ export default defineConfig({
     }
   },
   renderer: {
-    resolve: { conditions: ["teststand-source", ...defaultClientConditions], alias: { "@renderer": fileURLToPath(new URL("./src/renderer", import.meta.url)) } },
+    resolve: { conditions: ["sage-source", ...defaultClientConditions], alias: { "@renderer": fileURLToPath(new URL("./src/renderer", import.meta.url)) } },
     plugins: [react(), tailwindcss()],
     esbuild: { minifyIdentifiers: false },
     build: { minify: "esbuild" }

@@ -1,6 +1,6 @@
 import { createContext, useContext, type ReactNode } from "react";
-import type { MonitorPanel } from "@teststand/contracts/monitor";
-import type { StreamInfo } from "@teststand/contracts/observability";
+import type { MonitorPanel } from "@sage/contracts/monitor";
+import type { StreamInfo } from "@sage/contracts/observability";
 import { cn } from "../../ui/index.js";
 import type { ConsoleJump, StreamSource } from "../streams/index.js";
 import type { ResultRow } from "../testing/result-rows.js";

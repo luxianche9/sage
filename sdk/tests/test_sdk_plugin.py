@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from teststand_device_sdk import (
+from sage_device_sdk import (
     PLUGINS_ENV,
     DeviceHost,
     InprocDevice,
@@ -20,7 +20,7 @@ from teststand_device_sdk import (
     open_device,
     plugin_sites,
 )
-from teststand_device_sdk.testing import dry_run_config
+from sage_device_sdk.testing import dry_run_config
 
 from sdk_demo import DemoDevice
 
@@ -37,7 +37,7 @@ async def test_host_calls_tools_without_a_transport():
     await host.start()
     try:
         tools = {tool["name"]: tool for tool in host.describe_tools()}
-        assert tools["demo_set_level"]["_meta"]["teststand"]["operationSemantics"]["kind"] == "actuate"
+        assert tools["demo_set_level"]["_meta"]["sage"]["operationSemantics"]["kind"] == "actuate"
         assert "hardwareId" in tools["demo_set_level"]["inputSchema"]["properties"]
         result = await host.call("demo_set_level", {"hardwareId": "DEMO1_1", "channel": 1, "level": True},
                                  operation_id="op-7")
@@ -80,7 +80,7 @@ async def test_open_device_follows_isolation(tmp_path, isolated_path):
 async def test_child_process_serves_the_device_and_survives_stdout_noise(child_imports_demo):
     device = SubprocessDevice("sdk_demo:DemoDevice", dry_run_config(DemoDevice), [sys.executable, "-c",
         "import os,sys; os.write(1, b'driver banner' + bytes([10])); "
-        "from teststand_device_sdk.plugin import child_main; sys.exit(child_main())"])
+        "from sage_device_sdk.plugin import child_main; sys.exit(child_main())"])
     await device.start()
     try:
         described = await device.describe()
@@ -132,7 +132,7 @@ def _installed_package(root, name="tsplug", version="1.0.0"):
     info = site / f"tsplug_demo-{version}.dist-info"
     info.mkdir()
     (info / "METADATA").write_text(f"Metadata-Version: 2.1\nName: tsplug-demo\nVersion: {version}\n", encoding="utf-8")
-    (info / "entry_points.txt").write_text(f"[teststand.devices]\n{name} = tsplug_demo:DEVICE\n", encoding="utf-8")
+    (info / "entry_points.txt").write_text(f"[sage.devices]\n{name} = tsplug_demo:DEVICE\n", encoding="utf-8")
     (root / "installed.json").write_text(json.dumps({"types": {name: {"version": version}}}), encoding="utf-8")
     return site
 

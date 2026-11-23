@@ -1,7 +1,7 @@
-// Build a testStand release into <repository>/release/<version>/ (outside app/dist, which every
+// Build a SAGE release into <repository>/release/<version>/ (outside app/dist, which every
 // build cleans):
-//   testStand-<version>-windows-x64.exe   the installer (NSIS, unsigned)
-//   devices/<type>-<version>.tsdev         one device package per plugin folder under plugin/
+//   SAGE-<version>-windows-x64.exe   the installer (NSIS, unsigned)
+//   devices/<type>-<version>.sagedev         one device package per plugin folder under plugin/
 //   SHA256SUMS.txt, RELEASE.md
 // Steps: version check, frozen backend + desktop + installer, device packages (tests, --check,
 // wheel), then the packaged smoke test against the unpacked app and those device packages.
@@ -34,12 +34,12 @@ run("uv", ["run", "--project", "plugin", "python", "plugin/tools/pack.py", "--al
   { cwd: repository });
 run("node", ["scripts/smoke-packaged.mjs"], {
   cwd: resolve(workspace, "apps/desktop"),
-  env: { ...process.env, TESTSTAND_SMOKE_DEVICE_PACKAGES: resolve(release, "devices") }
+  env: { ...process.env, SAGE_SMOKE_DEVICE_PACKAGES: resolve(release, "devices") }
 });
 
-const installer = `testStand-${version}-windows-x64.exe`;
+const installer = `SAGE-${version}-windows-x64.exe`;
 await copyFile(resolve(dist, installer), resolve(release, installer));
-const packages = (await readdir(resolve(release, "devices"))).filter((name) => name.endsWith(".tsdev")).sort();
+const packages = (await readdir(resolve(release, "devices"))).filter((name) => name.endsWith(".sagedev")).sort();
 const files = [installer, ...packages.map((name) => `devices/${name}`)];
 const sums = await Promise.all(files.map(async (name) => `${await sha256(resolve(release, name))}  ${name}`));
 await writeFile(resolve(release, "SHA256SUMS.txt"), sums.join("\n") + "\n");

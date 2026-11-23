@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider, type UseQueryResult } from "@tanstack/react-query";
-import type { AgentIntegrationStatus } from "@teststand/contracts/agents";
-import type { TestStandApi } from "@teststand/contracts/desktop";
-import type { DashboardSnapshot } from "@teststand/contracts/operations";
+import type { AgentIntegrationStatus } from "@sage/contracts/agents";
+import type { SageApi } from "@sage/contracts/desktop";
+import type { DashboardSnapshot } from "@sage/contracts/operations";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -15,7 +15,7 @@ const codex: AgentIntegrationStatus = {
   state: "not_installed",
   gateway: { running: true, endpoint, toolCount: 3 },
   cli: { available: true, version: "0.40.0" },
-  environment: { name: "TESTSTAND_MCP_TOKEN", state: "missing" },
+  environment: { name: "SAGE_MCP_TOKEN", state: "missing" },
   configuration: { state: "missing" }
 };
 
@@ -39,9 +39,9 @@ function setup() {
     },
     dialogs: { exportText: vi.fn() }
   };
-  Object.defineProperty(window, "teststand", {
+  Object.defineProperty(window, "sage", {
     configurable: true,
-    value: api as unknown as TestStandApi
+    value: api as unknown as SageApi
   });
   const dashboard = {
     data: { gateway: { running: true, endpoint, toolCount: 3 } },

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { RunTimeline, StreamInfo } from "@teststand/contracts/observability";
+import type { RunTimeline, StreamInfo } from "@sage/contracts/observability";
 import {
   alignSeries, analogData, sampleGaps, BIT_LANE, combinedOverlays, compareEntries, consoleLine, deviceName,
   formatNumber, isSampled, logicData, pointAt, pointText, recordEntry, relativeTime,

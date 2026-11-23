@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { AgentConfirmation } from "@teststand/contracts/agents";
+import type { AgentConfirmation } from "@sage/contracts/agents";
 import { errorMessage } from "../lib/errors.js";
 import { queryKeys } from "../lib/query-keys.js";
 import { Button, Dialog, DialogBody, DialogContent, DialogFooter, useToast } from "../ui";
@@ -21,11 +21,11 @@ export function AgentConfirmationDialog() {
   const toast = useToast();
   const pending = useQuery({
     queryKey: queryKeys.agentConfirmations,
-    queryFn: () => window.teststand.system.listConfirmations()
+    queryFn: () => window.sage.system.listConfirmations()
   });
   const answer = useMutation({
     mutationFn: ({ id, approve }: { id: string; approve: boolean }) =>
-      window.teststand.system.answerConfirmation({ confirmationId: id, approve }),
+      window.sage.system.answerConfirmation({ confirmationId: id, approve }),
     onError: (reason) => toast.error(errorMessage(reason)),
     onSettled: () => void client.invalidateQueries({ queryKey: queryKeys.agentConfirmations })
   });

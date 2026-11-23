@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { TestStandApi } from "@teststand/contracts/desktop";
-import type { ProjectFolderSelection, RecentProjectSummary } from "@teststand/contracts/projects";
+import type { SageApi } from "@sage/contracts/desktop";
+import type { ProjectFolderSelection, RecentProjectSummary } from "@sage/contracts/projects";
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -31,9 +31,9 @@ function setup({ recent = [project("project-a"), project("project-b", "missing")
     devices: { listHardware: vi.fn(async () => []) },
     settings: { get: vi.fn(async () => ({ welcomeLayout: "grid" })), update: vi.fn(async () => undefined) }
   };
-  Object.defineProperty(window, "teststand", {
+  Object.defineProperty(window, "sage", {
     configurable: true,
-    value: api as unknown as TestStandApi
+    value: api as unknown as SageApi
   });
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   const onOpened = vi.fn();
@@ -73,7 +73,7 @@ describe("WelcomePage", () => {
     const { api, onOpened } = setup({ recent: [], chosen: selection });
     expect(await screen.findByText("还没有项目")).toBeTruthy();
     await userEvent.click(screen.getByRole("button", { name: "打开项目文件夹" }));
-    const dialog = await screen.findByRole("dialog", { name: "初始化 testStand 项目" });
+    const dialog = await screen.findByRole("dialog", { name: "初始化 SAGE 项目" });
     await userEvent.click(within(dialog).getByRole("button", { name: "创建并打开" }));
     await waitFor(() => expect(api.projects.initializeFolder).toHaveBeenCalledWith({ rootPath: "C:\\new" }));
     await waitFor(() => expect(onOpened).toHaveBeenCalledWith("C:\\new"));

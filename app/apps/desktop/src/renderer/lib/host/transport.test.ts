@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { DesktopEventMessage, TestStandHost } from "../../../shared/desktop-ipc.js";
+import type { DesktopEventMessage, SageHost } from "../../../shared/desktop-ipc.js";
 import { createLocalTransport } from "./transport.js";
 
 const endpoint = { url: "http://127.0.0.1:5000", token: "secret" };
@@ -58,8 +58,8 @@ describe("local transport", () => {
 
 function fakeIpc(reply: unknown = { ok: true, value: endpoint }) {
   let listener: ((message: DesktopEventMessage) => void) | undefined;
-  const invoke = vi.fn(async () => reply as Awaited<ReturnType<TestStandHost["call"]>>);
-  const ipc: TestStandHost = {
+  const invoke = vi.fn(async () => reply as Awaited<ReturnType<SageHost["call"]>>);
+  const ipc: SageHost = {
     call: invoke,
     onEvent: (callback) => {
       listener = callback;

@@ -1,6 +1,6 @@
 import type {
   RunTimeline, StreamInfo, StreamPoint, StreamRecord, StreamType
-} from "@teststand/contracts/observability";
+} from "@sage/contracts/observability";
 
 /** Streams drawn on a scope; everything else is shown as records in a terminal. */
 const SAMPLED: ReadonlySet<string> = new Set<StreamType>(["scalar", "block", "bits"]);

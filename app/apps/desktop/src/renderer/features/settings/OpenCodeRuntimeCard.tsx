@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { OpenCodeRuntimeStatus } from "@teststand/contracts/agents";
+import type { OpenCodeRuntimeStatus } from "@sage/contracts/agents";
 import { PlayIcon, RefreshCwIcon, SquareIcon } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { queryKeys } from "../../lib/query-keys.js";
@@ -30,7 +30,7 @@ export function OpenCodeRuntimeCard({ status, apiKeyConfigured, saving, onError 
   const action = useMutation({
     mutationKey: RUNTIME_MUTATION_KEY,
     mutationFn: (kind: RuntimeAction) => {
-      const agents = window.teststand.agents;
+      const agents = window.sage.agents;
       if (kind === "start") return agents.startOpenCode();
       if (kind === "stop") return agents.stopOpenCode();
       return agents.restartOpenCode();

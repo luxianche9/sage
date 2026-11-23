@@ -1,6 +1,6 @@
 """Enforce per-package line and branch floors from ``coverage-baseline.json``.
 
-The floors are ``[covered, total]`` per ``teststand_backend`` subpackage; a package's
+The floors are ``[covered, total]`` per ``sage_backend`` subpackage; a package's
 coverage ratio may not fall below its recorded ratio.
 """
 

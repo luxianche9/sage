@@ -5,11 +5,11 @@ import base64
 from pathlib import Path
 from typing import Any
 
-from teststand_device_sdk.ringbuffer import RingBuffer
+from sage_device_sdk.ringbuffer import RingBuffer
 
-from teststand_backend.streams.recorder import StreamRecorder
-from teststand_backend.streams.source import StreamSources
-from teststand_backend.streams.store import StreamStore
+from sage_backend.streams.recorder import StreamRecorder
+from sage_backend.streams.source import StreamSources
+from sage_backend.streams.store import StreamStore
 
 from .fake_service import FakeStreamService
 

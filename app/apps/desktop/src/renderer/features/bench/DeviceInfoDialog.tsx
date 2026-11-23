@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import type { DeviceInstance, Hardware } from "@teststand/contracts/devices";
+import type { DeviceInstance, Hardware } from "@sage/contracts/devices";
 import { PencilIcon, RefreshCwIcon, Trash2Icon, UploadIcon } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { useDashboard, useDeviceDefinition } from "../../lib/queries.js";
@@ -51,13 +51,13 @@ function DeviceInfo({ target, instance, onClose, onEdit, onChanged }: InfoProps 
   const status = hardwareRowStatus(deviceStatus, availability);
   const identity = definition?.document.identity;
   const refresh = useMutation({
-    mutationFn: () => window.teststand.devices.refreshDevice({ deviceId: instance.deviceId }),
+    mutationFn: () => window.sage.devices.refreshDevice({ deviceId: instance.deviceId }),
     onMutate: () => setError(undefined),
     onError: (reason) => setError(errorMessage(reason)),
     onSettled: () => void onChanged()
   });
   const remove = useMutation({
-    mutationFn: () => window.teststand.devices.removeDevice({ deviceId: instance.deviceId }),
+    mutationFn: () => window.sage.devices.removeDevice({ deviceId: instance.deviceId }),
     onError: (reason) => setError(errorMessage(reason)),
     onSuccess: async () => { await onChanged(); onClose(); }
   });
@@ -116,13 +116,13 @@ function PartInfo({ target, onClose, onEdit, onChanged }: InfoProps) {
   const [confirm, confirmNode] = useConfirm();
   const [error, setError] = useState<string>();
   const remove = useMutation({
-    mutationFn: () => window.teststand.devices.removeHardware({ hardwareId: hardware.hardwareId }),
+    mutationFn: () => window.sage.devices.removeHardware({ hardwareId: hardware.hardwareId }),
     onError: (reason) => setError(errorMessage(reason)),
     onSuccess: async () => { await onChanged(); onClose(); }
   });
   const exportBundle = useMutation({
-    mutationFn: async () => window.teststand.dialogs.saveBundle(
-      "hardware", hardware.hardwareId, await window.teststand.devices.exportBundle({ hardwareId: hardware.hardwareId })
+    mutationFn: async () => window.sage.dialogs.saveBundle(
+      "hardware", hardware.hardwareId, await window.sage.devices.exportBundle({ hardwareId: hardware.hardwareId })
     ),
     onError: (reason) => setError(errorMessage(reason))
   });
@@ -147,7 +147,7 @@ function PartInfo({ target, onClose, onEdit, onChanged }: InfoProps) {
         <Button className="mr-auto" variant="danger" disabled={remove.isPending} onClick={() => void requestRemove()}>
           <Trash2Icon />删除
         </Button>
-        <Button disabled={exportBundle.isPending} title="导出为 .tshw 文件" onClick={() => exportBundle.mutate()}>
+        <Button disabled={exportBundle.isPending} title="导出为 .sagehw 文件" onClick={() => exportBundle.mutate()}>
           <UploadIcon />导出
         </Button>
         <Button variant="primary" onClick={() => onEdit(target)}><PencilIcon />编辑</Button>

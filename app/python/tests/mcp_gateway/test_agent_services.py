@@ -7,9 +7,9 @@ from typing import Any
 import pytest
 from jsonschema import Draft202012Validator
 
-from teststand_backend.application import DefaultAuthorizer
-from teststand_backend.contracts.validation import ValidationError
-from teststand_backend.mcp_gateway.agent_services import AGENT_TOOLS
+from sage_backend.application import DefaultAuthorizer
+from sage_backend.contracts.validation import ValidationError
+from sage_backend.mcp_gateway.agent_services import AGENT_TOOLS
 
 AGENT = {"actor": "agent", "source": "mcp"}
 TOOLS = {tool.name: tool for tool in AGENT_TOOLS}

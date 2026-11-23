@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import type { TestStandLiveApi } from "@teststand/contracts/desktop";
+import type { SageLiveApi } from "@sage/contracts/desktop";
 import type {
   LiveFrame, RunStreamWindow, StreamPoint, StreamRead, StreamReadQuery, StreamRecord, StreamWindow
-} from "@teststand/contracts/observability";
+} from "@sage/contracts/observability";
 import { everyFrame } from "./frame-timer.js";
 import type { TimeRange } from "./stream-model.js";
 
@@ -14,7 +14,7 @@ import type { TimeRange } from "./stream-model.js";
 export interface StreamSource {
   window?: (keys: string[], t0: number, t1: number, width: number) => Promise<RunStreamWindow>;
   records?: (key: string, query: StreamReadQuery) => Promise<StreamRead>;
-  live?: TestStandLiveApi["live"];
+  live?: SageLiveApi["live"];
 }
 
 /** Pixel columns the points are decimated for: min and max of each, so at most twice as many points. */

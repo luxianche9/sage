@@ -1,6 +1,6 @@
 import type {
   TestPlan, TestPlanIssue, TestRunSnapshot, TestRunSummary, TestStep, TestStepCatalogItem
-} from "@teststand/contracts/testing";
+} from "@sage/contracts/testing";
 import { findStep, moveStep, type TestRegion } from "./plan-model.js";
 
 /** Step types that own a child list (drop targets that nest instead of inserting before). */

@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, render as renderElement, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { TestPlan, TestRunLog } from "@teststand/contracts/testing";
+import type { TestPlan, TestRunLog } from "@sage/contracts/testing";
 import { buildExecutionTrace } from "./run-log-model.js";
 import { RunHeader } from "./RunHeader.js";
 import { useRunLog } from "./useRunLog.js";
@@ -36,7 +36,7 @@ function log(events: number[], latest = events.at(-1) ?? 0): TestRunLog {
 }
 
 function install(readRunLog: unknown, subscribe: unknown = vi.fn(() => () => undefined)) {
-  Object.defineProperty(window, "teststand", {
+  Object.defineProperty(window, "sage", {
     configurable: true,
     value: { testing: { readRunLog, listStepCatalog: vi.fn(async () => []) }, events: { subscribe } }
   });

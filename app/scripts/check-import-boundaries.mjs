@@ -5,7 +5,7 @@ const root = resolve(import.meta.dirname, "..");
 const sourceRoots = [resolve(root, "packages"), resolve(root, "apps", "desktop", "src")];
 const sourceExtensions = new Set([".ts", ".tsx", ".mts", ".cts"]);
 const removedWorkspacePackageNames = new Set(["core", "shared", "storage", "devices", "projects", "wiring", "orchestration", "application", "mcp-gateway"]);
-const importPattern = /(?:from\s*|import\s*\(|require\s*\()\s*["'](@teststand\/[^"']+)["']/g;
+const importPattern = /(?:from\s*|import\s*\(|require\s*\()\s*["'](@sage\/[^"']+)["']/g;
 const violations = [];
 
 async function visit(directory) {

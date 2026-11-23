@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from teststand_device_sdk.testing import check_device, dry_run_config, serve
-from teststand_adapter_jcxd_sds48 import DEVICE, JcxdSds48
-from teststand_adapter_jcxd_sds48.pinout import table
+from sage_device_sdk.testing import check_device, dry_run_config, serve
+from sage_plugin_jcxd_sds48 import DEVICE, JcxdSds48
+from sage_plugin_jcxd_sds48.pinout import table
 
 PUBLIC_TOOLS = {
     "get_device_info", "list_hardware", "get_hardware_info", "self_test", "sds48_stream_read",
@@ -33,9 +33,9 @@ def test_entry_point_and_compliance():
 
 
 def test_public_contract(hh):
-    internal = {name for name, item in hh.tools.items() if item["_meta"]["teststand"]["kind"] == "internal"}
+    internal = {name for name, item in hh.tools.items() if item["_meta"]["sage"]["kind"] == "internal"}
     assert set(hh.tools) - internal == PUBLIC_TOOLS
-    semantics = hh.tools["sds48_set_relay"]["_meta"]["teststand"]["operationSemantics"]
+    semantics = hh.tools["sds48_set_relay"]["_meta"]["sage"]["operationSemantics"]
     assert semantics["retry"] == "never_after_dispatch"
     assert semantics["safetyAction"]["toolName"] == "sds48_safe_state"
     channel = hh.tools["sds48_set_relay"]["inputSchema"]["properties"]["channel"]

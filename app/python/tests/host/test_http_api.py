@@ -10,8 +10,8 @@ import httpx
 import pytest
 import pytest_asyncio
 
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.host.http_api import (
+from sage_backend.contracts.errors import AppError
+from sage_backend.host.http_api import (
     MAX_BODY,
     RENDERER_CONTEXT,
     EventBus,

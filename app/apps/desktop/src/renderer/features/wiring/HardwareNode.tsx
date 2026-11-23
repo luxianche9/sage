@@ -1,6 +1,6 @@
 import { useEffect, useRef, type CSSProperties, type PointerEvent } from "react";
 import { Handle, NodeResizer, useUpdateNodeInternals, type NodeProps } from "@xyflow/react";
-import type { PortPosition, PortSide } from "@teststand/contracts/wiring";
+import type { PortPosition, PortSide } from "@sage/contracts/wiring";
 import {
   MAX_CARD_HEIGHT,
   MAX_CARD_WIDTH,

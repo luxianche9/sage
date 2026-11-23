@@ -4,7 +4,7 @@ export type InvocationReading = { key: string; value: string; tone?: "pass" | "f
 const MAX_READINGS = 8;
 
 /**
- * MCP results arrive as `{ structuredContent }`, testStand envelopes as `{ ok, data }`, or plain
+ * MCP results arrive as `{ structuredContent }`, SAGE envelopes as `{ ok, data }`, or plain
  * objects. Unwrap to the payload object; anything else has no readable scalars.
  */
 export function invocationPayload(output: unknown): Record<string, unknown> | undefined {

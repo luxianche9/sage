@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import type { ControlWidget } from "@teststand/contracts/monitor";
+import type { ControlWidget } from "@sage/contracts/monitor";
 
 /** Drag payload of a control from the component sidebar: the widget kind. */
-export const CONTROL_MIME = "application/x-teststand-control";
+export const CONTROL_MIME = "application/x-sage-control";
 
 type Request = { panelId: string; widget: ControlWidget };
 

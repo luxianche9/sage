@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { ThemeChoice } from "@teststand/contracts/storage";
+import type { ThemeChoice } from "@sage/contracts/storage";
 import { CheckIcon } from "lucide-react";
 import { cn } from "../../ui";
 import { SettingsCard, SettingsHeader } from "./SettingsLayout.js";

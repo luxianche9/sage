@@ -9,16 +9,16 @@ from typing import Any
 import pytest
 from jsonschema import Draft202012Validator, ValidationError
 
-from teststand_backend.application import DefaultAuthorizer, ExecutionCoordinator
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.testing import TestEngine, TestingApplication, TestPlanStore
-from teststand_backend.testing.catalog import step_catalog
-from teststand_backend.testing.compiler import compile_plan
-from teststand_backend.testing.expression import evaluate
-from teststand_backend.testing.journal import RunJournal
-from teststand_backend.testing.models import empty_plan, schema_hash
-from teststand_backend.testing.resolver import DeviceToolResolver
-from teststand_backend.testing.runtime_state import RuntimeStateStore
+from sage_backend.application import DefaultAuthorizer, ExecutionCoordinator
+from sage_backend.contracts.errors import AppError
+from sage_backend.testing import TestEngine, TestingApplication, TestPlanStore
+from sage_backend.testing.catalog import step_catalog
+from sage_backend.testing.compiler import compile_plan
+from sage_backend.testing.expression import evaluate
+from sage_backend.testing.journal import RunJournal
+from sage_backend.testing.models import empty_plan, schema_hash
+from sage_backend.testing.resolver import DeviceToolResolver
+from sage_backend.testing.runtime_state import RuntimeStateStore
 
 HUMAN = {"actor": "human", "source": "desktop"}
 
@@ -206,7 +206,7 @@ async def test_plan_store_revision_operations_and_yaml_tag_rejection(tmp_path: P
     with pytest.raises(AppError) as conflict:
         await store.apply_operations("alpha", 1, [])
     assert conflict.value.category == "conflict"
-    path = tmp_path / ".teststand" / "plans" / "tagged.hhplan.yaml"
+    path = tmp_path / ".sage" / "plans" / "tagged.hhplan.yaml"
     path.write_text("schemaVersion: 1\nid: tagged\nname: !unsafe value\n", encoding="utf-8")
     with pytest.raises(AppError, match="Custom YAML tags"):
         store.load("tagged")
@@ -215,7 +215,7 @@ async def test_plan_store_revision_operations_and_yaml_tag_rejection(tmp_path: P
 async def test_plan_store_preserves_yaml_comments_on_operations_and_save(tmp_path: Path) -> None:
     store = TestPlanStore(Projects(tmp_path), None)
     await store.create({"id": "comments", "name": "Comments"})
-    path = tmp_path / ".teststand" / "plans" / "comments.hhplan.yaml"
+    path = tmp_path / ".sage" / "plans" / "comments.hhplan.yaml"
     path.write_text("# operator note\n" + path.read_text(encoding="utf-8"), encoding="utf-8")
     changed = await store.apply_operations(
         "comments", 1, [{"type": "set_plan_fields", "patch": {"description": "updated"}}]
@@ -246,7 +246,7 @@ async def test_fail_continues_and_cleanup_always_runs(tmp_path: Path) -> None:
     assert completed["verdict"] == "Fail"
     names = [item["name"] for item in engine.runs[snapshot["runId"]].results]
     assert names == ["assert_1", "after", "cleanup"]
-    run_dir = tmp_path / ".teststand" / "runs" / snapshot["runId"]
+    run_dir = tmp_path / ".sage" / "runs" / snapshot["runId"]
     # One file is the run's whole evidence (design doc §9.5).
     files = {path.name.removesuffix("-wal").removesuffix("-shm") for path in run_dir.iterdir()}
     assert files == {"run.sqlite"}
@@ -597,7 +597,7 @@ async def test_start_gate_only_blocks_wiring_tasks_for_plan_hardware(tmp_path: P
 
     tasks.pop()
     run = await finish(engine, await app.start_run(HUMAN, {**start_input, "requestId": "run-ok"}))
-    run_dir = tmp_path / ".teststand" / "runs" / run["runId"]
+    run_dir = tmp_path / ".sage" / "runs" / run["runId"]
     assert RunJournal(run_dir).wiring() == projects.wiring()
 
 
@@ -912,7 +912,7 @@ def test_dispatched_operation_becomes_recovery_required_after_restart(tmp_path: 
 
 def test_runtime_state_migrates_operation_execution_context_columns(tmp_path: Path) -> None:
     projects = Projects(tmp_path)
-    path = tmp_path / ".teststand" / "runtime.sqlite3"
+    path = tmp_path / ".sage" / "runtime.sqlite3"
     path.parent.mkdir(parents=True)
     with sqlite3.connect(path) as database:
         database.execute(
@@ -946,7 +946,7 @@ def test_run_history_indexes_artifacts_filters_and_pages(tmp_path: Path) -> None
     state.initialize()
     for index, verdict in enumerate(("Pass", "Fail", "Pass")):
         run_id = f"run-{index}"
-        journal = RunJournal(tmp_path / ".teststand" / "runs" / run_id)
+        journal = RunJournal(tmp_path / ".sage" / "runs" / run_id)
         journal.create({"id": "plan"})
         journal.finish(
             {
@@ -986,7 +986,7 @@ def test_read_run_log_restores_plan_and_incremental_artifacts(tmp_path: Path) ->
         "resultSequence": 2,
     }
     state.save_run(snapshot)
-    journal = RunJournal(tmp_path / ".teststand" / "runs" / "run")
+    journal = RunJournal(tmp_path / ".sage" / "runs" / "run")
     journal.create(
         {"id": "plan", "name": "Plan", "regions": {"prepare": [], "test": [], "cleanup": []}}
     )
@@ -1019,7 +1019,7 @@ def test_latest_run_is_none_without_an_open_project() -> None:
 
 
 def test_binding_a_tool_fills_only_declared_defaults() -> None:
-    from teststand_backend.testing.store import default_arguments
+    from sage_backend.testing.store import default_arguments
 
     schema = {
         "type": "object",
@@ -1071,7 +1071,7 @@ async def test_binding_keeps_arguments_already_set(tmp_path: Path) -> None:
 
 async def test_insert_step_binds_invoke_tools_nested_in_a_container(tmp_path: Path) -> None:
     """A Feature arrives with its children; every InvokeTool inside is bound, not just the root."""
-    from teststand_backend.testing.validation import validate_plan
+    from sage_backend.testing.validation import validate_plan
 
     store = TestPlanStore(Projects(tmp_path), SchemaResolver())
     await store.create({"id": "nest", "name": "Nest"})
@@ -1101,7 +1101,7 @@ async def test_insert_step_binds_invoke_tools_nested_in_a_container(tmp_path: Pa
 
 
 async def test_step_fields_wrapped_in_settings_are_rejected(tmp_path: Path) -> None:
-    from teststand_backend.testing.validation import validate_plan
+    from sage_backend.testing.validation import validate_plan
 
     plan = plan_with({"id": "d", "type": "Delay", "settings": {"durationMs": 5}})
     assert "step.settings" in [item["code"] for item in validate_plan(plan, None, [])]

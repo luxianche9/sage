@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { TestRunLog } from "@teststand/contracts/testing";
+import type { TestRunLog } from "@sage/contracts/testing";
 import { firstSequenceGap, mergeBySequence, type SyncLabel } from "./run-format.js";
 
 export interface RunLogState {
@@ -53,7 +53,7 @@ export function useRunLog(runId: string | undefined, live: boolean): RunLogState
         for (let page = 0; page < 100; page += 1) {
           const afterEvent = eventSequence.current;
           const afterResult = resultSequence.current;
-          const next = await window.teststand.testing.readRunLog({
+          const next = await window.sage.testing.readRunLog({
             runId, afterEventSequence: afterEvent, afterResultSequence: afterResult, eventLimit: 500, resultLimit: 500
           });
           if (stopped) return;
@@ -104,7 +104,7 @@ export function useRunLog(runId: string | undefined, live: boolean): RunLogState
       if (coalesceTimer !== undefined) return;
       coalesceTimer = window.setTimeout(() => { coalesceTimer = undefined; void synchronize(); }, 100);
     };
-    const stopEvents = window.teststand.events.subscribe("testRun", (payload) => {
+    const stopEvents = window.sage.events.subscribe("testRun", (payload) => {
       const event = payload as { runId?: string; eventSequence?: number; resultSequence?: number };
       if (event.runId !== runId) return;
       const ahead = (event.eventSequence ?? 0) > eventSequence.current

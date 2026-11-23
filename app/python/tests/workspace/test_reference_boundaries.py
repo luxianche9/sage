@@ -9,13 +9,13 @@ from typing import Any
 
 import pytest
 
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.workspace.files import MAX_FILE_BYTES
-from teststand_backend.workspace.references import ReferenceService
+from sage_backend.contracts.errors import AppError
+from sage_backend.workspace.files import MAX_FILE_BYTES
+from sage_backend.workspace.references import ReferenceService
 
 
 def registry_path(root: Path) -> Path:
-    path = root / ".teststand/docs/references/index.json"
+    path = root / ".sage/docs/references/index.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     return path
 
@@ -24,7 +24,7 @@ def register_board(root: Path) -> tuple[ReferenceService, dict[str, Any], Path]:
     (root / "board.md").write_text("# Board\nPin 1 is ground.\n", encoding="utf-8")
     service = ReferenceService(str(root))
     entry = service.register({"referenceId": "board", "title": "Board", "path": "board.md"})
-    saved = root / ".teststand/docs/references" / f"{entry['sha256']}.txt"
+    saved = root / ".sage/docs/references" / f"{entry['sha256']}.txt"
     return service, entry, saved
 
 
@@ -110,7 +110,7 @@ def test_reserved_and_malformed_ids_fail_without_creating_registry(
             {"referenceId": reference_id, "title": "Board", "path": "board.md"}
         )
     assert caught.value.category == "invalid_argument"
-    assert not (tmp_path / ".teststand").exists()
+    assert not (tmp_path / ".sage").exists()
 
 
 def test_register_requires_an_open_project() -> None:
@@ -139,7 +139,7 @@ def test_bad_source_is_rejected_without_publishing_an_entry(tmp_path: Path, kind
         )
     expected = "not_found" if kind in {"missing", "directory"} else "invalid_argument"
     assert caught.value.category == expected
-    assert not (tmp_path / ".teststand/docs/references/index.json").exists()
+    assert not (tmp_path / ".sage/docs/references/index.json").exists()
     if kind == "pdf":
         assert "Export" in caught.value.details["recovery"]
 
@@ -164,9 +164,7 @@ def test_source_links_cannot_escape_or_alias_managed_evidence(
 ) -> None:
     project = tmp_path / "project"
     project.mkdir()
-    target = (
-        tmp_path / "outside" if destination == "outside_project" else project / ".teststand/logs"
-    )
+    target = tmp_path / "outside" if destination == "outside_project" else project / ".sage/logs"
     target.mkdir(parents=True)
     document = target / "board.txt"
     document.write_text("protected evidence", encoding="utf-8")
@@ -177,7 +175,7 @@ def test_source_links_cannot_escape_or_alias_managed_evidence(
         )
     assert caught.value.category == "permission_denied"
     assert document.read_text("utf-8") == "protected evidence"
-    assert not (project / ".teststand/docs/references/index.json").exists()
+    assert not (project / ".sage/docs/references/index.json").exists()
 
 
 def test_stale_expected_hash_cannot_recreate_a_deleted_registration(tmp_path: Path) -> None:

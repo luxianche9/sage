@@ -1,7 +1,7 @@
 import { app, Menu } from "electron";
 import { join } from "node:path";
-import type { OpenCodeConnection } from "@teststand/contracts/operations";
-import type { UserSettings } from "@teststand/contracts/storage";
+import type { OpenCodeConnection } from "@sage/contracts/operations";
+import type { UserSettings } from "@sage/contracts/storage";
 import { createOperationClient } from "../shared/operation-client.js";
 import { DesktopDialogs } from "./dialogs.js";
 import { createMainHandlers, registerDesktopIpc } from "./ipc.js";

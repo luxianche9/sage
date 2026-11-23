@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from teststand_backend.contracts.errors import AppError
+from sage_backend.contracts.errors import AppError
 
 from .test_agent_services import invoke
 

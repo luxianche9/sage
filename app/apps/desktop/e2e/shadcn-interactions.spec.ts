@@ -12,15 +12,15 @@ test.describe.serial("desktop controls preserve real keyboard and pointer intera
   let userData: string;
 
   test.beforeAll(async () => {
-    userData = await mkdtemp(join(tmpdir(), "teststand-shadcn-interactions-"));
+    userData = await mkdtemp(join(tmpdir(), "sage-shadcn-interactions-"));
     const projectRoot = join(userData, "interaction-fixture");
     await mkdir(projectRoot);
-    const executablePath = process.env.TESTSTAND_DESKTOP_EXECUTABLE;
+    const executablePath = process.env.SAGE_DESKTOP_EXECUTABLE;
     const env = Object.fromEntries(Object.entries({
       ...process.env,
-      TESTSTAND_USER_DATA_DIR: userData,
-      TESTSTAND_GATEWAY_PORT: "0",
-      TESTSTAND_AGENT_INTEGRATION_TEST_MODE: "1"
+      SAGE_USER_DATA_DIR: userData,
+      SAGE_GATEWAY_PORT: "0",
+      SAGE_AGENT_INTEGRATION_TEST_MODE: "1"
     }).filter((entry): entry is [string, string] => entry[1] !== undefined));
     delete env.ELECTRON_RUN_AS_NODE;
     application = await electron.launch({
@@ -40,15 +40,15 @@ test.describe.serial("desktop controls preserve real keyboard and pointer intera
     await page.setViewportSize({ width: 1280, height: 800 });
     await expect(page.getByRole("heading", { name: "最近项目" })).toBeVisible();
     await page.evaluate(async (root) => {
-      await window.teststand.projects.initializeFolder({ rootPath: root });
+      await window.sage.projects.initializeFolder({ rootPath: root });
       for (const hardwareId of ["DUT_A", "DUT_B"]) {
-        await window.teststand.devices.saveHardware({ input: {
+        await window.sage.devices.saveHardware({ input: {
           formatVersion: 2, hardwareId, label: hardwareId, kind: "passive",
           ports: [{ portId: "J1", name: "信号接口", pins: [{ pinId: "1", position: 1, label: "信号" }] }]
         } });
       }
-      await window.teststand.projects.saveProject();
-      await window.teststand.projects.leaveProject();
+      await window.sage.projects.saveProject();
+      await window.sage.projects.leaveProject();
     }, projectRoot);
     await reloadAfterLeave(page);
     await page.getByText("interaction-fixture", { exact: true }).first().click();
@@ -142,11 +142,11 @@ test.describe.serial("desktop controls preserve real keyboard and pointer intera
     await expect(target.locator('option[value="DUT_A.J1"]')).toHaveJSProperty("disabled", false);
     await page.keyboard.press("Escape");
     await expect(dialog).toBeHidden();
-    expect(await page.evaluate(async () => (await window.teststand.projects.document())?.file.wiring.connections)).toEqual([]);
+    expect(await page.evaluate(async () => (await window.sage.projects.document())?.file.wiring.connections)).toEqual([]);
   });
 
   test("submits the device editor with Enter", async () => {
-    await page.evaluate(() => window.teststand.devices.saveDevice({ input: {
+    await page.evaluate(() => window.sage.devices.saveDevice({ input: {
       deviceId: "KEYBOARD_DEV", label: "Keyboard device", hardwareId: "KEYBOARD_DEV_CARD", type: "comm_link",
       settings: {}, enabled: true
     } }));
@@ -159,13 +159,13 @@ test.describe.serial("desktop controls preserve real keyboard and pointer intera
     await dialog.getByLabel("名称").fill("Keyboard relay card");
     await dialog.getByLabel("名称").press("Enter");
     await expect(dialog).toBeHidden();
-    const saved = await page.evaluate(async () => (await window.teststand.system.dashboard()).devices
+    const saved = await page.evaluate(async () => (await window.sage.system.dashboard()).devices
       .find((instance) => instance.deviceId === "KEYBOARD_DEV"));
     expect(saved).toMatchObject({ label: "Keyboard relay card", hardwareId: "KEYBOARD_DEV_CARD" });
     await expect(page.getByRole("complementary", { name: "设备列表" }).getByRole("button", { name: /^Keyboard relay card/ }))
       .toContainText("在线");
     // Free the card for the other suites.
-    await page.evaluate(() => window.teststand.devices.removeDevice({ deviceId: "KEYBOARD_DEV" }));
+    await page.evaluate(() => window.sage.devices.removeDevice({ deviceId: "KEYBOARD_DEV" }));
   });
 
   test("discards unsaved hardware editor changes on Escape", async () => {
@@ -192,12 +192,12 @@ test.describe.serial("desktop controls preserve real keyboard and pointer intera
       return window.getSize();
     });
     await application.close();
-    const executablePath = process.env.TESTSTAND_DESKTOP_EXECUTABLE;
+    const executablePath = process.env.SAGE_DESKTOP_EXECUTABLE;
     const env = Object.fromEntries(Object.entries({
       ...process.env,
-      TESTSTAND_USER_DATA_DIR: userData,
-      TESTSTAND_GATEWAY_PORT: "0",
-      TESTSTAND_AGENT_INTEGRATION_TEST_MODE: "1"
+      SAGE_USER_DATA_DIR: userData,
+      SAGE_GATEWAY_PORT: "0",
+      SAGE_AGENT_INTEGRATION_TEST_MODE: "1"
     }).filter((entry): entry is [string, string] => entry[1] !== undefined));
     delete env.ELECTRON_RUN_AS_NODE;
     application = await electron.launch({
@@ -218,6 +218,6 @@ test.describe.serial("desktop controls preserve real keyboard and pointer intera
     await expect(activityBar(page).getByRole("button", { name: "设备管理", exact: true })).toBeVisible();
     await showPanel(page, "设备管理");
     const separator = page.getByRole("separator", { name: "调整侧栏宽度", exact: true });
-    await expect.poll(() => separator.evaluate((element) => parseFloat((element.parentElement as HTMLElement).style.gridTemplateColumns))).toBe(Number(savedWidths["teststand.bench-devices-width"]));
+    await expect.poll(() => separator.evaluate((element) => parseFloat((element.parentElement as HTMLElement).style.gridTemplateColumns))).toBe(Number(savedWidths["sage.bench-devices-width"]));
   });
 });

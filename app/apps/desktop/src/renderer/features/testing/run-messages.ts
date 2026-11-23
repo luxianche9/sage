@@ -1,4 +1,4 @@
-import type { RunMessage, RunProtocolBinding } from "@teststand/contracts/observability";
+import type { RunMessage, RunProtocolBinding } from "@sage/contracts/observability";
 
 /** Why a frame did not decode (protocol decoder reasons, design §6.4). */
 const REASONS: Record<string, string> = {

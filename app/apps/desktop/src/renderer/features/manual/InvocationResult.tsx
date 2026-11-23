@@ -1,4 +1,4 @@
-import type { ManualToolInvocationResult } from "@teststand/contracts/execution";
+import type { ManualToolInvocationResult } from "@sage/contracts/execution";
 import { CircleAlertIcon } from "lucide-react";
 import { formatDuration, Reading, StatusLamp, toneText, cn } from "../../ui";
 import { invocationReadings } from "./invocation-readings.js";

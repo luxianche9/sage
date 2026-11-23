@@ -61,7 +61,7 @@ describe("ManualCheckDialog", () => {
     await waitFor(() => expect(api.testing.answerManualCheck).toHaveBeenCalledWith({
       input: { runId: "run-1", executionId: "exec-1", option: "不通过", note: "没有彩条", operator: "张工" }
     }));
-    expect(localStorage.getItem("teststand.manualCheck.operator")).toBe("张工");
+    expect(localStorage.getItem("sage.manualCheck.operator")).toBe("张工");
   });
 
   it("shows only images the renderer can load by itself", () => {

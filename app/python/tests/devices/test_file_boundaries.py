@@ -9,9 +9,9 @@ from typing import Any
 
 import pytest
 
-from teststand_backend.contracts.validation import ValidationError
-from teststand_backend.devices import DeviceStore
-from teststand_backend.util import json_loads
+from sage_backend.contracts.validation import ValidationError
+from sage_backend.devices import DeviceStore
+from sage_backend.util import json_loads
 
 
 def bundle(entries: dict[str, bytes], compression: int = zipfile.ZIP_DEFLATED) -> bytes:

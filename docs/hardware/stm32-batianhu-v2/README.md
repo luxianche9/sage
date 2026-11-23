@@ -27,9 +27,9 @@ DC 座按两个外部电气触点表示，原理图的两个接地焊脚合并�
 
 ## 文件
 
-- `hardware.json`：testStand v2 接口和引脚。
-- `stm32-batianhu-v2.tshw`：可导入硬件包，包含清单和硬件定义。
-- `model.json`：板载常用资源、供电、MCU 引脚复用、跳帽配置、信号共用限制和来源。testStand v2 原生定义只保存端口/针脚，扩展内容只在本文件中。
+- `hardware.json`：SAGE v2 接口和引脚。
+- `stm32-batianhu-v2.sagehw`：可导入硬件包，包含清单和硬件定义。
+- `model.json`：板载常用资源、供电、MCU 引脚复用、跳帽配置、信号共用限制和来源。SAGE v2 原生定义只保存端口/针脚，扩展内容只在本文件中。
 - `build_model.py`：可重建的来源转录及模型生成器。导出范围由 `COMMON_REFS` 明确限定。
 
 在装有 PyMuPDF、openpyxl 的 Python 环境中重建：

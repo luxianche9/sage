@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ReactFlowProvider, useEdgesState, useNodesState } from "@xyflow/react";
-import type { DeviceInstance, Hardware, ToolCatalogItem } from "@teststand/contracts/devices";
+import type { DeviceInstance, Hardware, ToolCatalogItem } from "@sage/contracts/devices";
 import { HammerIcon, PlusIcon, RefreshCwIcon, TriangleAlertIcon } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { resolvePortRef } from "../../lib/hardware.js";
@@ -108,10 +108,10 @@ function Bench({ panel, view, onView }: {
   const bench = useBenchRun();
   const monitor = useMonitorWorkspace(undefined);
   const library = useResizableWidth({
-    storageKey: "teststand.bench-devices-width", defaultWidth: 300, min: 220, max: 520, direction: "right"
+    storageKey: "sage.bench-devices-width", defaultWidth: 300, min: 220, max: 520, direction: "right"
   });
   const sidebar = useResizableWidth({
-    storageKey: "teststand.wiring-inspector-width", defaultWidth: 300, min: 240, max: 520, direction: "left"
+    storageKey: "sage.wiring-inspector-width", defaultWidth: 300, min: 240, max: 520, direction: "left"
   });
   const [listCreateOpen, setListCreateOpen] = useState(false);
   const [editingConnectionId, setEditingConnectionId] = useState<string>();
@@ -170,13 +170,13 @@ function Bench({ panel, view, onView }: {
     setChecking(true);
     try {
       await Promise.allSettled((dashboard.data?.devices ?? [])
-        .map(({ deviceId }) => window.teststand.devices.refreshDevice({ deviceId })));
+        .map(({ deviceId }) => window.sage.devices.refreshDevice({ deviceId })));
     } finally {
       await refreshAll();
       setChecking(false);
     }
   };
-  /** A device is added from its device package: pick the .tsdev, then confirm in the dialog. */
+  /** A device is added from its device package: pick the .sagedev, then confirm in the dialog. */
   const addDevice = async () => {
     setPickError(undefined);
     try {
@@ -186,7 +186,7 @@ function Bench({ panel, view, onView }: {
       setPickError(errorMessage(error));
     }
   };
-  /** A passive part arrives as a finished `.tshw`: pick it and import, no editor in between. */
+  /** A passive part arrives as a finished `.sagehw`: pick it and import, no editor in between. */
   const importPart = async () => {
     setPickError(undefined);
     try {
@@ -270,7 +270,7 @@ function Bench({ panel, view, onView }: {
               <MenuItem onSelect={() => void addDevice()}>添加设备…</MenuItem>
               <MenuItem onSelect={() => setPartEditor({ open: true })}>添加被测件 / 夹具</MenuItem>
               <MenuSeparator />
-              <MenuItem onSelect={() => void importPart()}>导入被测件 / 夹具（.tshw）…</MenuItem>
+              <MenuItem onSelect={() => void importPart()}>导入被测件 / 夹具（.sagehw）…</MenuItem>
             </MenuContent>
           </Menu>
         </>

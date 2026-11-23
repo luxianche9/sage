@@ -1,16 +1,16 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { TESTSTAND_EVENT_NAMES, type TestStandEventName } from "@teststand/contracts/desktop";
+import { SAGE_EVENT_NAMES, type SageEventName } from "@sage/contracts/desktop";
 import { eventInvalidations, subscribeInvalidations } from "./event-invalidation.js";
 import { queryKeys } from "./query-keys.js";
 
 function fakeEvents() {
   const listeners = new Map<string, () => void>();
   return {
-    subscribe: vi.fn((event: TestStandEventName, listener: () => void) => {
+    subscribe: vi.fn((event: SageEventName, listener: () => void) => {
       listeners.set(event, listener);
       return () => listeners.delete(event);
     }),
-    emit: (event: TestStandEventName) => listeners.get(event)?.(),
+    emit: (event: SageEventName) => listeners.get(event)?.(),
     listeners
   };
 }
@@ -19,7 +19,7 @@ describe("event invalidation table", () => {
   afterEach(() => vi.useRealTimers());
 
   it("maps every event the contracts declare, and nothing else", () => {
-    expect(Object.keys(eventInvalidations).sort()).toEqual([...TESTSTAND_EVENT_NAMES].sort());
+    expect(Object.keys(eventInvalidations).sort()).toEqual([...SAGE_EVENT_NAMES].sort());
   });
 
   it("invalidates at once, coalesces delayed keys and refetches everything after a gap", () => {

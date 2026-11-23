@@ -3,22 +3,22 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "teststand-adapter-pci6208v"
+name = "sage-plugin-pci6208v"
 version = "0.2.0"
-description = "testStand device plugin for the ADLINK PCI-6208V 8-channel analog output card"
+description = "SAGE device plugin for the ADLINK PCI-6208V 8-channel analog output card"
 requires-python = ">=3.11"
-dependencies = ["teststand-device-sdk>=0.2,<0.3"]
+dependencies = ["sage-device-sdk>=0.2,<0.3"]
 
-[project.entry-points."teststand.devices"]
-pci6208v = "teststand_adapter_pci6208v:DEVICE"
+[project.entry-points."sage.devices"]
+pci6208v = "sage_plugin_pci6208v:DEVICE"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-teststand_adapter_pci6208v = ["py.typed"]
+sage_plugin_pci6208v = ["py.typed"]
 
-# Read by plugin/tools/pack.py into the .tsdev manifest.
-[tool.teststand.package]
+# Read by plugin/tools/pack.py into the .sagedev manifest.
+[tool.sage.package]
 vendorDrivers = ["ADLINK PCIS-DASK"]
 requiredFiles = []

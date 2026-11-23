@@ -1,5 +1,5 @@
 {
-  "name": "@teststand/desktop",
+  "name": "@sage/desktop",
   "version": "0.2.0",
   "private": true,
   "type": "module",
@@ -42,7 +42,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.3",
-    "@teststand/contracts": "workspace:*",
+    "@sage/contracts": "workspace:*",
     "@types/react": "^19.1.4",
     "@types/react-dom": "^19.1.5",
     "@vitejs/plugin-react": "^4.4.1",

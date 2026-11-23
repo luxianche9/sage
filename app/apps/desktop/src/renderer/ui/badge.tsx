@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { TestVerdict } from "@teststand/contracts/testing";
+import type { TestVerdict } from "@sage/contracts/testing";
 import { cn, toneSurface, type Tone } from "./cn";
 import { verdictLabels, verdictTone } from "./status";
 

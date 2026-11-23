@@ -1,5 +1,5 @@
-import type { Hardware } from "@teststand/contracts/devices";
-import type { ProjectWiringConnection } from "@teststand/contracts/wiring";
+import type { Hardware } from "@sage/contracts/devices";
+import type { ProjectWiringConnection } from "@sage/contracts/wiring";
 import { ArrowRightIcon, PencilIcon, Trash2Icon, XIcon } from "lucide-react";
 import { pinText, resolvePortRef } from "../../lib/hardware.js";
 import { Button, IconButton, Panel, PanelBody, PanelHeader, cn } from "../../ui/index.js";

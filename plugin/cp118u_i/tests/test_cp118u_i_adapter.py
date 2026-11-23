@@ -4,11 +4,11 @@ import time
 
 import pytest
 
-from teststand_device_sdk.sim import SERIAL_LOOPBACK_ENV
-from teststand_device_sdk.testing import check_device, dry_run_config, receive_until, serve
-from teststand_adapter_cp118u_i import DEVICE, Cp118uI
-from teststand_adapter_cp118u_i.adapter import configured_ports
-from teststand_adapter_cp118u_i.pinout import pinout
+from sage_device_sdk.sim import SERIAL_LOOPBACK_ENV
+from sage_device_sdk.testing import check_device, dry_run_config, receive_until, serve
+from sage_plugin_cp118u_i import DEVICE, Cp118uI
+from sage_plugin_cp118u_i.adapter import configured_ports
+from sage_plugin_cp118u_i.pinout import pinout
 
 
 PUBLIC_TOOLS = {
@@ -51,9 +51,9 @@ def test_entry_point_and_compliance():
 
 
 def test_public_contract(hh):
-    internal = {name for name, item in hh.tools.items() if item["_meta"]["teststand"]["kind"] == "internal"}
+    internal = {name for name, item in hh.tools.items() if item["_meta"]["sage"]["kind"] == "internal"}
     assert set(hh.tools) - internal == PUBLIC_TOOLS
-    semantics = {name: hh.tools[name]["_meta"]["teststand"]["operationSemantics"] for name in PUBLIC_TOOLS
+    semantics = {name: hh.tools[name]["_meta"]["sage"]["operationSemantics"] for name in PUBLIC_TOOLS
                  if name.startswith("cp118u_") and name.removeprefix("cp118u_") not in BUILTIN}
     assert semantics["cp118u_configure_port"]["stateEffects"] == ["serial_port_configured"]
     for name in ("cp118u_write_text", "cp118u_write_hex", "cp118u_read_rx", "cp118u_clear_rx", "cp118u_flush"):

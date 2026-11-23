@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { TestPlan, TestResult, TestRunEvent } from "@teststand/contracts/testing";
+import type { TestPlan, TestResult, TestRunEvent } from "@sage/contracts/testing";
 import { flowChildren, resultEvidence, resultSummary } from "./run-format.js";
 import { buildExecutionTrace } from "./run-log-model.js";
 

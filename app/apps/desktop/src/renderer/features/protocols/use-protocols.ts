@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ProtocolBinding } from "@teststand/contracts/projects";
+import type { ProtocolBinding } from "@sage/contracts/projects";
 import { queryKeys } from "../../lib/query-keys.js";
 
 /** One change of `protocols.update`, applied in order by the backend. */
@@ -16,7 +16,7 @@ export type ProtocolOperation =
  */
 export function useProtocolBindings() {
   const client = useQueryClient();
-  const query = useQuery({ queryKey: queryKeys.protocols, queryFn: () => window.teststand.protocols.list() });
+  const query = useQuery({ queryKey: queryKeys.protocols, queryFn: () => window.sage.protocols.list() });
   const seen = useRef<string>(undefined);
   const signature = query.data ? JSON.stringify(query.data) : undefined;
   useEffect(() => {
@@ -33,7 +33,7 @@ export function useProtocolBindings() {
 export function useUpdateProtocols() {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: (operations: ProtocolOperation[]) => window.teststand.protocols.update({ input: { operations } }),
+    mutationFn: (operations: ProtocolOperation[]) => window.sage.protocols.update({ input: { operations } }),
     onSuccess: async (bindings) => {
       client.setQueryData(queryKeys.protocols, bindings);
       await Promise.all([

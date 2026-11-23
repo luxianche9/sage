@@ -1,6 +1,6 @@
 # PCI-1710L 设备插件
 
-包 `teststand_adapter_pci1710l`，设备类型 `pci1710l`（入口点组 `teststand.devices`），由 testStand 后端作为插件加载。
+包 `sage_plugin_pci1710l`，设备类型 `pci1710l`（入口点组 `sage.devices`），由 SAGE 后端作为插件加载。
 
 一个插件实例只管理一个硬件。公共工具（`get_device_info`、`list_hardware`、`get_hardware_info`、`<prefix>_stream_read`）、信封格式、`/device` 声明（身份、说明、引脚、流、能力）和流读取由 SDK 提供，见 `plugin/README.md`。超时或错误不表示物理动作没有发生：保留原错误，查询当前状态并取证后再决定下一步。
 
@@ -23,7 +23,7 @@
 
 ## 构建与测试
 
-适配器基于 `teststand-device-sdk`（`sdk`）。本地测试不访问硬件：
+适配器基于 `sage-device-sdk`（`sdk`）。本地测试不访问硬件：
 
 ```powershell
 cd devices

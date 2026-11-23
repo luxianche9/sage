@@ -14,4 +14,4 @@ const distinct = new Set(Object.values(versions));
 if (distinct.size !== 1 || distinct.has(undefined)) {
   throw new Error(`Versions differ:\n${Object.entries(versions).map(([file, value]) => `  ${file}: ${value}`).join("\n")}`);
 }
-console.log(`testStand version ${[...distinct][0]} is consistent.`);
+console.log(`SAGE version ${[...distinct][0]} is consistent.`);

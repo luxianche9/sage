@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.workspace.references import ReferenceService
+from sage_backend.contracts.errors import AppError
+from sage_backend.workspace.references import ReferenceService
 
 
 def test_bundled_docs_are_available_without_project_and_paginate() -> None:
@@ -51,7 +51,7 @@ def test_register_copies_evidence_requires_current_hash_and_paginates_long_lines
 
 
 @pytest.mark.parametrize(
-    "path", ["../outside.txt", "C:/Windows/system.ini", ".teststand/logs/x.txt", "x.pdf"]
+    "path", ["../outside.txt", "C:/Windows/system.ini", ".sage/logs/x.txt", "x.pdf"]
 )
 def test_reference_import_is_confined_to_supported_user_files(tmp_path: Path, path: str) -> None:
     with pytest.raises(AppError):

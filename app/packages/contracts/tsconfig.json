@@ -1,5 +1,5 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "noEmit": true, "customConditions": ["teststand-source"] },
+  "compilerOptions": { "noEmit": true, "customConditions": ["sage-source"] },
   "include": ["src", "vitest.config.ts"]
 }

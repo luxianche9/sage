@@ -1,13 +1,13 @@
-"""Build ``.tsdev`` device packages from the adapters in this workspace.
+"""Build ``.sagedev`` device packages from the adapters in this workspace.
 
     python plugin/tools/pack.py comm_link [other ...] | --all  [--out DIR] [--skip-tests]
 
 For each adapter: run its tests and the dry-run ``--check`` compliance suite (``test.ps1``),
-make sure the files listed under ``[tool.teststand.package] requiredFiles`` exist (e.g. vendor
+make sure the files listed under ``[tool.sage.package] requiredFiles`` exist (e.g. vendor
 DLLs copied into ``bin/``), build its wheel, add wheels for any third-party
-dependencies (CPython 3.11, 64-bit Windows), and write ``<out>/<type>-<version>.tsdev``:
-``package.json`` (the manifest testStand shows before installing) plus ``wheels/*.whl``.
-Install a package on the testStand Devices page; testStand itself is not rebuilt.
+dependencies (CPython 3.11, 64-bit Windows), and write ``<out>/<type>-<version>.sagedev``:
+``package.json`` (the manifest SAGE shows before installing) plus ``wheels/*.whl``.
+Install a package on the SAGE Devices page; SAGE itself is not rebuilt.
 """
 
 from __future__ import annotations
@@ -26,8 +26,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent  # plugin/tools
 ADAPTERS = HERE.parent  # plugin/: one folder per plugin
-SDK = "teststand-device-sdk"
-GROUP = "teststand.devices"
+SDK = "sage-device-sdk"
+GROUP = "sage.devices"
 
 
 def run(command: list[str], **options: object) -> subprocess.CompletedProcess[str]:
@@ -45,7 +45,7 @@ def project(adapter: str) -> dict:
 def describe(device_type: str) -> dict:
     """Manufacturer, model, isolation and description, read from the adapter class itself."""
     script = (
-        "import json,sys; from teststand_device_sdk import load_device; d=load_device(sys.argv[1]); "
+        "import json,sys; from sage_device_sdk import load_device; d=load_device(sys.argv[1]); "
         "print(json.dumps({'manufacturer': d.manufacturer, 'model': d.model, "
         "'isolation': d.isolation, 'description': d.description}))"
     )
@@ -61,7 +61,7 @@ def sdk_range(meta: dict) -> str:
     for item in meta["project"].get("dependencies", []):
         if item.lower().startswith(SDK):
             return item[len(SDK):].strip() or ">=0"
-    sys.exit("The adapter must depend on teststand-device-sdk")
+    sys.exit("The adapter must depend on sage-device-sdk")
 
 
 def third_party_wheels(requirements: list[str], target: Path) -> None:
@@ -71,8 +71,8 @@ def third_party_wheels(requirements: list[str], target: Path) -> None:
     run(["uv", "run", "--with", "pip", "python", "-m", "pip", "download", "--only-binary=:all:",
          "--python-version", "3.11", "--platform", "win_amd64", "--implementation", "cp",
          "--dest", str(target), *requirements])
-    for wheel in target.glob("teststand_device_sdk-*.whl"):
-        wheel.unlink()  # testStand provides the SDK
+    for wheel in target.glob("sage_device_sdk-*.whl"):
+        wheel.unlink()  # SAGE provides the SDK
 
 
 def pack(adapter: str, out: Path, skip_tests: bool) -> Path:
@@ -81,8 +81,8 @@ def pack(adapter: str, out: Path, skip_tests: bool) -> Path:
     if len(points) != 1:
         sys.exit(f"{adapter}: declare exactly one [project.entry-points.\"{GROUP}\"] entry")
     [device_type] = points
-    options = meta.get("tool", {}).get("teststand", {}).get("package", {})
-    package_dir = ADAPTERS / adapter / "src" / f"teststand_adapter_{adapter}"
+    options = meta.get("tool", {}).get("sage", {}).get("package", {})
+    package_dir = ADAPTERS / adapter / "src" / f"sage_plugin_{adapter}"
     missing = [name for name in options.get("requiredFiles", []) if not (package_dir / name).is_file()]
     if missing:
         sys.exit(f"{adapter}: missing {', '.join(missing)} (copy them from the vendor delivery first)")
@@ -103,7 +103,7 @@ def pack(adapter: str, out: Path, skip_tests: bool) -> Path:
         with zipfile.ZipFile(wheels[0]) as built:
             names = built.namelist()
         for name in options.get("requiredFiles", []):
-            if f"teststand_adapter_{adapter}/{name}" not in names:
+            if f"sage_plugin_{adapter}/{name}" not in names:
                 sys.exit(f"{adapter}: {name} is not in the wheel; add it to package data")
         third_party_wheels(dependencies(meta), staging)
         files = {wheel.name: hashlib.sha256(wheel.read_bytes()).hexdigest() for wheel in sorted(staging.glob("*.whl"))}
@@ -120,7 +120,7 @@ def pack(adapter: str, out: Path, skip_tests: bool) -> Path:
             "builtAt": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         }
         out.mkdir(parents=True, exist_ok=True)
-        target = out / f"{device_type}-{manifest['version']}.tsdev"
+        target = out / f"{device_type}-{manifest['version']}.sagedev"
         with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as archive:
             archive.writestr("package.json", json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
             for name in files:

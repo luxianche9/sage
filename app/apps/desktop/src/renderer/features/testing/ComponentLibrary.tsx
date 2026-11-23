@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { GripVerticalIcon } from "lucide-react";
-import type { Hardware } from "@teststand/contracts/devices";
-import type { TestStepCatalogItem } from "@teststand/contracts/testing";
+import type { Hardware } from "@sage/contracts/devices";
+import type { TestStepCatalogItem } from "@sage/contracts/testing";
 import { cn, EmptyState, Section, StatusLamp } from "../../ui";
 import { useDashboard, useDeviceCatalog, useTestStepCatalog } from "../../lib/queries.js";
 import { categoryOrder, groupCatalog } from "./plan-helpers.js";
 
-type Dashboard = Awaited<ReturnType<typeof window.teststand.system.dashboard>>;
+type Dashboard = Awaited<ReturnType<typeof window.sage.system.dashboard>>;
 
 export type DragDescriptor =
   | { kind: "step"; stepId: string }

@@ -4,19 +4,19 @@ import base64
 
 import pytest
 
-from teststand_device_sdk import CONTRACT_REVISION, DeviceHost, __version__
-from teststand_device_sdk.testing import check_device, dry_run_config, serve
+from sage_device_sdk import CONTRACT_REVISION, DeviceHost, __version__
+from sage_device_sdk.testing import check_device, dry_run_config, serve
 
 from sdk_demo import PNG, DemoDevice
 
 DEVICE_TOOLS = {"demo_set_level", "demo_read_level", "demo_configure", "demo_write_text", "demo_capture",
                 "demo_explode", "demo_safe_state"}
-BUILTINS = {"get_device_info", "list_hardware", "get_hardware_info", "teststand_prepare_shutdown",
+BUILTINS = {"get_device_info", "list_hardware", "get_hardware_info", "sage_prepare_shutdown",
             "demo_stream_read", "demo_blob_read", "demo_transact"}
 
 
 def meta(tool: dict) -> dict:
-    return tool["_meta"]["teststand"]
+    return tool["_meta"]["sage"]
 
 
 def test_compliance_suite_passes():
@@ -46,7 +46,7 @@ def test_device_tool_schema_and_semantics(hh):
     assert hh.tools["demo_read_level"]["annotations"]["readOnlyHint"] is True
     assert meta(hh.tools["demo_read_level"])["operationSemantics"]["retry"] == "safe"
     assert hh.tools["demo_configure"]["inputSchema"]["properties"]["mode"]["enum"] == ["fast", "slow"]
-    assert meta(hh.tools["teststand_prepare_shutdown"]) == {"kind": "internal"}
+    assert meta(hh.tools["sage_prepare_shutdown"]) == {"kind": "internal"}
     assert meta(hh.tools["get_device_info"])["kind"] == "management"
     assert meta(hh.tools["demo_transact"])["operationSemantics"]["kind"] == "actuate"
     assert meta(hh.tools["demo_stream_read"])["operationSemantics"]["kind"] == "read"
@@ -138,7 +138,7 @@ def test_blob_capture_and_read(hh):
 def test_prepare_shutdown_safes_and_drains(hh):
     hh.call("set_level", channel=1, level=True)
     before = hh.host.device.safe_calls
-    body = hh.call("teststand_prepare_shutdown")
+    body = hh.call("sage_prepare_shutdown")
     assert body["ok"] and body["data"] == [{"hardwareId": "DEMO1_1", "safeResult": {"safe": True}}]
     assert hh.host.device.safe_calls == before + 1
     drained = hh.call("read_level", channel=0)
@@ -160,7 +160,7 @@ def test_model_mismatch_is_rejected():
 
 
 def test_unknown_safety_action_is_rejected(config):
-    from teststand_device_sdk import tool
+    from sage_device_sdk import tool
 
     class Broken(DemoDevice):
         @tool(kind="actuate", safety_action="nope", description="x" * 90)
@@ -172,7 +172,7 @@ def test_unknown_safety_action_is_rejected(config):
 
 
 def test_compliance_flags_unvalidated_ranges_and_streams(config):
-    from teststand_device_sdk import ScalarStream, tool
+    from sage_device_sdk import ScalarStream, tool
 
     class Sloppy(DemoDevice):
         def __init__(self, config):
@@ -192,7 +192,7 @@ def test_compliance_flags_unvalidated_ranges_and_streams(config):
 def test_cli_check_runs_compliance_in_dry_run(capsys):
     import json
 
-    from teststand_device_sdk.__main__ import main
+    from sage_device_sdk.__main__ import main
 
     assert main(["--adapter", "sdk_demo:DemoDevice", "--check", "--log-level", "warning"]) == 0
     report = json.loads(capsys.readouterr().out)
@@ -201,7 +201,7 @@ def test_cli_check_runs_compliance_in_dry_run(capsys):
 
 class SelfTestingDevice(DemoDevice):
     def self_test(self) -> list:
-        from teststand_device_sdk import check_equal, check_range
+        from sage_device_sdk import check_equal, check_range
 
         return [check_equal("通道数", 4, 4), check_range("电平", self.level_value(), 0, 0.5, "V")]
 

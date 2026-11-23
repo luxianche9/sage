@@ -1,4 +1,4 @@
-import type { TestPlan, TestStep, TestStepCatalogItem } from "@teststand/contracts/testing";
+import type { TestPlan, TestStep, TestStepCatalogItem } from "@sage/contracts/testing";
 
 export type TestRegion = "prepare" | "test" | "cleanup";
 type Branch = "children" | "elseChildren";

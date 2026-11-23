@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import type { UseQueryResult } from "@tanstack/react-query";
-import type { DashboardSnapshot } from "@teststand/contracts/operations";
-import type { ThemeChoice } from "@teststand/contracts/storage";
+import type { DashboardSnapshot } from "@sage/contracts/operations";
+import type { ThemeChoice } from "@sage/contracts/storage";
 import { ArrowLeftIcon, BotIcon, PaletteIcon, PlugZapIcon } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { Button, Spinner, cn } from "../../ui";

@@ -1,4 +1,4 @@
-import type { ErrorCategory } from "@teststand/contracts/errors";
+import type { ErrorCategory } from "@sage/contracts/errors";
 
 const ERROR_CATEGORY_MESSAGES: Readonly<Partial<Record<ErrorCategory, string>>> = {
   permission_denied: "没有权限执行此操作",

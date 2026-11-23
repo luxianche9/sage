@@ -3,10 +3,10 @@ from typing import Any
 
 import pytest
 
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.projects import ProjectService, project_display_name, project_path
-from teststand_backend.storage import SettingsStore
-from teststand_backend.util import json_dumps, json_loads
+from sage_backend.contracts.errors import AppError
+from sage_backend.projects import ProjectService, project_display_name, project_path
+from sage_backend.storage import SettingsStore
+from sage_backend.util import json_dumps, json_loads
 
 PREFIX = "packages/projects/src/project-service.test.ts::ProjectService folder projects::"
 CONNECTION = {
@@ -220,7 +220,7 @@ async def test_project_filesystem_errors_are_reported(tmp_path: Path) -> None:
         }
     )
     assert (await service.list_recent())[0]["status"] == "missing"
-    manifest_directory = tmp_path / ".teststand/project.json"
+    manifest_directory = tmp_path / ".sage/project.json"
     manifest_directory.mkdir(parents=True)
     selection = await service.inspect_folder(tmp_path)
     assert selection["state"] == "invalid"
@@ -233,7 +233,7 @@ async def test_project_filesystem_errors_are_reported(tmp_path: Path) -> None:
 @pytest.mark.asyncio
 async def test_project_directory_occupied_by_file_is_rejected(tmp_path: Path) -> None:
     service, _ = await fixture(tmp_path)
-    (tmp_path / ".teststand").write_text("a file")
+    (tmp_path / ".sage").write_text("a file")
     assert (await service.inspect_folder(tmp_path))["state"] == "uninitialized"
     with pytest.raises(OSError):
         await service.initialize_folder(tmp_path)

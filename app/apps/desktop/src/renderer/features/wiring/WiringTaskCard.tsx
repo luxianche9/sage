@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import type { Hardware } from "@teststand/contracts/devices";
-import type { WiringTask, WiringTaskChange } from "@teststand/contracts/wiring";
+import type { Hardware } from "@sage/contracts/devices";
+import type { WiringTask, WiringTaskChange } from "@sage/contracts/wiring";
 import { ArrowRightIcon, CableIcon, CheckIcon, UnplugIcon, XIcon } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { pinText, resolvePortRef } from "../../lib/hardware.js";
@@ -19,7 +19,7 @@ export function WiringTaskCard({ task, hardware, onChanged, className }: {
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState("");
   const complete = useMutation({
-    mutationFn: (outcome: "confirmed" | "rejected") => window.teststand.wiring.completeTask({
+    mutationFn: (outcome: "confirmed" | "rejected") => window.sage.wiring.completeTask({
       taskId: task.wiringTaskId,
       outcome,
       ...(outcome === "rejected" && reason.trim() ? { message: reason.trim() } : {})

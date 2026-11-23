@@ -4,10 +4,10 @@ import time
 
 import pytest
 
-from teststand_device_sdk.testing import check_device, dry_run_config, receive_until, serve
-from teststand_adapter_jcxd_mads3210 import DEVICE, JcxdMads3210
-from teststand_adapter_jcxd_mads3210.adapter import parse_channels
-from teststand_adapter_jcxd_mads3210.pinout import CONNECTOR0, CONNECTOR1, signals
+from sage_device_sdk.testing import check_device, dry_run_config, receive_until, serve
+from sage_plugin_jcxd_mads3210 import DEVICE, JcxdMads3210
+from sage_plugin_jcxd_mads3210.adapter import parse_channels
+from sage_plugin_jcxd_mads3210.pinout import CONNECTOR0, CONNECTOR1, signals
 
 SETTINGS = {"aiChannels": "0-7", "aiRateHz": 1000}
 PUBLIC_TOOLS = {
@@ -40,10 +40,10 @@ def test_entry_point_and_compliance():
 
 
 def test_public_contract(hh):
-    internal = {name for name, item in hh.tools.items() if item["_meta"]["teststand"]["kind"] == "internal"}
+    internal = {name for name, item in hh.tools.items() if item["_meta"]["sage"]["kind"] == "internal"}
     assert set(hh.tools) - internal == PUBLIC_TOOLS
-    assert hh.tools["mads_read_ai"]["_meta"]["teststand"]["operationSemantics"]["evidenceType"] == "measurement"
-    semantics = hh.tools["mads_write_ao"]["_meta"]["teststand"]["operationSemantics"]
+    assert hh.tools["mads_read_ai"]["_meta"]["sage"]["operationSemantics"]["evidenceType"] == "measurement"
+    semantics = hh.tools["mads_write_ao"]["_meta"]["sage"]["operationSemantics"]
     assert semantics["safetyAction"]["toolName"] == "mads_safe_state"
 
 

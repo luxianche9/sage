@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
-import type { Hardware } from "@teststand/contracts/devices";
-import type { WiringChange } from "@teststand/contracts/wiring";
+import type { Hardware } from "@sage/contracts/devices";
+import type { WiringChange } from "@sage/contracts/wiring";
 import { BotIcon, UserIcon } from "lucide-react";
 import { portLabel } from "../../lib/hardware.js";
 import { useWiringChanges } from "../../lib/queries.js";

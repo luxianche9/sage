@@ -1,5 +1,5 @@
 import { useOpenCodeSession } from "@assistant-ui/react-opencode";
-import type { OpenCodeRuntimeStatus } from "@teststand/contracts/agents";
+import type { OpenCodeRuntimeStatus } from "@sage/contracts/agents";
 import { PanelLeftIcon, XIcon } from "lucide-react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import type { ReactNode } from "react";
@@ -74,7 +74,7 @@ export function AgentHeader({ drawerEnabled, drawerTrigger, newThreadTrigger, st
           ? <SelectedSessionTitle />
           : (
             <span className="block truncate font-mono text-2xs text-fg-3">
-              {status?.workspace ?? "testStand Agent"}
+              {status?.workspace ?? "SAGE Agent"}
             </span>
           )}
       </div>

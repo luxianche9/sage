@@ -36,7 +36,7 @@ describe("layout tools", () => {
     expect(readPresets().map((item) => [item.name, item.monitor.panels[0]?.frame?.x])).toEqual([["台架", 3]]);
     expect(deletePreset("台架")).toEqual([]);
     expect(importText(exportText(monitor))).toEqual(monitor);
-    expect(importText("{}")).toBe("不是 testStand 运行监控布局文件");
+    expect(importText("{}")).toBe("不是 SAGE 运行监控布局文件");
     expect(importText("nope")).toMatch(/^无法读取布局文件/);
   });
 });

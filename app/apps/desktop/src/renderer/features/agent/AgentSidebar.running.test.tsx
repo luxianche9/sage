@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { TestStandApi } from "@teststand/contracts/desktop";
+import type { SageApi } from "@sage/contracts/desktop";
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -94,8 +94,8 @@ function installApi() {
         api: "chat", apiKeyConfigured: true }))
     },
     events: { subscribe: vi.fn(() => () => undefined) }
-  } as unknown as TestStandApi;
-  Object.defineProperty(window, "teststand", { configurable: true, value: api });
+  } as unknown as SageApi;
+  Object.defineProperty(window, "sage", { configurable: true, value: api });
 }
 
 function renderSidebar() {

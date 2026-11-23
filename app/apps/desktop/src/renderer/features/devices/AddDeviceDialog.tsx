@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import type { DeviceAdded, DevicePackageInspection } from "@teststand/contracts/devices";
+import type { DeviceAdded, DevicePackageInspection } from "@sage/contracts/devices";
 import { RotateCwIcon, ShieldAlertIcon } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { Button, Dialog, DialogBody, DialogContent, DialogFooter, Input } from "../../ui";
@@ -9,18 +9,18 @@ import { EditorField } from "./editors/EditorField.js";
 const size = (bytes: number) =>
   bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.ceil(bytes / 1024)} KB`;
 
-/** A `.tsdev` file the user picked, with what adding it would install. */
+/** A `.sagedev` file the user picked, with what adding it would install. */
 export type StagedPackage = { data: Uint8Array; report: DevicePackageInspection };
 
-/** Picks a `.tsdev` file and reads its manifest; undefined when the user cancels. */
+/** Picks a `.sagedev` file and reads its manifest; undefined when the user cancels. */
 export async function pickDevicePackage(): Promise<StagedPackage | undefined> {
-  const data = await window.teststand.dialogs.openDevicePackage();
+  const data = await window.sage.dialogs.openDevicePackage();
   if (!data) return undefined;
-  return { data, report: await window.teststand.devices.inspectPackage({ data }) };
+  return { data, report: await window.sage.devices.inspectPackage({ data }) };
 }
 
 /**
- * 添加设备: a device is added from its device package (`.tsdev`). The package's code runs in the
+ * 添加设备: a device is added from its device package (`.sagedev`). The package's code runs in the
  * backend, so what it is and what it contains is shown first; the user names the device and adds
  * it. The device is connected to the real hardware straight away.
  */
@@ -50,7 +50,7 @@ function AddDevice({ staged, onClose, onAdded }: {
   const [label, setLabel] = useState(manifest.model);
   const [added, setAdded] = useState<DeviceAdded>();
   const add = useMutation({
-    mutationFn: () => window.teststand.devices.addDevice({ data: staged.data, label }),
+    mutationFn: () => window.sage.devices.addDevice({ data: staged.data, label }),
     onSuccess: async (result) => {
       await onAdded();
       if (result.restartRequired) setAdded(result);
@@ -63,13 +63,13 @@ function AddDevice({ staged, onClose, onAdded }: {
       <>
         <DialogBody>
           <p role="status" className="text-sm text-fg-2">
-            已添加 {added.device.label}。它使用的驱动比已加载的版本新，重启 testStand 后生效。
+            已添加 {added.device.label}。它使用的驱动比已加载的版本新，重启 SAGE 后生效。
           </p>
         </DialogBody>
         <DialogFooter>
           <Button onClick={onClose}>稍后</Button>
-          <Button variant="primary" onClick={() => void window.teststand.window.relaunch()}>
-            <RotateCwIcon />重启 testStand
+          <Button variant="primary" onClick={() => void window.sage.window.relaunch()}>
+            <RotateCwIcon />重启 SAGE
           </Button>
         </DialogFooter>
       </>

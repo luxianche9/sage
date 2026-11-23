@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { TestPlan } from "@teststand/contracts/testing";
+import type { TestPlan } from "@sage/contracts/testing";
 import { clonePlan, createStep, findStep, moveStep, planAnchors, removeStep } from "./plan-model.js";
 
 function plan(): TestPlan {

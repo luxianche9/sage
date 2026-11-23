@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { Hardware } from "@teststand/contracts/devices";
-import type { TestStandApi } from "@teststand/contracts/desktop";
-import type { WiringChange, WiringTask } from "@teststand/contracts/wiring";
+import type { Hardware } from "@sage/contracts/devices";
+import type { SageApi } from "@sage/contracts/desktop";
+import type { WiringChange, WiringTask } from "@sage/contracts/wiring";
 import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -36,9 +36,9 @@ const fromAgent: WiringChange = {
 function setup() {
   const completeTask = vi.fn(async () => ({ ...baseTask, status: "confirmed" as const }));
   const listChanges = vi.fn(async (): Promise<WiringChange[]> => []);
-  Object.defineProperty(window, "teststand", { configurable: true, value: {
+  Object.defineProperty(window, "sage", { configurable: true, value: {
     wiring: { completeTask, listChanges }
-  } as unknown as TestStandApi });
+  } as unknown as SageApi });
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   const onChanged = vi.fn(async () => undefined);
   const card = (task = baseTask) => (

@@ -1,6 +1,6 @@
 # JCXD-RS-CPCI-8MI 设备插件
 
-包 `teststand_adapter_jcxd_rsx8`，设备类型 `jcxd_rsx8`（入口点组 `teststand.devices`），由 testStand 后端作为插件加载。`isolation = "subprocess"`：读线程和串口句柄在独立子进程里，崩溃只结束子进程；后端退出时子进程先 `safe_state`（丢弃待发数据）再退出。台架上须安装厂商的 RSX8_JC **虚拟串口驱动**（DriverSetup → ports；设备管理器“多串口适配器 → RSX8-JC-8MI”和 8 个“RSX8_JC Port (COMn)”）。厂商的 `RSX8_JC.dll` 只在另一种（JC）驱动下可用，本机装的是虚拟串口驱动，插件因此走 Windows 串口 API（SDK `SerialPort`），不带 DLL。资料：JCXD-RS-X 用户手册 硬件 V1.0（§3.3.2 异步 8MI 引脚）、软件 V1.0（§1 虚拟串口属性、附录 C 通道对应）。
+包 `sage_plugin_jcxd_rsx8`，设备类型 `jcxd_rsx8`（入口点组 `sage.devices`），由 SAGE 后端作为插件加载。`isolation = "subprocess"`：读线程和串口句柄在独立子进程里，崩溃只结束子进程；后端退出时子进程先 `safe_state`（丢弃待发数据）再退出。台架上须安装厂商的 RSX8_JC **虚拟串口驱动**（DriverSetup → ports；设备管理器“多串口适配器 → RSX8-JC-8MI”和 8 个“RSX8_JC Port (COMn)”）。厂商的 `RSX8_JC.dll` 只在另一种（JC）驱动下可用，本机装的是虚拟串口驱动，插件因此走 Windows 串口 API（SDK `SerialPort`），不带 DLL。资料：JCXD-RS-X 用户手册 硬件 V1.0（§3.3.2 异步 8MI 引脚）、软件 V1.0（§1 虚拟串口属性、附录 C 通道对应）。
 
 一个插件实例只管理一个硬件。公共工具（`get_device_info`、`list_hardware`、`get_hardware_info`、`rsx8_stream_read`）、信封格式、`/device` 声明（身份、说明、引脚、流、能力）和流读取由 SDK 提供，见 `plugin/README.md`。插件只报告测量值和状态，不判定通过 / 失败。超时或错误不表示物理动作没有发生：保留原错误，查询当前状态并取证后再决定下一步。
 
@@ -39,11 +39,11 @@
 
 ## 构建与测试
 
-适配器基于 `teststand-device-sdk`（`sdk`）。本地测试不访问硬件：
+适配器基于 `sage-device-sdk`（`sdk`）。本地测试不访问硬件：
 
 ```powershell
 cd devices
 .\test.ps1 -Target jcxd_rsx8                 # pytest + 模拟器上的合规检查
 ```
 
-交付给 testStand 用设备包：`python plugin/tools/pack.py jcxd_rsx8` 生成 `plugin/dist/jcxd_rsx8-<版本>.tsdev`；在 testStand 测试台架点“+ → 添加设备…”选这个文件，先以模拟模式添加验证，再编辑为实物做空载验收。
+交付给 SAGE 用设备包：`python plugin/tools/pack.py jcxd_rsx8` 生成 `plugin/dist/jcxd_rsx8-<版本>.sagedev`；在 SAGE 测试台架点“+ → 添加设备…”选这个文件，先以模拟模式添加验证，再编辑为实物做空载验收。

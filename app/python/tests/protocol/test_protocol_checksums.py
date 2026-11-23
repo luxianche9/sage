@@ -6,8 +6,8 @@ import zlib
 
 import pytest
 
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.protocol import checksums
+from sage_backend.contracts.errors import AppError
+from sage_backend.protocol import checksums
 
 # CRC RevEng catalogue "check" values (result over ASCII "123456789"), design §6.3.
 REVENG_CHECK = {

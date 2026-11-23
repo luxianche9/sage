@@ -214,7 +214,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Add a device from its ``.tsdev`` package. The package is installed when needed, the
+         * Add a device from its ``.sagedev`` package. The package is installed when needed, the
          *     device gets generated ids and is connected at once.
          */
         post: operations["devices.addDevice"];
@@ -234,8 +234,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Add a device from a ``.tsdev`` device package on this computer (absolute path). The
-         *     package's driver code runs inside testStand, so the operator confirms first.
+         * Add a device from a ``.sagedev`` device package on this computer (absolute path). The
+         *     package's driver code runs inside SAGE, so the operator confirms first.
          */
         post: operations["devices.addDeviceFromFile"];
         delete?: never;
@@ -356,7 +356,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * What adding a device from a ``.tsdev`` would install: manifest, files, SHA-256 and any
+         * What adding a device from a ``.sagedev`` would install: manifest, files, SHA-256 and any
          *     problems. Writes nothing.
          */
         post: operations["devices.inspectPackage"];
@@ -531,7 +531,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Create or update a device's settings; the operator confirms in testStand. */
+        /** Create or update a device's settings; the operator confirms in SAGE. */
         post: operations["devices.saveDevice"];
         delete?: never;
         options?: never;
@@ -566,8 +566,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Update the driver of an installed device type from a newer (or rebuilt) ``.tsdev``;
-         *     its devices keep their ids, settings and wiring and use it after testStand restarts.
+         * Update the driver of an installed device type from a newer (or rebuilt) ``.sagedev``;
+         *     its devices keep their ids, settings and wiring and use it after SAGE restarts.
          *     Adds no device. The operator confirms first.
          */
         post: operations["devices.updatePackageFromFile"];

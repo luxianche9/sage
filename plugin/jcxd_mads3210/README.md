@@ -1,6 +1,6 @@
 # JCXD-MADS-CPCI-3210 设备插件
 
-包 `teststand_adapter_jcxd_mads3210`，设备类型 `jcxd_mads3210`（入口点组 `teststand.devices`），由 testStand 后端作为插件加载。`isolation = "subprocess"`：厂商 `UMADX3210_x64.dll` 通过内核驱动直接访问板卡并在后台持续采集，崩溃时只结束子进程；后端退出时子进程先 `safe_state` 再退出。x64 DLL 随包在 `bin/`，台架上须已安装厂商内核驱动 `UMADX3210`（设备管理器“Devices-JC → UMAD-X-3210”）。资料：JCXD-MADS-X-3210/-XS 产品手册、JCXD-MADS-X-3210 用户手册-软件 V1.0.0、厂商例程 demo_1/4/5/09/12。
+包 `sage_plugin_jcxd_mads3210`，设备类型 `jcxd_mads3210`（入口点组 `sage.devices`），由 SAGE 后端作为插件加载。`isolation = "subprocess"`：厂商 `UMADX3210_x64.dll` 通过内核驱动直接访问板卡并在后台持续采集，崩溃时只结束子进程；后端退出时子进程先 `safe_state` 再退出。x64 DLL 随包在 `bin/`，台架上须已安装厂商内核驱动 `UMADX3210`（设备管理器“Devices-JC → UMAD-X-3210”）。资料：JCXD-MADS-X-3210/-XS 产品手册、JCXD-MADS-X-3210 用户手册-软件 V1.0.0、厂商例程 demo_1/4/5/09/12。
 
 一个插件实例只管理一个硬件。公共工具（`get_device_info`、`list_hardware`、`get_hardware_info`、`mads_stream_read`）、信封格式、`/device` 声明（身份、说明、引脚、流、能力）和流读取由 SDK 提供，见 `plugin/README.md`。插件只报告测量值和状态，不判定通过 / 失败。超时或错误不表示物理动作没有发生：保留原错误，查询当前状态并取证后再决定下一步。
 
@@ -52,11 +52,11 @@
 
 ## 构建与测试
 
-适配器基于 `teststand-device-sdk`（`sdk`）。本地测试不访问硬件：
+适配器基于 `sage-device-sdk`（`sdk`）。本地测试不访问硬件：
 
 ```powershell
 cd devices
 .\test.ps1 -Target jcxd_mads3210                 # pytest + 模拟器上的合规检查
 ```
 
-交付给 testStand 用设备包：`python plugin/tools/pack.py jcxd_mads3210` 生成 `plugin/dist/jcxd_mads3210-<版本>.tsdev`；在 testStand 测试台架点“+ → 添加设备…”选这个文件，先以模拟模式添加验证，再编辑为实物做空载验收。
+交付给 SAGE 用设备包：`python plugin/tools/pack.py jcxd_mads3210` 生成 `plugin/dist/jcxd_mads3210-<版本>.sagedev`；在 SAGE 测试台架点“+ → 添加设备…”选这个文件，先以模拟模式添加验证，再编辑为实物做空载验收。

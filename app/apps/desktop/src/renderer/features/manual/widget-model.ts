@@ -4,7 +4,7 @@ import type { JsonSchema } from "./schema-form-model.js";
  * Which control a tool parameter gets, from its schema and name alone (design: no plugin
  * declaration needed): a channel picker for a bounded channel index, a slider for a bounded
  * number, a switch for a boolean, segmented buttons for a short enum, a button grid for a list of
- * channels, a bit grid for a mask, a hex field for bytes. `x-teststand-widget` overrides it.
+ * channels, a bit grid for a mask, a hex field for bytes. `x-sage-widget` overrides it.
  */
 export type Widget =
   | { kind: "channel"; min: number; max: number }
@@ -52,7 +52,7 @@ export function booleanMeaning(description: unknown): { on: string | undefined; 
 }
 
 export function widgetFor(name: string, schema: JsonSchema): Widget | undefined {
-  const hint = schema["x-teststand-widget"];
+  const hint = schema["x-sage-widget"];
   const type = typeof schema.type === "string" ? schema.type : undefined;
   const min = finite(schema.minimum);
   const max = finite(schema.maximum);

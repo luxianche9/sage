@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { TestVerdict } from "@teststand/contracts/testing";
+import type { TestVerdict } from "@sage/contracts/testing";
 import { cn, toneText, type Tone } from "./cn";
 
 /** Small indicator light. `pulse` animates it for live/running states. */

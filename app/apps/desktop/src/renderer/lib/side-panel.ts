@@ -12,7 +12,7 @@ export const SIDE_PANEL_LABELS: Record<SidePanel, string> = {
   history: "运行历史"
 };
 
-const OPEN_PANEL = "teststand:open-panel";
+const OPEN_PANEL = "sage:open-panel";
 
 /** Asks the shell to show a sidebar panel. */
 export function openSidePanel(panel: SidePanel) {

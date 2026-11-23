@@ -1,7 +1,7 @@
 import { useEffect, useState, type ChangeEvent } from "react";
 import { CheckIcon } from "lucide-react";
-import type { Hardware } from "@teststand/contracts/devices";
-import type { PinPair, ProjectWiringConnection } from "@teststand/contracts/wiring";
+import type { Hardware } from "@sage/contracts/devices";
+import type { PinPair, ProjectWiringConnection } from "@sage/contracts/wiring";
 import { resolvePortRef } from "../../lib/hardware.js";
 import { Button, Dialog, DialogBody, DialogContent, DialogFooter, Select } from "../../ui/index.js";
 import { sortedPair, straightThrough } from "./wiring-model.js";

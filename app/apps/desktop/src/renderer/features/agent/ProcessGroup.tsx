@@ -6,9 +6,9 @@ import { cn } from "../../ui";
 
 type Group = { indices: readonly number[]; status: { type: string } };
 
-/** A tool's name as the summary shows it: without the `teststand_` prefix of the MCP server. */
+/** A tool's name as the summary shows it: without the `sage_` prefix of the MCP server. */
 function shortName(name: string | undefined): string {
-  return (name ?? "").replace(/^teststand_/, "");
+  return (name ?? "").replace(/^sage_/, "");
 }
 
 /** "check_icd ×3、save_icd": the tools of a run of steps, most used first, at most three named. */

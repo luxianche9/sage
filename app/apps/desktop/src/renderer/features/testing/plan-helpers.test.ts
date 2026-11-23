@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { TestPlan } from "@teststand/contracts/testing";
+import type { TestPlan } from "@sage/contracts/testing";
 import {
   collectReferenceCounts, duplicateStep, insertStepAt, mergeRuns, moveStepTo, patchStep, stepIdForIssuePath
 } from "./plan-helpers.js";

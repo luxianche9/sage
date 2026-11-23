@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ToolCatalogItem } from "@teststand/contracts/devices";
+import type { ToolCatalogItem } from "@sage/contracts/devices";
 import { checkValue, selfTestReport, selfTestTool } from "./self-test.js";
 
 const tool = (deviceId: string, remoteName: string) => ({ deviceId, remoteName, externalName: `x__${remoteName}` }) as

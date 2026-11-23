@@ -8,9 +8,9 @@ import sys
 
 if __name__ == "__main__":
     if sys.argv[1:2] == ["--device-child"]:
-        from teststand_device_sdk.plugin import child_main
+        from sage_device_sdk.plugin import child_main
 
         sys.exit(child_main())
-    from teststand_backend.host.__main__ import main
+    from sage_backend.host.__main__ import main
 
     main()

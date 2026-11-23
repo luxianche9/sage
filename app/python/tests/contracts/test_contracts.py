@@ -1,13 +1,13 @@
 import pytest
 
-from teststand_backend.contracts.devices import (
+from sage_backend.contracts.devices import (
     parse_device_instance,
     parse_hardware,
     parse_managed_hardware,
 )
-from teststand_backend.contracts.errors import app_error, to_wire_error
-from teststand_backend.contracts.projects import parse_project_file
-from teststand_backend.contracts.validation import ValidationError, parse_id_input
+from sage_backend.contracts.errors import app_error, to_wire_error
+from sage_backend.contracts.projects import parse_project_file
+from sage_backend.contracts.validation import ValidationError, parse_id_input
 
 PREFIX = "packages/contracts/src/contracts.test.ts::public contracts::"
 
@@ -80,7 +80,7 @@ def test_named_ids() -> None:
         assert parse_id_input({"id": "ID"}) == {"id": "ID"}, name
         with pytest.raises(ValidationError):
             parse_id_input({"id": "ID", "extra": True})
-    from teststand_backend.contracts.agents import parse_agent_kind_input
+    from sage_backend.contracts.agents import parse_agent_kind_input
 
     assert parse_agent_kind_input({"id": "codex"}) == {"id": "codex"}
 

@@ -3,15 +3,15 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   monitorChannels, PANEL_SOURCE_TYPES, placedPanels, type ControlWidget, type Frame, type Monitor, type MonitorControl,
   type MonitorPanel, type MonitorUpdateInput, type PanelType, type StreamRef
-} from "@teststand/contracts/monitor";
-import type { DeviceStream, RunTimeline, StreamDeclaration, StreamInfo } from "@teststand/contracts/observability";
-import type { ProjectDocument } from "@teststand/contracts/projects";
+} from "@sage/contracts/monitor";
+import type { DeviceStream, RunTimeline, StreamDeclaration, StreamInfo } from "@sage/contracts/observability";
+import type { ProjectDocument } from "@sage/contracts/projects";
 import { useMonitorStreams, useProjectDocument } from "../../lib/queries.js";
 import { queryKeys } from "../../lib/query-keys.js";
 import { newControlPanelId, requestControl } from "./control-requests.js";
 
 /** Drag payload of a component from the component bar: the panel type. */
-export const PANEL_MIME = "application/x-teststand-panel";
+export const PANEL_MIME = "application/x-sage-panel";
 
 /** The panel last focused in the workspace, where a preset control goes. */
 let focusedPanelId: string | undefined;
@@ -99,7 +99,7 @@ export function useMonitorWorkspace(timeline: RunTimeline | undefined) {
       : current);
   }, [client]);
   const update = useMutation({
-    mutationFn: (input: MonitorUpdateInput) => window.teststand.monitor.update({ input }),
+    mutationFn: (input: MonitorUpdateInput) => window.sage.monitor.update({ input }),
     onMutate: (input) => {
       // A panel moved or resized shows at its new place at once, not after the round trip.
       const frames = new Map((input.operations ?? []).flatMap((operation) =>

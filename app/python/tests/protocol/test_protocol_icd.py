@@ -4,8 +4,8 @@ from typing import Any
 
 import pytest
 
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.protocol import (
+from sage_backend.contracts.errors import AppError
+from sage_backend.protocol import (
     Icd,
     ProtocolBinding,
     icd_document,
@@ -14,12 +14,12 @@ from teststand_backend.protocol import (
     load_icd,
     parse_icd,
 )
-from teststand_backend.protocol.icd import (
+from sage_backend.protocol.icd import (
     HeaderLengthFraming,
     format_hex,
     parse_hex,
 )
-from teststand_backend.protocol.loader import icd_name_from_path
+from sage_backend.protocol.loader import icd_name_from_path
 
 from .icd_fixtures import DUT_CMD_YAML, dut_cmd
 
@@ -237,7 +237,7 @@ def test_models_are_frozen() -> None:
 
 
 def test_dumped_yaml_loads_back_to_the_same_icd() -> None:
-    from teststand_backend.protocol import dump_icd
+    from sage_backend.protocol import dump_icd
 
     from .icd_fixtures import DUT_CMD_YAML
 

@@ -3,10 +3,10 @@ from __future__ import annotations
 
 import pytest
 
-from teststand_device_sdk.testing import check_device, dry_run_config, receive_until, serve
-from teststand_adapter_pci1710l import DEVICE, Pci1710l
-from teststand_adapter_pci1710l.adapter import configured_safe_mask
-from teststand_adapter_pci1710l.pinout import pinout
+from sage_device_sdk.testing import check_device, dry_run_config, receive_until, serve
+from sage_plugin_pci1710l import DEVICE, Pci1710l
+from sage_plugin_pci1710l.adapter import configured_safe_mask
+from sage_plugin_pci1710l.pinout import pinout
 
 
 PUBLIC_TOOLS = {
@@ -30,10 +30,10 @@ def test_entry_point_and_compliance():
 
 
 def test_public_contract(hh):
-    internal = {name for name, item in hh.tools.items() if item["_meta"]["teststand"]["kind"] == "internal"}
-    assert internal == {"teststand_prepare_shutdown"}
+    internal = {name for name, item in hh.tools.items() if item["_meta"]["sage"]["kind"] == "internal"}
+    assert internal == {"sage_prepare_shutdown"}
     assert set(hh.tools) - internal == PUBLIC_TOOLS
-    semantics = {name: item["_meta"]["teststand"]["operationSemantics"] for name, item in hh.tools.items()
+    semantics = {name: item["_meta"]["sage"]["operationSemantics"] for name, item in hh.tools.items()
                  if name.startswith("pci1710l_")}
     assert semantics["pci1710l_read_voltage"]["stateRequirements"] == ["analog_input_configured"]
     assert semantics["pci1710l_configure_ai"]["stateEffects"] == ["analog_input_configured"]

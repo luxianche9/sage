@@ -12,7 +12,7 @@ const desktopDir = resolve(import.meta.dirname, "..");
 const workspaceDir = resolve(desktopDir, "../..");
 const artifactDir = resolve(workspaceDir, "output/playwright");
 const gatewayPort = 18080;
-const gatewayTestToken = "teststand-e2e-gateway-token";
+const gatewayTestToken = "sage-e2e-gateway-token";
 
 let application: ElectronApplication;
 let page: Page;
@@ -20,18 +20,18 @@ let userDataDir: string;
 let projectRoot: string;
 const rendererErrors: string[] = [];
 
-test.describe.serial("testStand folder project desktop", () => {
+test.describe.serial("SAGE folder project desktop", () => {
   test.beforeAll(async () => {
     await mkdir(artifactDir, { recursive: true });
-    userDataDir = await mkdtemp(resolve(tmpdir(), "teststand-e2e-"));
+    userDataDir = await mkdtemp(resolve(tmpdir(), "sage-e2e-"));
     projectRoot = join(userDataDir, "project-a");
     await mkdir(projectRoot);
     const env = {
       ...process.env,
-      TESTSTAND_USER_DATA_DIR: userDataDir,
-      TESTSTAND_GATEWAY_PORT: String(gatewayPort),
-      TESTSTAND_AGENT_INTEGRATION_TEST_MODE: "1",
-      TESTSTAND_GATEWAY_TEST_TOKEN: gatewayTestToken
+      SAGE_USER_DATA_DIR: userDataDir,
+      SAGE_GATEWAY_PORT: String(gatewayPort),
+      SAGE_AGENT_INTEGRATION_TEST_MODE: "1",
+      SAGE_GATEWAY_TEST_TOKEN: gatewayTestToken
     };
     delete env.ELECTRON_RUN_AS_NODE;
     application = await electron.launch({ args: [desktopDir], cwd: desktopDir, env, timeout: 90_000 });
@@ -65,14 +65,14 @@ test.describe.serial("testStand folder project desktop", () => {
     await page.getByRole("button", { name: "返回", exact: true }).click();
     await expect(page.getByRole("heading", { name: "最近项目" })).toBeVisible();
     await page.screenshot({ path: resolve(artifactDir, "welcome-light.png"), fullPage: true });
-    expect(await page.evaluate(() => typeof window.teststand)).toBe("object");
+    expect(await page.evaluate(() => typeof window.sage)).toBe("object");
     expect(rendererErrors).toEqual([]);
   });
 
   test("initializes a folder project and exposes the full top navigation", async () => {
-    const document = await page.evaluate((rootPath) => window.teststand.projects.initializeFolder({ rootPath }), projectRoot);
-    expect(document.path.replaceAll("\\", "/")).toMatch(/\/\.teststand\/project\.json$/);
-    await page.evaluate(() => window.teststand.projects.leaveProject());
+    const document = await page.evaluate((rootPath) => window.sage.projects.initializeFolder({ rootPath }), projectRoot);
+    expect(document.path.replaceAll("\\", "/")).toMatch(/\/\.sage\/project\.json$/);
+    await page.evaluate(() => window.sage.projects.leaveProject());
     await reloadAfterLeave(page);
     // Every launch still returns to the welcome page even when recent projects exist.
     await expect(page.getByRole("heading", { name: "最近项目" })).toBeVisible();
@@ -89,7 +89,7 @@ test.describe.serial("testStand folder project desktop", () => {
   test("registers hardware and keeps wiring intact", async () => {
     const result = await page.evaluate(async () => {
       for (const hardwareId of ["DUT_A", "DUT_B"]) {
-        await window.teststand.devices.saveHardware({ input: {
+        await window.sage.devices.saveHardware({ input: {
           formatVersion: 2, hardwareId, label: hardwareId, kind: "passive",
           ports: [
             { portId: "J1", name: "J1", pins: [{ pinId: "1", position: 1, label: "A" }, { pinId: "2", position: 2, label: "B" }] },
@@ -97,12 +97,12 @@ test.describe.serial("testStand folder project desktop", () => {
           ]
         } });
       }
-      const pending = await window.teststand.wiring.requestTask({ input: { changes: [
+      const pending = await window.sage.wiring.requestTask({ input: { changes: [
         { action: "connect", portA: "DUT_A.J1", portB: "DUT_B.J1", pins: [{ a: "1", b: "1" }, { a: "2", b: "2" }] }
       ] } });
-      await window.teststand.wiring.completeTask({ taskId: pending.wiringTaskId, outcome: "confirmed" });
-      const beforeSave = await window.teststand.projects.document();
-      const afterSave = await window.teststand.projects.saveProject();
+      await window.sage.wiring.completeTask({ taskId: pending.wiringTaskId, outcome: "confirmed" });
+      const beforeSave = await window.sage.projects.document();
+      const afterSave = await window.sage.projects.saveProject();
       return { beforeSave, afterSave };
     });
     // A confirmed wiring task saves the project: the wiring is what the operator confirmed on the bench.
@@ -127,7 +127,7 @@ test.describe.serial("testStand folder project desktop", () => {
   });
 
   test("applies one batch of Agent wiring changes with a single confirmation", async () => {
-    const taskId = await page.evaluate(async () => (await window.teststand.wiring.requestTask({ input: { changes: [
+    const taskId = await page.evaluate(async () => (await window.sage.wiring.requestTask({ input: { changes: [
       { action: "connect", portA: "DUT_A.FIBER", portB: "DUT_B.FIBER" },
       { action: "disconnect", portA: "DUT_A.J1", portB: "DUT_B.J1", pins: [{ a: "1", b: "1" }, { a: "2", b: "2" }] }
     ] } })).wiringTaskId);
@@ -136,14 +136,14 @@ test.describe.serial("testStand folder project desktop", () => {
     const changes = page.getByRole("region", { name: "接线日志" }).getByRole("region", { name: "变更记录" });
     const before = await changes.getByRole("listitem").count();
     const task = await page.evaluate(async (id) => {
-      await window.teststand.wiring.completeTask({ taskId: id, outcome: "confirmed" });
-      return await window.teststand.wiring.getTask({ taskId: id });
+      await window.sage.wiring.completeTask({ taskId: id, outcome: "confirmed" });
+      return await window.sage.wiring.getTask({ taskId: id });
     }, taskId);
     expect(task.status).toBe("confirmed");
     await expect(changes.getByRole("listitem")).toHaveCount(before + 2);
     await expect(changes.getByText("新增接线 DUT_A 光纤口 ↔ DUT_B 光纤口")).toBeVisible();
     await expect(changes.getByText("删除接线 DUT_A J1 ↔ DUT_B J1")).toBeVisible();
-    const connections = await page.evaluate(async () => (await window.teststand.projects.document())?.file.wiring.connections);
+    const connections = await page.evaluate(async () => (await window.sage.projects.document())?.file.wiring.connections);
     expect(connections?.map((item) => `${item.portA}-${item.portB}`)).toEqual(["DUT_A.FIBER-DUT_B.FIBER"]);
   });
 
@@ -265,9 +265,9 @@ test.describe.serial("testStand folder project desktop", () => {
 
   test("protects dirty project transitions with save, discard, and cancel", async () => {
     await page.evaluate(async () => {
-      const current = await window.teststand.projects.document();
+      const current = await window.sage.projects.document();
       if (!current) throw new Error("project missing");
-      await window.teststand.wiring.updateDocument({ wiring: {
+      await window.sage.wiring.updateDocument({ wiring: {
         nodes: current.file.wiring.nodes,
         connections: [
           ...current.file.wiring.connections,

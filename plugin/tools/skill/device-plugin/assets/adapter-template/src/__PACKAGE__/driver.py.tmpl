@@ -5,7 +5,7 @@ comment above its ``argtypes``/``restype``, exactly as declared. Use
 ``ctypes.WinDLL`` for ``__stdcall`` exports and ``ctypes.CDLL`` for ``__cdecl``
 (the header's calling-convention macro tells you which). If the SDK is C++ or
 needs callbacks, wrap it in a native JSON-line CLI instead and use
-``teststand_device_sdk.JsonLineCli`` (see references/vendor-bindings.md).
+``sage_device_sdk.JsonLineCli`` (see references/vendor-bindings.md).
 
 The driver returns the vendor status codes unchanged; the adapter turns them
 into ``DeviceError``. It never retries a write.
@@ -20,7 +20,7 @@ from ctypes import POINTER, c_int16, c_uint16, c_uint32
 from pathlib import Path
 from typing import Any
 
-from teststand_device_sdk import DEVICE_UNREACHABLE, DeviceError
+from sage_device_sdk import DEVICE_UNREACHABLE, DeviceError
 
 log = logging.getLogger(__name__)
 

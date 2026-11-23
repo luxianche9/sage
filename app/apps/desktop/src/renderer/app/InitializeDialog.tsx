@@ -1,4 +1,4 @@
-import type { ProjectFolderSelection } from "@teststand/contracts/projects";
+import type { ProjectFolderSelection } from "@sage/contracts/projects";
 import { Button, Dialog, DialogBody, DialogContent, DialogFooter } from "../ui";
 
 export function InitializeDialog({ selection, busy, onConfirm, onCancel }: {
@@ -9,11 +9,11 @@ export function InitializeDialog({ selection, busy, onConfirm, onCancel }: {
 }) {
   return (
     <Dialog open={Boolean(selection)} onOpenChange={(open) => { if (!open) onCancel(); }}>
-      <DialogContent title="初始化 testStand 项目" size="sm">
+      <DialogContent title="初始化 SAGE 项目" size="sm">
         <DialogBody className="grid gap-2">
           <p>
             文件夹 <strong className="text-fg">{selection?.name}</strong> 中还没有{" "}
-            <code className="font-mono text-xs text-signal">.teststand/project.json</code>。
+            <code className="font-mono text-xs text-signal">.sage/project.json</code>。
           </p>
         </DialogBody>
         <DialogFooter>

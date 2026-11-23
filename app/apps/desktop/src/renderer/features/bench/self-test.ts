@@ -1,4 +1,4 @@
-import type { ToolCatalogItem } from "@teststand/contracts/devices";
+import type { ToolCatalogItem } from "@sage/contracts/devices";
 import { invocationPayload } from "../manual/invocation-readings.js";
 
 /** One check of a plugin's self-test, as the SDK's `self_test` tool returns it. */

@@ -993,18 +993,18 @@ wheels = [
 ]
 
 [[package]]
-name = "teststand-adapter-comm-link"
+name = "sage-plugin-comm-link"
 version = "1.0.0"
 source = { editable = "../../plugin/comm_link" }
 dependencies = [
-    { name = "teststand-device-sdk" },
+    { name = "sage-device-sdk" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "teststand-device-sdk", editable = "../../sdk" }]
+requires-dist = [{ name = "sage-device-sdk", editable = "../../sdk" }]
 
 [[package]]
-name = "teststand-backend"
+name = "sage-backend"
 version = "0.2.0"
 source = { editable = "." }
 dependencies = [
@@ -1018,7 +1018,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "ruamel-yaml" },
     { name = "starlette" },
-    { name = "teststand-device-sdk" },
+    { name = "sage-device-sdk" },
     { name = "uvicorn" },
 ]
 
@@ -1031,7 +1031,7 @@ dev = [
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
     { name = "ruff" },
-    { name = "teststand-adapter-comm-link" },
+    { name = "sage-plugin-comm-link" },
     { name = "types-jsonschema" },
 ]
 
@@ -1047,7 +1047,7 @@ requires-dist = [
     { name = "pydantic", specifier = "==2.13.5" },
     { name = "ruamel-yaml", specifier = "==0.18.15" },
     { name = "starlette", specifier = "==1.6.0" },
-    { name = "teststand-device-sdk", editable = "../../sdk" },
+    { name = "sage-device-sdk", editable = "../../sdk" },
     { name = "uvicorn", specifier = "==0.52.4" },
 ]
 
@@ -1060,12 +1060,12 @@ dev = [
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
     { name = "ruff" },
-    { name = "teststand-adapter-comm-link", editable = "../../plugin/comm_link" },
+    { name = "sage-plugin-comm-link", editable = "../../plugin/comm_link" },
     { name = "types-jsonschema" },
 ]
 
 [[package]]
-name = "teststand-device-sdk"
+name = "sage-device-sdk"
 version = "0.2.1"
 source = { editable = "../../sdk" }
 dependencies = [

@@ -1,17 +1,17 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import type { DeviceBundleKind, DeviceBundlePreview } from "@teststand/contracts/devices";
+import type { DeviceBundleKind, DeviceBundlePreview } from "@sage/contracts/devices";
 import { CircleAlertIcon, DownloadIcon, UploadIcon } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { Button } from "../../ui";
 
 /**
- * Picks a `.tshw` bundle and imports it, with no editor open around it. Returns undefined when the
+ * Picks a `.sagehw` bundle and imports it, with no editor open around it. Returns undefined when the
  * file dialog is dismissed. This is the whole 导入被测件 / 夹具 path, so the 设备管理 「+」 menu and
  * the hardware editor's footer go through the same code.
  */
 export async function importBundleFile(kind: DeviceBundleKind): Promise<string | undefined> {
-  const { devices, dialogs } = window.teststand;
+  const { devices, dialogs } = window.sage;
   const data = await dialogs.openBundle(kind);
   if (!data) return undefined;
   const result = await devices.importBundle({ data });
@@ -19,7 +19,7 @@ export async function importBundleFile(kind: DeviceBundleKind): Promise<string |
 }
 
 /**
- * Import/export controls for the canonical hardware `.tshw` bundle.
+ * Import/export controls for the canonical hardware `.sagehw` bundle.
  * With `onPreview` the import is staged (previewBundle) and the caller decides when to apply it;
  * otherwise the bundle is imported immediately and `onImported` runs after it lands.
  */
@@ -36,7 +36,7 @@ export function BundleActions({ kind, id, saved, disabled, exportTitle, onImport
   const [notice, setNotice] = useState<string>();
   const act = useMutation({
     mutationFn: async (action: "export" | "import"): Promise<string | undefined> => {
-      const { devices, dialogs } = window.teststand;
+      const { devices, dialogs } = window.sage;
       if (action === "export") {
         const hardwareId = id.trim();
         const result = await dialogs.saveBundle(kind, hardwareId, await devices.exportBundle({ hardwareId }));
@@ -64,7 +64,7 @@ export function BundleActions({ kind, id, saved, disabled, exportTitle, onImport
         variant="ghost"
         size="xs"
         disabled={!saved || busy}
-        title={saved ? (exportTitle ?? "导出为单个 .tshw 文件") : "保存后才能导出"}
+        title={saved ? (exportTitle ?? "导出为单个 .sagehw 文件") : "保存后才能导出"}
         onClick={() => act.mutate("export")}
       >
         <UploadIcon />导出

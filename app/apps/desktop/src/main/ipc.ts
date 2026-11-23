@@ -1,9 +1,9 @@
 import { ipcMain, type IpcMainInvokeEvent } from "electron";
 import { z, ZodError } from "zod";
-import type { TestStandDialogsApi } from "@teststand/contracts/desktop";
-import { deviceBundleKindSchema } from "@teststand/contracts/devices";
-import { appError, toWireError } from "@teststand/contracts/errors";
-import { themeChoiceSchema } from "@teststand/contracts/storage";
+import type { SageDialogsApi } from "@sage/contracts/desktop";
+import { deviceBundleKindSchema } from "@sage/contracts/devices";
+import { appError, toWireError } from "@sage/contracts/errors";
+import { themeChoiceSchema } from "@sage/contracts/storage";
 import { DESKTOP_CALL_CHANNEL, type DesktopMainChannel, type DesktopReply, type LocalApiEndpoint } from "../shared/desktop-ipc.js";
 
 interface DesktopWindowPort {
@@ -17,7 +17,7 @@ interface DesktopWindowPort {
 
 export interface DesktopIpcDependencies {
   endpoint(): LocalApiEndpoint;
-  dialogs: TestStandDialogsApi;
+  dialogs: SageDialogsApi;
   windows: DesktopWindowPort;
 }
 

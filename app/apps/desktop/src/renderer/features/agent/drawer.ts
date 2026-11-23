@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export const THREAD_DRAWER_STORAGE_KEY = "teststand.agent-thread-drawer-open";
+export const THREAD_DRAWER_STORAGE_KEY = "sage.agent-thread-drawer-open";
 
 export function usePersistedThreadDrawer(enabled: boolean) {
   const [open, setOpen] = useState(() => localStorage.getItem(THREAD_DRAWER_STORAGE_KEY) === "true");

@@ -7,17 +7,17 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 from jsonschema import Draft202012Validator
 
-from teststand_backend.application import DefaultAuthorizer, ExecutionCoordinator
-from teststand_backend.application.services import DevicesApplication
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.contracts.mcp import (
+from sage_backend.application import DefaultAuthorizer, ExecutionCoordinator
+from sage_backend.application.services import DevicesApplication
+from sage_backend.contracts.errors import AppError
+from sage_backend.contracts.mcp import (
     business_result_schema,
     normalized_output_schema,
     public_remote_tool,
     sdk_envelope_schema,
     with_error_schema,
 )
-from teststand_backend.mcp_gateway.tool_registry import BUILTIN_TOOLS, ToolRegistry
+from sage_backend.mcp_gateway.tool_registry import BUILTIN_TOOLS, ToolRegistry
 
 Json = dict[str, Any]
 CONTEXT = {"actor": "agent", "source": "mcp"}
@@ -85,8 +85,8 @@ def test_gateway_and_sdk_shapes_keep_referenced_data_and_media_distinct() -> Non
     )
     assert "execution" not in tool
     assert tool["annotations"]["readOnlyHint"] is True
-    assert tool["_meta"]["teststand"]["toolName"] == "S__read"
-    assert tool["_meta"]["teststand"]["remoteToolName"] == "read"
+    assert tool["_meta"]["sage"]["toolName"] == "S__read"
+    assert tool["_meta"]["sage"]["remoteToolName"] == "read"
 
 
 @pytest.mark.parametrize(
@@ -154,7 +154,7 @@ async def test_contract_discovery_obeys_authorization_and_exact_names() -> None:
     with pytest.raises(AppError, match="Unknown authorized"):
         await registry.invoke(CONTEXT, "get_tool_contract", {"toolName": "missing"})
     words = await registry.invoke(
-        CONTEXT, "get_tool_contract", {"query": "teststand_hardware definition get"}
+        CONTEXT, "get_tool_contract", {"query": "sage_hardware definition get"}
     )
     assert "get_hardware_definition" in [item["name"] for item in words["data"]["items"]]
 

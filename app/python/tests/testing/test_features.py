@@ -6,11 +6,11 @@ from typing import Any
 
 import pytest
 
-from teststand_backend.application import DefaultAuthorizer, ExecutionCoordinator
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.testing import TestEngine, TestingApplication, TestPlanStore
-from teststand_backend.testing.compiler import compile_plan
-from teststand_backend.testing.validation import validate_plan
+from sage_backend.application import DefaultAuthorizer, ExecutionCoordinator
+from sage_backend.contracts.errors import AppError
+from sage_backend.testing import TestEngine, TestingApplication, TestPlanStore
+from sage_backend.testing.compiler import compile_plan
+from sage_backend.testing.validation import validate_plan
 
 from .test_testing import HUMAN, Devices, Projects, Resolver, finish, plan_with
 
@@ -149,7 +149,7 @@ async def test_saved_plans_become_feature_groups_of_the_flow(tmp_path: Path) -> 
     assert [step["id"] for step in flow["regions"]["cleanup"]] == ["off"]
     assert flow["parameters"] == [{"name": "station", "type": "integer", "default": 2}]
     assert flow["bindings"] == {"uart": {"hardwareId": "PC1.CARD"}}
-    plans = tmp_path / ".teststand" / "plans"
+    plans = tmp_path / ".sage" / "plans"
     assert sorted(path.name for path in plans.glob("*.hhplan.yaml")) == ["flow.hhplan.yaml"]
     assert sorted(path.name for path in (plans / ".migrated").iterdir()) == [
         "2comm.hhplan.yaml",

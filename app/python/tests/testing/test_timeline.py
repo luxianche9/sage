@@ -1,6 +1,6 @@
 from typing import Any
 
-from teststand_backend.testing.timeline import RESULT_PREVIEW_CHARS, attach_call_results
+from sage_backend.testing.timeline import RESULT_PREVIEW_CHARS, attach_call_results
 
 
 def test_calls_take_the_result_and_final_state_of_their_operation() -> None:

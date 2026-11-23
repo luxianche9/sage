@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
-import { OPERATION_NAMES } from "@teststand/contracts/operations";
+import { OPERATION_NAMES } from "@sage/contracts/operations";
 import { createMainHandlers, type DesktopIpcDependencies } from "../../../main/ipc.js";
-import { createTestStandApi } from "./api.js";
+import { createSageApi } from "./api.js";
 import type { DesktopTransport } from "./transport.js";
 
 describe("renderer API", () => {
   it("builds concrete functions that reach exactly the main channels and the generated operations", async () => {
     const { transport, operations, channels, unsubscribe } = recordingTransport();
-    const api = createTestStandApi(transport);
+    const api = createSageApi(transport);
 
     for (const [path, fn] of functionEntries(api)) {
       if (path === "events.subscribe") (fn("project", () => undefined) as () => void)();
@@ -26,7 +26,7 @@ describe("renderer API", () => {
 
   it("passes named parameters through unchanged", async () => {
     const { transport } = recordingTransport();
-    const api = createTestStandApi(transport);
+    const api = createSageApi(transport);
     await api.testing.readRunLog({ runId: "R", afterEventSequence: 3, resultLimit: 10 });
     expect(transport.invoke).toHaveBeenCalledWith(
       "testing.readRunLog",
@@ -40,7 +40,7 @@ describe("renderer API", () => {
     const { transport } = recordingTransport();
     const onFrame = vi.fn();
     const onGap = vi.fn();
-    createTestStandApi(transport).streams.live(
+    createSageApi(transport).streams.live(
       { keys: ["H__ai0", "H__uart"], width: 640, windowMs: 10_000 }, onFrame, onGap
     );
     expect(transport.stream).toHaveBeenCalledWith(

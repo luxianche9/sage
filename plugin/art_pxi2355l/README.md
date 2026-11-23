@@ -1,6 +1,6 @@
 # PXI2355L 设备插件
 
-包 `teststand_adapter_art_pxi2355l`，设备类型 `art_pxi2355l`（入口点组 `teststand.devices`），由 testStand 后端作为插件加载。`isolation = "subprocess"`：ART-DAQ 驱动在独立子进程里加载，崩溃只结束子进程；后端退出时子进程先 `safe_state`（全部 DO 关断）再退出。插件不带驱动：台架上须安装 ART-DAQ（本机 1.10，`Art_DAQ_64.dll` 在 System32），设备在 ART-DAQ 里显示为 `Dev2`。资料：PCI/PXI 235xL 硬件使用说明书 V6.00.02、ART-DAQ 头文件 `Art_DAQ.h`。
+包 `sage_plugin_art_pxi2355l`，设备类型 `art_pxi2355l`（入口点组 `sage.devices`），由 SAGE 后端作为插件加载。`isolation = "subprocess"`：ART-DAQ 驱动在独立子进程里加载，崩溃只结束子进程；后端退出时子进程先 `safe_state`（全部 DO 关断）再退出。插件不带驱动：台架上须安装 ART-DAQ（本机 1.10，`Art_DAQ_64.dll` 在 System32），设备在 ART-DAQ 里显示为 `Dev2`。资料：PCI/PXI 235xL 硬件使用说明书 V6.00.02、ART-DAQ 头文件 `Art_DAQ.h`。
 
 一个插件实例只管理一个硬件。公共工具（`get_device_info`、`list_hardware`、`get_hardware_info`、`pxi2355_stream_read`）、信封格式、`/device` 声明（身份、说明、引脚、流、能力）和流读取由 SDK 提供，见 `plugin/README.md`。插件只报告测量值和状态，不判定通过 / 失败。超时或错误不表示物理动作没有发生：保留原错误，查询当前状态并取证后再决定下一步。
 
@@ -38,11 +38,11 @@
 
 ## 构建与测试
 
-适配器基于 `teststand-device-sdk`（`sdk`）。本地测试不访问硬件：
+适配器基于 `sage-device-sdk`（`sdk`）。本地测试不访问硬件：
 
 ```powershell
 cd devices
 .\test.ps1 -Target art_pxi2355l                 # pytest + 模拟器上的合规检查
 ```
 
-交付给 testStand 用设备包：`python plugin/tools/pack.py art_pxi2355l` 生成 `plugin/dist/art_pxi2355l-<版本>.tsdev`；在 testStand 测试台架点“+ → 添加设备…”选这个文件，先以模拟模式添加验证，再编辑为实物做空载验收。
+交付给 SAGE 用设备包：`python plugin/tools/pack.py art_pxi2355l` 生成 `plugin/dist/art_pxi2355l-<版本>.sagedev`；在 SAGE 测试台架点“+ → 添加设备…”选这个文件，先以模拟模式添加验证，再编辑为实物做空载验收。

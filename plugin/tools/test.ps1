@@ -28,8 +28,8 @@ try {
     if ($Target -ne "sdk") {
         $adapters = if ($Target -eq "all") { $known } else { @($Target) }
         foreach ($adapter in $adapters) {
-            Write-Host "[check] teststand_adapter_$adapter"
-            & uv run python -m teststand_device_sdk --adapter "teststand_adapter_$adapter" --check --log-level warning
+            Write-Host "[check] sage_plugin_$adapter"
+            & uv run python -m sage_device_sdk --adapter "sage_plugin_$adapter" --check --log-level warning
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         }
     }

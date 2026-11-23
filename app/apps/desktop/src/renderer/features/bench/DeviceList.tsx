@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import type { Hardware } from "@teststand/contracts/devices";
-import type { ProtocolBindingState } from "@teststand/contracts/projects";
+import type { Hardware } from "@sage/contracts/devices";
+import type { ProtocolBindingState } from "@sage/contracts/projects";
 import {
   BinaryIcon, BoxIcon, CheckIcon, ChevronRightIcon, CpuIcon, FileCode2Icon, GripVerticalIcon, PencilIcon, PlusIcon,
   RotateCwIcon, SlidersHorizontalIcon, Unlink2Icon
@@ -95,7 +95,7 @@ export function DeviceList({
     return next;
   });
   const groups = [
-    { key: "managed", title: "设备", add: { label: "添加设备（.tsdev）", run: onAddDevice },
+    { key: "managed", title: "设备", add: { label: "添加设备（.sagedev）", run: onAddDevice },
       items: hardware.filter((item) => item.kind === "managed") },
     { key: "passive", title: "被测件 / 夹具", add: { label: "登记被测件 / 夹具", run: onAddPart },
       items: hardware.filter((item) => item.kind !== "managed") }
@@ -111,8 +111,8 @@ export function DeviceList({
             "px-2.5 py-1.5 text-xs leading-5 text-fg-2"
           )}
         >
-          <span className="min-w-0 flex-1">设备驱动已更新，重启 testStand 后生效。</span>
-          <Button size="sm" onClick={() => void window.teststand.window.relaunch()}>
+          <span className="min-w-0 flex-1">设备驱动已更新，重启 SAGE 后生效。</span>
+          <Button size="sm" onClick={() => void window.sage.window.relaunch()}>
             <RotateCwIcon />重启
           </Button>
         </div>
@@ -308,7 +308,7 @@ function BindingRow({ binding }: { binding: ProtocolBindingState }) {
 
 /** The project's protocols (ICD files): written before any device is connected, bound to raw streams above. */
 function ProtocolFiles() {
-  const icds = useQuery({ queryKey: queryKeys.icds, queryFn: () => window.teststand.testing.listIcds() });
+  const icds = useQuery({ queryKey: queryKeys.icds, queryFn: () => window.sage.testing.listIcds() });
   const [editing, setEditing] = useState<{ name?: string }>();
   return (
     <section aria-label="协议" className="pb-1">

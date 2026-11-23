@@ -34,7 +34,7 @@ const session = {
   id: "session-1",
   slug: "session-1",
   projectID: "project-1",
-  directory: "E:/Project/testStand",
+  directory: "E:/Project/SAGE",
   title: "Test",
   version: "1.18.15",
   time: { created: 1, updated: 1 }

@@ -25,7 +25,7 @@ beforeEach(() => {
     { name: "broken", file: "icd/broken.icd.yaml", valid: false, error: "bad" }
   ]);
   update.mockResolvedValue([]);
-  Object.assign(window.teststand, { protocols: { list: vi.fn(async () => []), update } });
+  Object.assign(window.sage, { protocols: { list: vi.fn(async () => []), update } });
 });
 
 afterEach(() => {

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import type { LiveFrame, LiveQuery } from "@teststand/contracts/observability";
+import type { LiveFrame, LiveQuery } from "@sage/contracts/observability";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createLiveHub } from "./live-hub.js";
 

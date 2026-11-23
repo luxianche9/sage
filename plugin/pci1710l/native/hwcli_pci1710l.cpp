@@ -37,11 +37,11 @@ std::string error_text(const char *what, ErrorCode code) { return std::string(wh
 
 // setSelectedDevice fails for very different reasons; name the one that happened, so the operator
 // knows whether to check the card list or to close whatever already holds the board. DAQNavi hands
-// out write privilege exclusively, so a second testStand instance gets ErrorPrivilegeNotAvailable.
+// out write privilege exclusively, so a second SAGE instance gets ErrorPrivilegeNotAvailable.
 std::string select_error(const std::string &description, const char *what, ErrorCode code) {
     const char *reason = "cannot be selected";
     if (code == ErrorPrivilegeNotAvailable) {
-        reason = "is already open in another process; close the other testStand instance and retry";
+        reason = "is already open in another process; close the other SAGE instance and retry";
     } else if (code == ErrorDeviceNotExist || code == ErrorDeviceUnrecognized) {
         reason = "is not in the DAQNavi list";
     }

@@ -1,5 +1,5 @@
 import { AlertTriangleIcon } from "lucide-react";
-import type { TestPlan, TestPlanIssue } from "@teststand/contracts/testing";
+import type { TestPlan, TestPlanIssue } from "@sage/contracts/testing";
 import { Button, cn, Dialog, DialogBody, DialogContent, DialogFooter, EmptyState } from "../../ui";
 import { issueCategory } from "./plan-helpers.js";
 import { RunParametersEditor } from "./TestPlanForms.js";

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import pytest
-from teststand_device_sdk.testing import check_device, dry_run_config, serve
-from teststand_adapter_lj_co8 import DEVICE, LjCo8
-from teststand_adapter_lj_co8.pinout import in_pin, out_pin
-from teststand_adapter_lj_co8.sim import SIM_RESOURCE, SIM_SERIAL
+from sage_device_sdk.testing import check_device, dry_run_config, serve
+from sage_plugin_lj_co8 import DEVICE, LjCo8
+from sage_plugin_lj_co8.pinout import in_pin, out_pin
+from sage_plugin_lj_co8.sim import SIM_RESOURCE, SIM_SERIAL
 
 PUBLIC_TOOLS = {
     "get_device_info", "list_hardware", "get_hardware_info",
@@ -31,10 +31,10 @@ def test_entry_point_and_compliance():
 
 
 def test_public_contract(hh):
-    internal = {name for name, item in hh.tools.items() if item["_meta"]["teststand"]["kind"] == "internal"}
+    internal = {name for name, item in hh.tools.items() if item["_meta"]["sage"]["kind"] == "internal"}
     assert set(hh.tools) - internal == PUBLIC_TOOLS
     for name in ("co8_set_capacitance", "co8_set_all"):
-        semantics = hh.tools[name]["_meta"]["teststand"]["operationSemantics"]
+        semantics = hh.tools[name]["_meta"]["sage"]["operationSemantics"]
         assert semantics["kind"] == "actuate"
         assert semantics["retry"] == "never_after_dispatch"
         assert semantics["safetyAction"]["toolName"] == "co8_safe_state"

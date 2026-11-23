@@ -7,9 +7,9 @@ from typing import Any
 
 import pytest
 
-from teststand_backend.streams import judge
-from teststand_backend.streams.data import StreamData
-from teststand_backend.streams.judge import Window
+from sage_backend.streams import judge
+from sage_backend.streams.data import StreamData
+from sage_backend.streams.judge import Window
 
 Records = list[dict[str, Any]]
 

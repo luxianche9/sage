@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { Hardware } from "@teststand/contracts/devices";
+import type { Hardware } from "@sage/contracts/devices";
 import { CircleAlertIcon } from "lucide-react";
 import { Badge, Section } from "../../ui";
 

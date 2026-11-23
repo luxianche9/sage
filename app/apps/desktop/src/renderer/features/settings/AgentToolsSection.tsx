@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import type { AgentToolInfo } from "@teststand/contracts/agents";
+import type { AgentToolInfo } from "@sage/contracts/agents";
 import { ChevronRightIcon, DownloadIcon } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { useAgentTools } from "../../lib/queries.js";
@@ -15,8 +15,8 @@ export function AgentToolsSection() {
   const [exportedPath, setExportedPath] = useState<string>();
   const items = tools.data ?? [];
   const exportTools = useMutation({
-    mutationFn: () => window.teststand.dialogs.exportText(
-      "teststand-tools.json",
+    mutationFn: () => window.sage.dialogs.exportText(
+      "sage-tools.json",
       JSON.stringify(items, null, 2)
     ),
     onSuccess: (path) => setExportedPath(path ?? undefined),

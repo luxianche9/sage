@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { PinPair, PortSide, ProjectWiring } from "@teststand/contracts/wiring";
+import type { PinPair, PortSide, ProjectWiring } from "@sage/contracts/wiring";
 import { useDeviceCatalog, useProjectDocument } from "../../lib/queries.js";
 import { queryKeys } from "../../lib/query-keys.js";
 import {
@@ -24,7 +24,7 @@ export function useWiringDocument() {
   const catalog = useDeviceCatalog();
   const save = useMutation({
     scope: { id: "wiring-document" },
-    mutationFn: (next: ProjectWiring) => window.teststand.wiring.updateDocument({ wiring: next }),
+    mutationFn: (next: ProjectWiring) => window.sage.wiring.updateDocument({ wiring: next }),
     onSuccess: (doc) => { client.setQueryData(queryKeys.projectDocument, doc); }
   });
 

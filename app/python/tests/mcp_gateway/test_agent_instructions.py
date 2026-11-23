@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import httpx
 
-from teststand_backend.mcp_gateway.agent_instructions import AGENT_INSTRUCTIONS
+from sage_backend.mcp_gateway.agent_instructions import AGENT_INSTRUCTIONS
 
 from .test_boundaries import _HEADERS, _INITIALIZE, make_gateway, result_body
 

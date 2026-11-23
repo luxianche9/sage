@@ -1,4 +1,4 @@
-from teststand_backend.host.change_events import change_summary
+from sage_backend.host.change_events import change_summary
 
 
 def test_project_event_carries_the_key_and_version_only() -> None:

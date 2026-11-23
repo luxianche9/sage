@@ -1,6 +1,6 @@
 import { BotIcon, ChevronDownIcon, Maximize2Icon, Minimize2Icon, MinusIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { ProjectDocument } from "@teststand/contracts/projects";
+import type { ProjectDocument } from "@sage/contracts/projects";
 import { useCurrentTestRun } from "../lib/queries.js";
 import { openRunMonitor } from "../lib/run-focus.js";
 import { isActiveRun } from "../features/testing/plan-helpers.js";
@@ -108,7 +108,7 @@ function Brand() {
       >
         TS
       </span>
-      <span className="text-sm font-semibold text-fg max-[1100px]:hidden">testStand</span>
+      <span className="text-sm font-semibold text-fg max-[1100px]:hidden">SAGE</span>
       <span aria-hidden className="text-fg-3">/</span>
     </span>
   );
@@ -116,7 +116,7 @@ function Brand() {
 
 function WindowControls() {
   const [maximized, setMaximized] = useState(false);
-  useEffect(() => window.teststand.events.subscribe("window-state", (payload) => {
+  useEffect(() => window.sage.events.subscribe("window-state", (payload) => {
     const state = payload as { maximized?: boolean };
     if (typeof state.maximized === "boolean") setMaximized(state.maximized);
   }), []);
@@ -128,15 +128,15 @@ function WindowControls() {
   return (
     <div className="flex self-stretch">
       <button type="button" title="最小化" aria-label="最小化" className={base}
-        onClick={() => void window.teststand.window.minimize()}>
+        onClick={() => void window.sage.window.minimize()}>
         <MinusIcon />
       </button>
       <button type="button" title={maximized ? "还原" : "最大化"} aria-label={maximized ? "还原" : "最大化"}
-        className={base} onClick={() => void window.teststand.window.toggleMaximize()}>
+        className={base} onClick={() => void window.sage.window.toggleMaximize()}>
         {maximized ? <Minimize2Icon /> : <Maximize2Icon />}
       </button>
       <button type="button" title="关闭" aria-label="关闭" className={cn(base, "hover:bg-[#c42b1c] hover:text-white")}
-        onClick={() => void window.teststand.window.close()}>
+        onClick={() => void window.sage.window.close()}>
         <XIcon />
       </button>
     </div>

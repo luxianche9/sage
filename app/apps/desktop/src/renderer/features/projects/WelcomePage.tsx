@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { ProjectFolderSelection } from "@teststand/contracts/projects";
-import type { WelcomeLayout } from "@teststand/contracts/storage";
+import type { ProjectFolderSelection } from "@sage/contracts/projects";
+import type { WelcomeLayout } from "@sage/contracts/storage";
 import { CircleAlertIcon, FolderOpenIcon, Grid2X2Icon, ListIcon, ServerIcon } from "lucide-react";
 import { InitializeDialog } from "../../app/InitializeDialog.js";
 import { errorMessage } from "../../lib/errors.js";
@@ -33,7 +33,7 @@ export function WelcomePage({ onOpened }: { onOpened: (rootPath: string) => Prom
   const [error, setError] = useState<string>();
 
   useEffect(() => {
-    void window.teststand.settings.get().then((settings) => setLayout(settings.welcomeLayout));
+    void window.sage.settings.get().then((settings) => setLayout(settings.welcomeLayout));
   }, []);
 
   const openSelection = async (next: ProjectFolderSelection) => {
@@ -46,7 +46,7 @@ export function WelcomePage({ onOpened }: { onOpened: (rootPath: string) => Prom
       setSelection(next);
       return;
     }
-    await window.teststand.projects.openFolder({ rootPath: next.rootPath });
+    await window.sage.projects.openFolder({ rootPath: next.rootPath });
     await onOpened(next.rootPath);
   };
 
@@ -58,7 +58,7 @@ export function WelcomePage({ onOpened }: { onOpened: (rootPath: string) => Prom
   const initialize = useMutation({
     mutationFn: async () => {
       if (!selection) return null;
-      return await window.teststand.projects.initializeFolder({ rootPath: selection.rootPath });
+      return await window.sage.projects.initializeFolder({ rootPath: selection.rootPath });
     },
     onSuccess: async (document) => {
       if (!document) return;
@@ -68,19 +68,19 @@ export function WelcomePage({ onOpened }: { onOpened: (rootPath: string) => Prom
     onError: (reason) => setError(errorMessage(reason))
   });
   const openRecent = useMutation({
-    mutationFn: (rootPath: string) => window.teststand.projects.openFolder({ rootPath }),
+    mutationFn: (rootPath: string) => window.sage.projects.openFolder({ rootPath }),
     onSuccess: async (document) => { await onOpened(document.rootPath); },
     onError: (reason) => setError(errorMessage(reason))
   });
   const forget = useMutation({
-    mutationFn: (rootPath: string) => window.teststand.projects.forgetRecent({ rootPath }),
+    mutationFn: (rootPath: string) => window.sage.projects.forgetRecent({ rootPath }),
     onSuccess: async () => { await client.invalidateQueries({ queryKey: queryKeys.recentProjects }); },
     onError: (reason) => setError(errorMessage(reason))
   });
 
   const changeLayout = (next: WelcomeLayout) => {
     setLayout(next);
-    void window.teststand.settings.update({ welcomeLayout: next });
+    void window.sage.settings.update({ welcomeLayout: next });
   };
   const busy = choose.isPending || initialize.isPending || openRecent.isPending;
   const projects = recent.data ?? [];

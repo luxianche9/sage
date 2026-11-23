@@ -14,9 +14,9 @@ import json
 import subprocess
 from pathlib import Path
 
-from teststand_backend import __version__
-from teststand_backend.contracts.openapi import openapi_document
-from teststand_backend.host.runtime import SERVICE_OPERATIONS
+from sage_backend import __version__
+from sage_backend.contracts.openapi import openapi_document
+from sage_backend.host.runtime import SERVICE_OPERATIONS
 
 ROOT = Path(__file__).resolve().parents[2]
 TARGET = ROOT / "packages/contracts/src/operations.generated.ts"

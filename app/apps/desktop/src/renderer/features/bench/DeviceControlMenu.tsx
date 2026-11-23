@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import type { ToolCatalogItem } from "@teststand/contracts/devices";
+import type { ToolCatalogItem } from "@sage/contracts/devices";
 import { Badge, cn } from "../../ui";
 import { actionKind, actionName } from "./device-actions.js";
 

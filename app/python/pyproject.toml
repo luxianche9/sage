@@ -1,7 +1,7 @@
 [project]
-name = "teststand-backend"
+name = "sage-backend"
 version = "0.2.0"
-description = "Python backend for the testStand desktop"
+description = "Python backend for the SAGE desktop"
 requires-python = ">=3.11,<3.12"
 dependencies = [
   "mcp==1.29.1",
@@ -15,29 +15,29 @@ dependencies = [
   "ruamel.yaml==0.18.15",
   "keyring==25.7.0",
   "packaging==26.3",
-  "teststand-device-sdk",
+  "sage-device-sdk",
 ]
 
-[project.entry-points."teststand.test_steps"]
+[project.entry-points."sage.test_steps"]
 
-[project.entry-points."teststand.result_listeners"]
+[project.entry-points."sage.result_listeners"]
 
 [tool.uv.sources]
-teststand-device-sdk = { path = "../../sdk", editable = true }
-teststand-adapter-comm-link = { path = "../../plugin/comm_link", editable = true }
+sage-device-sdk = { path = "../../sdk", editable = true }
+sage-plugin-comm-link = { path = "../../plugin/comm_link", editable = true }
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/teststand_backend"]
+packages = ["src/sage_backend"]
 
 [dependency-groups]
-# Adapters are not part of testStand: a release ships none and installs them as .tsdev device packages.
+# Adapters are not part of SAGE: a release ships none and installs them as .sagedev device packages.
 # In development the generic link adapter is editable here so tests have one real plugin installed.
 dev = [
-  "teststand-adapter-comm-link",
+  "sage-plugin-comm-link",
   "ruff",
   "mypy",
   "pytest",
@@ -58,7 +58,7 @@ select = ["E", "F", "I", "UP", "B", "SIM", "ANN"]
 ignore = ["ANN401"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["teststand_backend"]
+known-first-party = ["sage_backend"]
 
 [tool.mypy]
 python_version = "3.11"
@@ -76,7 +76,7 @@ markers = ["ts_case(name): original TypeScript specification case"]
 
 [tool.coverage.run]
 branch = true
-source = ["teststand_backend"]
+source = ["sage_backend"]
 
 [tool.coverage.report]
 show_missing = true
@@ -84,84 +84,84 @@ show_missing = true
 
 # Layering of the workstation service (design doc §9.2): imports only go downward.
 [tool.importlinter]
-root_package = "teststand_backend"
+root_package = "sage_backend"
 include_external_packages = false
 
 [[tool.importlinter.contracts]]
 name = "Access layer (HTTP, MCP gateway) is not imported from below"
 type = "forbidden"
 source_modules = [
-  "teststand_backend.application",
-  "teststand_backend.devices",
-  "teststand_backend.projects",
-  "teststand_backend.wiring",
-  "teststand_backend.testing",
-  "teststand_backend.streams",
-  "teststand_backend.storage",
-  "teststand_backend.contracts",
+  "sage_backend.application",
+  "sage_backend.devices",
+  "sage_backend.projects",
+  "sage_backend.wiring",
+  "sage_backend.testing",
+  "sage_backend.streams",
+  "sage_backend.storage",
+  "sage_backend.contracts",
 ]
 forbidden_modules = [
-  "teststand_backend.host",
-  "teststand_backend.mcp_gateway",
+  "sage_backend.host",
+  "sage_backend.mcp_gateway",
 ]
 
 [[tool.importlinter.contracts]]
 name = "Domain layer does no I/O: no application or resource imports"
 type = "forbidden"
 source_modules = [
-  "teststand_backend.testing.compiler",
-  "teststand_backend.testing.interpreter",
-  "teststand_backend.testing.expression",
-  "teststand_backend.testing.models",
-  "teststand_backend.streams.judge",
+  "sage_backend.testing.compiler",
+  "sage_backend.testing.interpreter",
+  "sage_backend.testing.expression",
+  "sage_backend.testing.models",
+  "sage_backend.streams.judge",
 ]
 forbidden_modules = [
-  "teststand_backend.application",
-  "teststand_backend.devices",
-  "teststand_backend.projects",
-  "teststand_backend.wiring",
-  "teststand_backend.storage",
-  "teststand_backend.testing.application",
-  "teststand_backend.testing.engine",
-  "teststand_backend.testing.journal",
-  "teststand_backend.testing.run_io",
-  "teststand_backend.testing.runtime_state",
-  "teststand_backend.testing.store",
-  "teststand_backend.streams.source",
-  "teststand_backend.streams.clock",
-  "teststand_backend.streams.recorder",
-  "teststand_backend.streams.live",
-  "teststand_backend.streams.store",
+  "sage_backend.application",
+  "sage_backend.devices",
+  "sage_backend.projects",
+  "sage_backend.wiring",
+  "sage_backend.storage",
+  "sage_backend.testing.application",
+  "sage_backend.testing.engine",
+  "sage_backend.testing.journal",
+  "sage_backend.testing.run_io",
+  "sage_backend.testing.runtime_state",
+  "sage_backend.testing.store",
+  "sage_backend.streams.source",
+  "sage_backend.streams.clock",
+  "sage_backend.streams.recorder",
+  "sage_backend.streams.live",
+  "sage_backend.streams.store",
 ]
 
 [[tool.importlinter.contracts]]
 name = "Resource layer has no business dependencies"
 type = "forbidden"
 source_modules = [
-  "teststand_backend.devices.plugin_transport",
-  "teststand_backend.streams.source",
-  "teststand_backend.streams.clock",
-  "teststand_backend.streams.recorder",
-  "teststand_backend.storage",
+  "sage_backend.devices.plugin_transport",
+  "sage_backend.streams.source",
+  "sage_backend.streams.clock",
+  "sage_backend.streams.recorder",
+  "sage_backend.storage",
 ]
 forbidden_modules = [
-  "teststand_backend.application",
-  "teststand_backend.projects",
-  "teststand_backend.wiring",
-  "teststand_backend.testing",
-  "teststand_backend.streams.judge",
+  "sage_backend.application",
+  "sage_backend.projects",
+  "sage_backend.wiring",
+  "sage_backend.testing",
+  "sage_backend.streams.judge",
 ]
 
 [[tool.importlinter.contracts]]
 name = "Contracts depend on nothing else in the service"
 type = "forbidden"
-source_modules = ["teststand_backend.contracts"]
+source_modules = ["sage_backend.contracts"]
 forbidden_modules = [
-  "teststand_backend.application",
-  "teststand_backend.devices",
-  "teststand_backend.projects",
-  "teststand_backend.wiring",
-  "teststand_backend.testing",
-  "teststand_backend.streams",
-  "teststand_backend.storage",
+  "sage_backend.application",
+  "sage_backend.devices",
+  "sage_backend.projects",
+  "sage_backend.wiring",
+  "sage_backend.testing",
+  "sage_backend.streams",
+  "sage_backend.storage",
 ]

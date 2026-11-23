@@ -6,14 +6,14 @@ from typing import Any
 
 import pytest
 
-from teststand_backend.storage import (
+from sage_backend.storage import (
     SettingsStore,
     atomic_json,
     atomic_text,
     read_json,
     sync_directory,
 )
-from teststand_backend.util import UNDEFINED, clone
+from sage_backend.util import UNDEFINED, clone
 
 
 @pytest.mark.ts_case(

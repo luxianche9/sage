@@ -1,4 +1,4 @@
-"""Device packages (.tsdev): inspect, install, upgrade and uninstall across restarts."""
+"""Device packages (.sagedev): inspect, install, upgrade and uninstall across restarts."""
 
 from __future__ import annotations
 
@@ -12,13 +12,13 @@ from types import SimpleNamespace
 from typing import Any
 
 import pytest
-from teststand_device_sdk import PLUGINS_ENV, load_device
+from sage_device_sdk import PLUGINS_ENV, load_device
 
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.devices.plugin_store import PluginStore
-from teststand_backend.devices.plugin_transport import installed_device_types
+from sage_backend.contracts.errors import AppError
+from sage_backend.devices.plugin_store import PluginStore
+from sage_backend.devices.plugin_transport import installed_device_types
 
-MODULE = """from teststand_device_sdk import Device
+MODULE = """from sage_device_sdk import Device
 
 
 class Fake(Device):
@@ -33,10 +33,10 @@ DEVICE = Fake
 
 
 def wheel(
-    dist: str = "teststand_adapter_fake",
+    dist: str = "sage_plugin_fake",
     version: str = "1.0.0",
     device_type: str = "fake",
-    requires: tuple[str, ...] = ("teststand-device-sdk>=0.2,<0.3",),
+    requires: tuple[str, ...] = ("sage-device-sdk>=0.2,<0.3",),
     extra: dict[str, bytes] | None = None,
     tag: str = "py3-none-any",
 ) -> tuple[str, bytes]:
@@ -56,7 +56,7 @@ def wheel(
         archive.writestr(f"{info}/WHEEL", "Wheel-Version: 1.0\nRoot-Is-Purelib: true\n")
         if device_type:
             archive.writestr(
-                f"{info}/entry_points.txt", f"[teststand.devices]\n{device_type} = {dist}:DEVICE\n"
+                f"{info}/entry_points.txt", f"[sage.devices]\n{device_type} = {dist}:DEVICE\n"
             )
         for path, content in (extra or {}).items():
             archive.writestr(path, content)
@@ -73,7 +73,7 @@ def package(
         "formatVersion": 1,
         "kind": "devicePlugin",
         "type": "fake",
-        "distribution": "teststand-adapter-fake",
+        "distribution": "sage-plugin-fake",
         "version": "1.0.0",
         "manufacturer": "Acme",
         "model": "FAKE-1",
@@ -98,7 +98,7 @@ def isolated(monkeypatch: pytest.MonkeyPatch) -> Any:
     monkeypatch.setattr(sys, "path", list(sys.path))
     monkeypatch.setenv(PLUGINS_ENV, "")
     yield
-    for name in [name for name in sys.modules if name.startswith("teststand_adapter_fake")]:
+    for name in [name for name in sys.modules if name.startswith("sage_plugin_fake")]:
         del sys.modules[name]
 
 
@@ -190,22 +190,22 @@ def test_tampered_wheel_fails_its_hash() -> None:
     ("data", "problem"),
     [
         (package(sdk=">=9"), "needs device SDK"),
-        (package(wheels=[wheel(requires=("teststand-device-sdk>=9",))]), "Adapter needs"),
-        (package(wheels=[wheel(requires=("teststand-device-sdk", "numpy"))]), "numpy is not in"),
+        (package(wheels=[wheel(requires=("sage-device-sdk>=9",))]), "Adapter needs"),
+        (package(wheels=[wheel(requires=("sage-device-sdk", "numpy"))]), "numpy is not in"),
         (
-            package(wheels=[wheel(requires=("teststand-device-sdk", "pydantic<2"))]),
+            package(wheels=[wheel(requires=("sage-device-sdk", "pydantic<2"))]),
             "ships pydantic",
         ),
         (package(wheels=[wheel(tag="cp312-cp312-linux_x86_64")]), "not built for CPython 3.11"),
         (package(type="other"), "says other"),
         (package(wheels=[wheel(device_type="")]), "No wheel declares"),
         (
-            package(wheels=[wheel(extra={"teststand_adapter_fake-1.0.0.data/scripts/x": b""})]),
+            package(wheels=[wheel(extra={"sage_plugin_fake-1.0.0.data/scripts/x": b""})]),
             None,
         ),
     ],
 )
-async def test_packages_that_do_not_fit_this_testStand_are_refused(
+async def test_packages_that_do_not_fit_this_sage_are_refused(
     tmp_path: Path, isolated: Any, data: bytes, problem: str | None
 ) -> None:
     plugins = await store(tmp_path)
@@ -220,7 +220,7 @@ async def test_packages_that_do_not_fit_this_testStand_are_refused(
 
 
 async def test_wheel_data_purelib_is_unpacked_into_the_site(tmp_path: Path, isolated: Any) -> None:
-    extra = {"teststand_adapter_fake-1.0.0.data/purelib/fake_extra.py": b"VALUE = 7\n"}
+    extra = {"sage_plugin_fake-1.0.0.data/purelib/fake_extra.py": b"VALUE = 7\n"}
     plugins = await store(tmp_path)
     await plugins.install(package(wheels=[wheel(extra=extra)]))
     [site] = (tmp_path / "plugins" / "fake").glob("*/site")
@@ -230,15 +230,15 @@ async def test_wheel_data_purelib_is_unpacked_into_the_site(tmp_path: Path, isol
 async def test_adding_a_device_installs_its_package_and_removing_it_uninstalls(
     tmp_path: Path, isolated: Any
 ) -> None:
-    from teststand_backend.application import DefaultAuthorizer, DevicesApplication
-    from teststand_backend.application.authorization import (
+    from sage_backend.application import DefaultAuthorizer, DevicesApplication
+    from sage_backend.application.authorization import (
         AGENT_REQUEST_CONTEXT as AGENT,
     )
-    from teststand_backend.application.authorization import (
+    from sage_backend.application.authorization import (
         HUMAN_REQUEST_CONTEXT as HUMAN,
     )
-    from teststand_backend.contracts.operations import operation_spec
-    from teststand_backend.devices import DeviceService, DeviceStore, PluginTransport
+    from sage_backend.contracts.operations import operation_spec
+    from sage_backend.devices import DeviceService, DeviceStore, PluginTransport
 
     packages = await store_for(tmp_path)
     devices = DeviceStore(tmp_path / "devices")
@@ -264,14 +264,14 @@ async def test_adding_a_device_installs_its_package_and_removing_it_uninstalls(
         spec = operation_spec(method)
         assert spec is not None and spec.confirm
         assert DefaultAuthorizer().is_allowed(AGENT, spec.capability)
-    file = tmp_path / "fake.tsdev"
+    file = tmp_path / "fake.sagedev"
     file.write_bytes(data)
     third = await app.add_device_from_file(HUMAN, str(file), "从文件")
     assert third["device"]["label"] == "从文件"
     with pytest.raises(AppError, match="absolute path"):
-        await app.add_device_from_file(HUMAN, "fake.tsdev")
+        await app.add_device_from_file(HUMAN, "fake.sagedev")
     with pytest.raises(AppError, match="Cannot read"):
-        await app.add_device_from_file(HUMAN, str(tmp_path / "missing.tsdev"))
+        await app.add_device_from_file(HUMAN, str(tmp_path / "missing.sagedev"))
     bare = DevicesApplication(
         DefaultAuthorizer(),
         SimpleNamespace(packages=None),  # type: ignore[arg-type]
@@ -302,11 +302,11 @@ store_for = store
         (package(distribution="someone-else"), "package.json says someone-else"),
         (package(sdk="not a range"), "Invalid SDK range"),
         (
-            package(wheels=[wheel(requires=("teststand-device-sdk", "bad requirement!!"))]),
+            package(wheels=[wheel(requires=("sage-device-sdk", "bad requirement!!"))]),
             "Invalid",
         ),
         (
-            package(wheels=[wheel(), wheel("teststand_device_sdk", "0.2.0", "", ())]),
+            package(wheels=[wheel(), wheel("sage_device_sdk", "0.2.0", "", ())]),
             "must not carry",
         ),
         (package(wheels=[wheel(requires=("pywin32; sys_platform == 'nothing'",))]), None),
@@ -337,11 +337,11 @@ async def test_type_listing_reports_duplicates_and_broken_packages(
     tmp_path: Path, isolated: Any
 ) -> None:
     plugins = await store(tmp_path)
-    broken = wheel(dist="teststand_adapter_fake", device_type="fake")
+    broken = wheel(dist="sage_plugin_fake", device_type="fake")
     name, content = broken
     with zipfile.ZipFile(io.BytesIO(content)) as source:
         files = {item: source.read(item) for item in source.namelist()}
-    files["teststand_adapter_fake/__init__.py"] = b"raise ImportError('vendor DLL missing')\n"
+    files["sage_plugin_fake/__init__.py"] = b"raise ImportError('vendor DLL missing')\n"
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w") as target:
         for item, value in files.items():
@@ -354,7 +354,7 @@ async def test_type_listing_reports_duplicates_and_broken_packages(
     info = second / "twin-1.0.dist-info"
     info.mkdir(parents=True)
     (info / "METADATA").write_text("Metadata-Version: 2.1\nName: twin\nVersion: 1.0\n")
-    (info / "entry_points.txt").write_text("[teststand.devices]\nfake = twin:DEVICE\n")
+    (info / "entry_points.txt").write_text("[sage.devices]\nfake = twin:DEVICE\n")
     sys.path.append(str(second))
     import importlib
 
@@ -363,8 +363,8 @@ async def test_type_listing_reports_duplicates_and_broken_packages(
     assert "declared twice" in listed["error"]
 
 
-async def test_dependencies_testStand_ships_are_left_out(tmp_path: Path, isolated: Any) -> None:
-    adapter = wheel(requires=("teststand-device-sdk", "pydantic>=2", "extra-dep"))
+async def test_dependencies_sage_ships_are_left_out(tmp_path: Path, isolated: Any) -> None:
+    adapter = wheel(requires=("sage-device-sdk", "pydantic>=2", "extra-dep"))
     data = package(
         wheels=[adapter, wheel("pydantic", "2.0", "", ()), wheel("extra_dep", "1", "", ())]
     )
@@ -374,7 +374,7 @@ async def test_dependencies_testStand_ships_are_left_out(tmp_path: Path, isolate
     assert {item["name"].split("-")[0]: item["skipped"] for item in report["files"]} == {
         "pydantic": True,
         "extra_dep": False,
-        "teststand_adapter_fake": False,
+        "sage_plugin_fake": False,
     }
     await plugins.install(data)
     [site] = (tmp_path / "plugins" / "fake").glob("*/site")
@@ -386,17 +386,17 @@ async def test_dependencies_testStand_ships_are_left_out(tmp_path: Path, isolate
 async def test_updating_a_package_keeps_the_devices_and_waits_for_a_restart(
     tmp_path: Path, isolated: Any
 ) -> None:
-    from teststand_backend.application import DefaultAuthorizer, DevicesApplication
-    from teststand_backend.application.authorization import HUMAN_REQUEST_CONTEXT as HUMAN
-    from teststand_backend.contracts.operations import operation_spec
-    from teststand_backend.devices import DeviceService, DeviceStore, PluginTransport
+    from sage_backend.application import DefaultAuthorizer, DevicesApplication
+    from sage_backend.application.authorization import HUMAN_REQUEST_CONTEXT as HUMAN
+    from sage_backend.contracts.operations import operation_spec
+    from sage_backend.devices import DeviceService, DeviceStore, PluginTransport
 
     packages = await store_for(tmp_path)
     devices = DeviceStore(tmp_path / "devices")
     await devices.initialize()
     service = DeviceService(devices, PluginTransport(), packages)
     app = DevicesApplication(DefaultAuthorizer(), service, None)  # type: ignore[arg-type]
-    old, new = tmp_path / "fake-1.tsdev", tmp_path / "fake-2.tsdev"
+    old, new = tmp_path / "fake-1.sagedev", tmp_path / "fake-2.sagedev"
     old.write_bytes(package())
     new.write_bytes(package(version="2.0.0"))
     # Not installed yet: an update has nothing to update.
@@ -419,6 +419,6 @@ async def test_updating_a_package_keeps_the_devices_and_waits_for_a_restart(
     assert listing["packages"][0]["pending"] == {"action": "install", "version": "2.0.0"}
     spec = operation_spec(app.update_package_from_file)
     assert spec is not None and spec.confirm
-    for path in ("fake.tsdev", str(tmp_path / "missing.tsdev")):
+    for path in ("fake.sagedev", str(tmp_path / "missing.sagedev")):
         with pytest.raises(AppError):
             await app.update_package_from_file(HUMAN, path)

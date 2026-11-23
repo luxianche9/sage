@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import type { IcdFieldLayout } from "@teststand/contracts/testing";
+import type { IcdFieldLayout } from "@sage/contracts/testing";
 import { PencilIcon } from "lucide-react";
 import { Checkbox, cn, IconButton, Input, Select } from "../../ui";
 import { queryKeys } from "../../lib/query-keys.js";
@@ -72,13 +72,13 @@ export function EncodeEditor({ value, toolSchema, onChange }: {
   toolSchema: JsonSchema | undefined;
   onChange: (value: EncodeSpec | undefined) => void;
 }) {
-  const icds = useQuery({ queryKey: queryKeys.icds, queryFn: () => window.teststand.testing.listIcds() });
+  const icds = useQuery({ queryKey: queryKeys.icds, queryFn: () => window.sage.testing.listIcds() });
   const usable = (icds.data ?? []).filter((item) => item.valid && (item.encoders ?? []).length > 0);
   const fields = value?.fields ?? {};
   const debounced = useDebounced(JSON.stringify(fields), 300);
   const check = useQuery({
     queryKey: [...queryKeys.icd(value?.icd ?? ""), "encode", value?.message, debounced],
-    queryFn: () => window.teststand.testing.checkIcd({ input: {
+    queryFn: () => window.sage.testing.checkIcd({ input: {
       name: value?.icd ?? "", ...(value?.message ? { encode: { message: value.message, fields } } : {})
     } }),
     enabled: Boolean(value?.icd)

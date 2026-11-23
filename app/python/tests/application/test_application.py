@@ -6,19 +6,19 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from teststand_backend.application import (
+from sage_backend.application import (
     AGENT_REQUEST_CONTEXT as AGENT,
 )
-from teststand_backend.application import (
+from sage_backend.application import (
     HUMAN_REQUEST_CONTEXT as HUMAN,
 )
-from teststand_backend.application import (
+from sage_backend.application import (
     DefaultAuthorizer,
     ExecutionCoordinator,
     ManualControlApplication,
-    TestStandApplication,
+    SageApplication,
 )
-from teststand_backend.contracts.agents import CAPABILITIES
+from sage_backend.contracts.agents import CAPABILITIES
 
 Json = dict[str, Any]
 AGENT_ALLOWED = {
@@ -60,7 +60,7 @@ TOOL: Json = {
 }
 
 
-def make_app() -> tuple[TestStandApplication, Mock, Mock]:
+def make_app() -> tuple[SageApplication, Mock, Mock]:
     devices = Mock(
         save_computer=AsyncMock(),
         remove_device=AsyncMock(),
@@ -73,7 +73,7 @@ def make_app() -> tuple[TestStandApplication, Mock, Mock]:
     ]
     devices.list_devices.return_value = [{"deviceId": "S1", "hardwareId": "H1", "enabled": True}]
     wiring = Mock(request_task=AsyncMock(), complete_task=AsyncMock())
-    app = TestStandApplication(
+    app = SageApplication(
         {
             "devices": devices,
             "catalog": Mock(),

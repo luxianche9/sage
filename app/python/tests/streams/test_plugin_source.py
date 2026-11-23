@@ -7,10 +7,10 @@ from typing import Any
 
 import pytest
 
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.streams import source as source_module
-from teststand_backend.streams.clock import SHARED_CLOCK
-from teststand_backend.streams.source import StreamSource, StreamSources
+from sage_backend.contracts.errors import AppError
+from sage_backend.streams import source as source_module
+from sage_backend.streams.clock import SHARED_CLOCK
+from sage_backend.streams.source import StreamSource, StreamSources
 
 Record = dict[str, Any]
 
@@ -131,7 +131,7 @@ async def test_sources_resolve_loaded_devices_and_share_the_clock() -> None:
 
 
 async def test_hello_carries_what_the_plugin_declared_for_the_stream(tmp_path: Any) -> None:
-    from teststand_backend.streams.store import StreamStore
+    from sage_backend.streams.store import StreamStore
 
     class DescribedDevice(FakeDevice):
         async def describe(self) -> Record:

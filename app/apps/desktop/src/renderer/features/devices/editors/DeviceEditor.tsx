@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import type { DeviceInstance } from "@teststand/contracts/devices";
+import type { DeviceInstance } from "@sage/contracts/devices";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { errorMessage } from "../../../lib/errors.js";
@@ -55,7 +55,7 @@ export function DeviceEditor({ instance, onClose, onChanged }: {
   const save = useMutation({
     mutationFn: async (values: DeviceEditorValues) => {
       if (!instance) return;
-      const devices = window.teststand.devices;
+      const devices = window.sage.devices;
       await devices.saveDevice({ input: {
         ...instance,
         label: values.label.trim() || instance.label,

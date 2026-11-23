@@ -101,7 +101,7 @@ export function useMonitorTime(live: boolean, start?: number, whole?: TimeRange)
 
 /** The devices' live frames through one shared subscription, as long as the bench is mounted. */
 export function useLiveHub(): NonNullable<StreamSource["live"]> {
-  const hub = useMemo(() => createLiveHub(window.teststand.streams.live), []);
+  const hub = useMemo(() => createLiveHub(window.sage.streams.live), []);
   useEffect(() => () => hub.close(), [hub]);
   return hub;
 }

@@ -1,7 +1,7 @@
-import type { TestStandEventName } from "@teststand/contracts/desktop";
-import type { OperationName } from "@teststand/contracts/operations";
+import type { SageEventName } from "@sage/contracts/desktop";
+import type { OperationName } from "@sage/contracts/operations";
 import type {
-  DesktopMainCalls, DesktopMainChannel, TestStandHost, LocalApiEndpoint
+  DesktopMainCalls, DesktopMainChannel, SageHost, LocalApiEndpoint
 } from "../../../shared/desktop-ipc.js";
 import { startEventStream } from "../../../shared/event-stream.js";
 import { createOperationClient, fromWireError } from "../../../shared/operation-client.js";
@@ -14,13 +14,13 @@ export interface DesktopTransport {
   main<C extends DesktopMainChannel>(
     channel: C, ...args: Parameters<DesktopMainCalls[C]>
   ): ReturnType<DesktopMainCalls[C]>;
-  subscribe(event: TestStandEventName, listener: Listener): () => void;
+  subscribe(event: SageEventName, listener: Listener): () => void;
   /** A dedicated SSE stream of the backend (`/api/live?...`) until the returned function is called. */
   stream(path: string, dispatch: (event: string, payload: unknown) => void): () => void;
 }
 
 /** Operations go straight to `POST /api/ops/{name}`; events merge the backend's SSE with main's own. */
-export function createLocalTransport(host: TestStandHost, request: typeof fetch = fetch): DesktopTransport {
+export function createLocalTransport(host: SageHost, request: typeof fetch = fetch): DesktopTransport {
   const main = async (channel: DesktopMainChannel, ...args: unknown[]): Promise<unknown> => {
     const reply = await host.call(channel, args);
     if (!reply.ok) throw fromWireError(reply.error);

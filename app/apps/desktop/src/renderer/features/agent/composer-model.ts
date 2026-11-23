@@ -42,7 +42,7 @@ export type OpenCodeSelection = {
 };
 
 export const REQUEST_OPTIONS = { throwOnError: true } as const;
-const RECENT_FILES_KEY = "teststand.opencode-recent-files";
+const RECENT_FILES_KEY = "sage.opencode-recent-files";
 const MAX_RECENT_FILES = 8;
 
 export function parseOpenCodeCommand(text: string, commands: readonly OpenCodeCommandOption[]) {
@@ -143,7 +143,7 @@ export function formatContext(value?: number) {
   return `${Math.round(value / 1_000)}k ctx`;
 }
 
-/** A session's own model, unless it names a provider testStand no longer configures (older sessions
+/** A session's own model, unless it names a provider SAGE no longer configures (older sessions
  *  used another provider id); then the configured model. */
 function selectionFromSession(session: Session | null, fallback: OpenCodeSelection): OpenCodeSelection {
   const model = session?.model && session.model.providerID === fallback.model.providerID

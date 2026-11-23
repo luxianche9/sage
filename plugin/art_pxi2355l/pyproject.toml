@@ -3,23 +3,23 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "teststand-adapter-art-pxi2355l"
+name = "sage-plugin-art-pxi2355l"
 version = "1.0.0"
-description = "testStand device plugin for the ART Technology PXI2355L"
+description = "SAGE device plugin for the ART Technology PXI2355L"
 requires-python = ">=3.11"
-dependencies = ["teststand-device-sdk>=0.2,<0.3"]
+dependencies = ["sage-device-sdk>=0.2,<0.3"]
 
-[project.entry-points."teststand.devices"]
-art_pxi2355l = "teststand_adapter_art_pxi2355l:DEVICE"
+[project.entry-points."sage.devices"]
+art_pxi2355l = "sage_plugin_art_pxi2355l:DEVICE"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-teststand_adapter_art_pxi2355l = ["py.typed"]
+sage_plugin_art_pxi2355l = ["py.typed"]
 
-# Read by plugin/tools/pack.py into the .tsdev manifest: vendor drivers the bench must have installed,
+# Read by plugin/tools/pack.py into the .sagedev manifest: vendor drivers the bench must have installed,
 # and package files that must be in the wheel (e.g. "bin/<bridge>.exe").
-[tool.teststand.package]
+[tool.sage.package]
 vendorDrivers = ["ART-DAQ 1.10 (Art_DAQ_64.dll)"]
 requiredFiles = []

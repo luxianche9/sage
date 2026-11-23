@@ -7,11 +7,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from teststand_backend.application import DefaultAuthorizer
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.projects.icd_library import IcdLibrary
-from teststand_backend.protocol import checksums
-from teststand_backend.testing import TestingApplication
+from sage_backend.application import DefaultAuthorizer
+from sage_backend.contracts.errors import AppError
+from sage_backend.projects.icd_library import IcdLibrary
+from sage_backend.protocol import checksums
+from sage_backend.testing import TestingApplication
 
 from .test_testing import HUMAN, Projects
 

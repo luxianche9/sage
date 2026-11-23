@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from teststand_backend.protocol import Icd, checksums, load_icd
+from sage_backend.protocol import Icd, checksums, load_icd
 
 DUT_CMD_YAML = """\
 formatVersion: 1

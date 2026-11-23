@@ -1,66 +1,66 @@
 {
-  "name": "@teststand/contracts",
+  "name": "@sage/contracts",
   "version": "0.2.0",
   "private": true,
   "type": "module",
   "exports": {
     "./operations": {
-      "teststand-source": "./src/operations.ts",
+      "sage-source": "./src/operations.ts",
       "types": "./dist/operations.d.ts",
       "default": "./dist/operations.js"
     },
     "./devices": {
-      "teststand-source": "./src/devices.ts",
+      "sage-source": "./src/devices.ts",
       "types": "./dist/devices.d.ts",
       "default": "./dist/devices.js"
     },
     "./errors": {
-      "teststand-source": "./src/errors.ts",
+      "sage-source": "./src/errors.ts",
       "types": "./dist/errors.d.ts",
       "default": "./dist/errors.js"
     },
     "./monitor": {
-      "teststand-source": "./src/monitor.ts",
+      "sage-source": "./src/monitor.ts",
       "types": "./dist/monitor.d.ts",
       "default": "./dist/monitor.js"
     },
     "./storage": {
-      "teststand-source": "./src/storage.ts",
+      "sage-source": "./src/storage.ts",
       "types": "./dist/storage.d.ts",
       "default": "./dist/storage.js"
     },
     "./agents": {
-      "teststand-source": "./src/agents.ts",
+      "sage-source": "./src/agents.ts",
       "types": "./dist/agents.d.ts",
       "default": "./dist/agents.js"
     },
     "./execution": {
-      "teststand-source": "./src/execution.ts",
+      "sage-source": "./src/execution.ts",
       "types": "./dist/execution.d.ts",
       "default": "./dist/execution.js"
     },
     "./wiring": {
-      "teststand-source": "./src/wiring.ts",
+      "sage-source": "./src/wiring.ts",
       "types": "./dist/wiring.d.ts",
       "default": "./dist/wiring.js"
     },
     "./projects": {
-      "teststand-source": "./src/projects.ts",
+      "sage-source": "./src/projects.ts",
       "types": "./dist/projects.d.ts",
       "default": "./dist/projects.js"
     },
     "./desktop": {
-      "teststand-source": "./src/desktop.ts",
+      "sage-source": "./src/desktop.ts",
       "types": "./dist/desktop.d.ts",
       "default": "./dist/desktop.js"
     },
     "./testing": {
-      "teststand-source": "./src/testing.ts",
+      "sage-source": "./src/testing.ts",
       "types": "./dist/testing.d.ts",
       "default": "./dist/testing.js"
     },
     "./observability": {
-      "teststand-source": "./src/observability.ts",
+      "sage-source": "./src/observability.ts",
       "types": "./dist/observability.d.ts",
       "default": "./dist/observability.js"
     }

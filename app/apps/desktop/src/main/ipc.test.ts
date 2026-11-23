@@ -35,7 +35,7 @@ describe("Desktop main calls", () => {
 });
 
 describe("window calls", () => {
-  it("relaunches testStand on request", async () => {
+  it("relaunches SAGE on request", async () => {
     const deps = dependencies();
     await expect(dispatchMainCall(createMainHandlers(deps), "window.relaunch", [])).resolves.toEqual({ ok: true, value: undefined });
     expect(deps.windows.relaunch).toHaveBeenCalledOnce();

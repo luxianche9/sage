@@ -10,12 +10,12 @@ from unittest.mock import MagicMock, create_autospec
 
 import pytest
 
-from teststand_backend.application import TestStandApplication
-from teststand_backend.application.registry import OperationRegistry
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.contracts.wire import to_json
-from teststand_backend.host.http_api import RENDERER_CONTEXT
-from teststand_backend.host.runtime import SERVICE_OPERATIONS, service_targets
+from sage_backend.application import SageApplication
+from sage_backend.application.registry import OperationRegistry
+from sage_backend.contracts.errors import AppError
+from sage_backend.contracts.wire import to_json
+from sage_backend.host.http_api import RENDERER_CONTEXT
+from sage_backend.host.runtime import SERVICE_OPERATIONS, service_targets
 
 
 def restore(value: Any) -> Any:
@@ -33,11 +33,11 @@ CASES = restore(
 )
 
 
-def registry() -> tuple[TestStandApplication, OperationRegistry]:
+def registry() -> tuple[SageApplication, OperationRegistry]:
     dependencies: dict[str, Any] = {
         name: MagicMock() for name in ("devices", "catalog", "projects", "wiring", "system")
     }
-    application = TestStandApplication(dependencies)
+    application = SageApplication(dependencies)
     return application, OperationRegistry(
         service_targets(application, MagicMock(), MagicMock()), SERVICE_OPERATIONS
     )

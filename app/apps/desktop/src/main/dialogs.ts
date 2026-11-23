@@ -1,7 +1,7 @@
 import { readFile, rename, writeFile } from "node:fs/promises";
 import { extname } from "node:path";
 import { dialog, type BrowserWindow } from "electron";
-import type { DeviceBundleExport, DeviceBundleKind } from "@teststand/contracts/devices";
+import type { DeviceBundleExport, DeviceBundleKind } from "@sage/contracts/devices";
 
 export class DesktopDialogs {
   constructor(private readonly parent: () => BrowserWindow | undefined) {}
@@ -20,8 +20,8 @@ export class DesktopDialogs {
   async saveBundle(kind: DeviceBundleKind, id: string, data: Uint8Array): Promise<DeviceBundleExport | null> {
     const selected = await dialog.showSaveDialog(this.requireParent(), {
       title: "导出硬件",
-      defaultPath: `${id}.tshw`,
-      filters: [{ name: "testStand Device", extensions: ["tshw"] }]
+      defaultPath: `${id}.sagehw`,
+      filters: [{ name: "SAGE Device", extensions: ["sagehw"] }]
     });
     if (selected.canceled || !selected.filePath) return null;
     await atomicWrite(selected.filePath, data);
@@ -32,7 +32,7 @@ export class DesktopDialogs {
     const selected = await dialog.showOpenDialog(this.requireParent(), {
       title: "导入硬件",
       properties: ["openFile"],
-      filters: [{ name: "testStand Device", extensions: ["tshw"] }]
+      filters: [{ name: "SAGE Device", extensions: ["sagehw"] }]
     });
     const path = selected.filePaths[0];
     return selected.canceled || !path ? null : new Uint8Array(await readFile(path));
@@ -42,7 +42,7 @@ export class DesktopDialogs {
     const selected = await dialog.showOpenDialog(this.requireParent(), {
       title: "安装设备包",
       properties: ["openFile"],
-      filters: [{ name: "testStand 设备包", extensions: ["tsdev"] }]
+      filters: [{ name: "SAGE 设备包", extensions: ["sagedev"] }]
     });
     const path = selected.filePaths[0];
     return selected.canceled || !path ? null : new Uint8Array(await readFile(path));

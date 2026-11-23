@@ -86,7 +86,7 @@ describe("IcdEditorDialog", () => {
       key: "COM__link", type: "bytes",
       records: [{ t: 1, tb: 1, dir: "rx", data: "aa5505010009e2" }, { t: 2, tb: 2, dir: "tx", data: "ff" }]
     }));
-    Object.assign(window.teststand, { streams: { recent } });
+    Object.assign(window.sage, { streams: { recent } });
     const source = { hardwareId: "COM", streamId: "link" };
     render(<IcdEditorDialog name="dut" alias="dut" source={source} onClose={vi.fn()} />, { wrapper: Wrapper });
     expect(await screen.findByRole("textbox", { name: "协议名" })).toBeTruthy();

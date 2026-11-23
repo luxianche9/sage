@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { HardwarePort } from "@teststand/contracts/devices";
+import type { HardwarePort } from "@sage/contracts/devices";
 import { PlusIcon } from "lucide-react";
 import { AddSlot, Button } from "../../ui";
 import { pinTotal, uniqueId } from "./port-model.js";

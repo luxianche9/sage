@@ -5,10 +5,10 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from teststand_backend.application import DefaultAuthorizer
-from teststand_backend.contracts.validation import ValidationError
-from teststand_backend.mcp_gateway.tool_registry import ToolRegistry
-from teststand_backend.testing.tools import TESTING_TOOLS
+from sage_backend.application import DefaultAuthorizer
+from sage_backend.contracts.validation import ValidationError
+from sage_backend.mcp_gateway.tool_registry import ToolRegistry
+from sage_backend.testing.tools import TESTING_TOOLS
 
 AGENT = {"actor": "agent", "source": "mcp"}
 

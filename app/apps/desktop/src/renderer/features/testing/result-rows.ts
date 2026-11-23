@@ -1,4 +1,4 @@
-import type { TestResult } from "@teststand/contracts/testing";
+import type { TestResult } from "@sage/contracts/testing";
 
 /** One measurement of a run as a test engineer reads it: what was measured, the value, the limits, the verdict. */
 export interface ResultRow {

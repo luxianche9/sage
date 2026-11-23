@@ -3,22 +3,22 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "teststand-adapter-cp118u-i"
+name = "sage-plugin-cp118u-i"
 version = "0.2.0"
-description = "testStand device plugin for the Moxa CP-118U-I 8-port serial card"
+description = "SAGE device plugin for the Moxa CP-118U-I 8-port serial card"
 requires-python = ">=3.11"
-dependencies = ["teststand-device-sdk>=0.2,<0.3"]
+dependencies = ["sage-device-sdk>=0.2,<0.3"]
 
-[project.entry-points."teststand.devices"]
-cp118u_i = "teststand_adapter_cp118u_i:DEVICE"
+[project.entry-points."sage.devices"]
+cp118u_i = "sage_plugin_cp118u_i:DEVICE"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-teststand_adapter_cp118u_i = ["py.typed"]
+sage_plugin_cp118u_i = ["py.typed"]
 
-# Read by plugin/tools/pack.py into the .tsdev manifest.
-[tool.teststand.package]
+# Read by plugin/tools/pack.py into the .sagedev manifest.
+[tool.sage.package]
 vendorDrivers = ["Moxa PComm Lite"]
 requiredFiles = []

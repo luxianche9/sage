@@ -1,6 +1,6 @@
 # LJ-CO-CPCI-8 设备插件
 
-包 `teststand_adapter_lj_co8`，设备类型 `lj_co8`（入口点组 `teststand.devices`），由 testStand 后端作为插件加载。`isolation`：`inproc`。厂商驱动 `PXI4281.dll` 是 32 位 LabWindows/CVI 仪器驱动（基于 NI-VISA），64 位后端加载不了，所以经 32 位桥接程序 `bin/hwcli_lj_co8.exe`（源码 `plugin/lj_co8/native/hwcli_lj_co8.cpp`，`python plugin/tools/native/build_x86.py` 用 MSVC x86 构建）调用；桥接程序本身是独立进程，驱动崩溃或打印都不影响后端。`PXI4281.dll` 随包放在 `bin/`（与厂商安装包里的文件逐字节相同）。资料：《LJ-CO-CPCI-8 用户手册》V1.0、`PXI4281_api.h`、厂商演示程序源码。
+包 `sage_plugin_lj_co8`，设备类型 `lj_co8`（入口点组 `sage.devices`），由 SAGE 后端作为插件加载。`isolation`：`inproc`。厂商驱动 `PXI4281.dll` 是 32 位 LabWindows/CVI 仪器驱动（基于 NI-VISA），64 位后端加载不了，所以经 32 位桥接程序 `bin/hwcli_lj_co8.exe`（源码 `plugin/lj_co8/native/hwcli_lj_co8.cpp`，`python plugin/tools/native/build_x86.py` 用 MSVC x86 构建）调用；桥接程序本身是独立进程，驱动崩溃或打印都不影响后端。`PXI4281.dll` 随包放在 `bin/`（与厂商安装包里的文件逐字节相同）。资料：《LJ-CO-CPCI-8 用户手册》V1.0、`PXI4281_api.h`、厂商演示程序源码。
 
 一个插件实例只管理一个硬件。公共工具（`get_device_info`、`list_hardware`、`get_hardware_info`、`self_test`、`co8_stream_read`）、信封格式、`/device` 声明（身份、说明、引脚、流、能力）和流读取由 SDK 提供，见 `plugin/README.md`。插件只报告状态，不判定通过 / 失败。超时或错误不表示继电器没有动作：保留原错误，重新设置或测量后再决定下一步。
 
@@ -38,7 +38,7 @@
 
 `self_test` 不能证明电容值。断开被测设备（RIU）后：
 
-1. 在 testStand 里添加本设备，运行 `self_test`，3 项全部通过。
+1. 在 SAGE 里添加本设备，运行 `self_test`，3 项全部通过。
 2. LCR 表（测试频率 1 kHz 或 10 kHz，先做开路清零，表笔线尽量短）接 C0：引脚 20 和 3。
 3. 依次 `set_capacitance` 设 5、10、100、500、1000 pF，读表。读数与设定值相差应在 ±0.5 pF 加表的误差和引线分布电容以内。
 4. 对每一路至少抽测 100 pF 和 1000 pF（引脚见上表），并在设 C0 为 1000 pF 时测 C1 仍为原值，排查串线。
@@ -47,7 +47,7 @@
 
 ## 构建与测试
 
-适配器基于 `teststand-device-sdk`（`sdk`）。本地测试不访问硬件：
+适配器基于 `sage-device-sdk`（`sdk`）。本地测试不访问硬件：
 
 ```powershell
 cd devices
@@ -55,4 +55,4 @@ cd devices
 python native/build_x86.py                # 修改桥接源码后重建 bin/hwcli_lj_co8.exe（需 VS C++ x86 工具集）
 ```
 
-交付给 testStand 用设备包：`python plugin/tools/pack.py lj_co8` 生成 `plugin/dist/lj_co8-<版本>.tsdev`；在 testStand 测试台架点“+ → 添加设备…”选这个文件，先以模拟模式添加验证，再编辑为实物做空载验收。
+交付给 SAGE 用设备包：`python plugin/tools/pack.py lj_co8` 生成 `plugin/dist/lj_co8-<版本>.sagedev`；在 SAGE 测试台架点“+ → 添加设备…”选这个文件，先以模拟模式添加验证，再编辑为实物做空载验收。

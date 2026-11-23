@@ -1,4 +1,4 @@
-# testStand Agent renderer
+# SAGE Agent renderer
 
 This module is adapted from the official `assistant-ui` OpenCode example and UI components at commit
 `8bba3aaadcae042b4750436e6aa62bbba4815dde`:
@@ -6,7 +6,7 @@ This module is adapted from the official `assistant-ui` OpenCode example and UI 
 - `examples/with-opencode`
 - `packages/ui/src/components/assistant-ui`
 
-Upstream is MIT licensed. testStand adaptations keep the existing Electron/OpenCode runtime and IPC,
+Upstream is MIT licensed. SAGE adaptations keep the existing Electron/OpenCode runtime and IPC,
 translate product copy to Chinese, enable OpenCode-compatible text/image/PDF attachments, add model and Agent
 selection, `/` commands and `@` project-file context, replace the persistent thread sidebar with a 16rem overlay
 drawer, and consume the app-wide Tailwind design tokens and shared component library in

@@ -1,4 +1,4 @@
-import type { StreamPoint } from "@teststand/contracts/observability";
+import type { StreamPoint } from "@sage/contracts/observability";
 import { maskOr, pointMask, type TimeRange } from "./stream-model.js";
 
 /**

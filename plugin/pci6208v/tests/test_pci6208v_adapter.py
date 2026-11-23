@@ -5,10 +5,10 @@ import time
 
 import pytest
 
-from teststand_device_sdk.testing import check_device, dry_run_config, serve
-from teststand_adapter_pci6208v import DEVICE, Pci6208v
-from teststand_adapter_pci6208v.adapter import clamp_volts, configured_safe_volts
-from teststand_adapter_pci6208v.pinout import pinout
+from sage_device_sdk.testing import check_device, dry_run_config, serve
+from sage_plugin_pci6208v import DEVICE, Pci6208v
+from sage_plugin_pci6208v.adapter import clamp_volts, configured_safe_volts
+from sage_plugin_pci6208v.pinout import pinout
 
 
 PUBLIC_TOOLS = {
@@ -32,13 +32,13 @@ def test_entry_point_and_compliance():
 
 
 def test_public_contract(hh):
-    internal = {name for name, item in hh.tools.items() if item["_meta"]["teststand"]["kind"] == "internal"}
-    assert internal == {"teststand_prepare_shutdown"}
+    internal = {name for name, item in hh.tools.items() if item["_meta"]["sage"]["kind"] == "internal"}
+    assert internal == {"sage_prepare_shutdown"}
     assert set(hh.tools) - internal == PUBLIC_TOOLS
-    semantics = hh.tools["pci6208v_set_voltage"]["_meta"]["teststand"]["operationSemantics"]
+    semantics = hh.tools["pci6208v_set_voltage"]["_meta"]["sage"]["operationSemantics"]
     assert semantics["retry"] == "never_after_dispatch"
     assert semantics["safetyAction"]["toolName"] == "pci6208v_safe_state"
-    assert hh.tools["pci6208v_read_last"]["_meta"]["teststand"]["operationSemantics"]["evidenceType"] == "software_shadow"
+    assert hh.tools["pci6208v_read_last"]["_meta"]["sage"]["operationSemantics"]["evidenceType"] == "software_shadow"
     volts = hh.tools["pci6208v_set_voltage"]["inputSchema"]["properties"]["volts"]
     assert (volts["minimum"], volts["maximum"]) == (-10, 10)
 

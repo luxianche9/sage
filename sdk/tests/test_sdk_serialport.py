@@ -1,8 +1,8 @@
 import sys
 
 import pytest
-from teststand_device_sdk import DeviceError, SerialPort, SimulatedSerialPort, list_ports
-from teststand_device_sdk.errors import DEVICE_UNREACHABLE, INVALID_ARGUMENT
+from sage_device_sdk import DeviceError, SerialPort, SimulatedSerialPort, list_ports
+from sage_device_sdk.errors import DEVICE_UNREACHABLE, INVALID_ARGUMENT
 
 
 def test_simulated_port_reads_nothing_until_loopback_or_inject():
@@ -50,7 +50,7 @@ def test_missing_port_is_unreachable_and_ports_are_listed():
 
 
 def test_multi_connector_pinout_names_pins_per_connector():
-    from teststand_device_sdk import function, multi_connector_pinout
+    from sage_device_sdk import function, multi_connector_pinout
 
     rx = (function("RXD", "input", "rs232", channel_kind="COM", channel_index=0),)
     layout = multi_connector_pinout("CARD", "Acme", "SER-2", [

@@ -9,17 +9,17 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from teststand_backend.application import (
+from sage_backend.application import (
     AGENT_REQUEST_CONTEXT,
     HUMAN_REQUEST_CONTEXT,
     DefaultAuthorizer,
 )
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.host.agents import AgentsApplication
-from teststand_backend.host.opencode import LlmChoice
-from teststand_backend.host.settings import LLM_SECRET, SettingsApplication
-from teststand_backend.storage import SecretStore, SettingsStore
-from teststand_backend.storage.secrets import MemorySecretBackend
+from sage_backend.contracts.errors import AppError
+from sage_backend.host.agents import AgentsApplication
+from sage_backend.host.opencode import LlmChoice
+from sage_backend.host.settings import LLM_SECRET, SettingsApplication
+from sage_backend.storage import SecretStore, SettingsStore
+from sage_backend.storage.secrets import MemorySecretBackend
 
 
 class OpenCode:

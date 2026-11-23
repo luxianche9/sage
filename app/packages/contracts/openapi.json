@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "testStand service",
+    "title": "SAGE service",
     "version": "0.2.0"
   },
   "components": {
@@ -2204,7 +2204,7 @@
     "/api/ops/devices.addDevice": {
       "post": {
         "operationId": "devices.addDevice",
-        "summary": "Add a device from its ``.tsdev`` package. The package is installed when needed, the\ndevice gets generated ids and is connected at once.",
+        "summary": "Add a device from its ``.sagedev`` package. The package is installed when needed, the\ndevice gets generated ids and is connected at once.",
         "tags": [
           "devices"
         ],
@@ -2257,7 +2257,7 @@
     "/api/ops/devices.addDeviceFromFile": {
       "post": {
         "operationId": "devices.addDeviceFromFile",
-        "summary": "Add a device from a ``.tsdev`` device package on this computer (absolute path). The\npackage's driver code runs inside testStand, so the operator confirms first.",
+        "summary": "Add a device from a ``.sagedev`` device package on this computer (absolute path). The\npackage's driver code runs inside SAGE, so the operator confirms first.",
         "tags": [
           "devices"
         ],
@@ -2647,7 +2647,7 @@
     "/api/ops/devices.inspectPackage": {
       "post": {
         "operationId": "devices.inspectPackage",
-        "summary": "What adding a device from a ``.tsdev`` would install: manifest, files, SHA-256 and any\nproblems. Writes nothing.",
+        "summary": "What adding a device from a ``.sagedev`` would install: manifest, files, SHA-256 and any\nproblems. Writes nothing.",
         "tags": [
           "devices"
         ],
@@ -3213,7 +3213,7 @@
     "/api/ops/devices.saveDevice": {
       "post": {
         "operationId": "devices.saveDevice",
-        "summary": "Create or update a device's settings; the operator confirms in testStand.",
+        "summary": "Create or update a device's settings; the operator confirms in SAGE.",
         "tags": [
           "devices"
         ],
@@ -3324,7 +3324,7 @@
     "/api/ops/devices.updatePackageFromFile": {
       "post": {
         "operationId": "devices.updatePackageFromFile",
-        "summary": "Update the driver of an installed device type from a newer (or rebuilt) ``.tsdev``;\nits devices keep their ids, settings and wiring and use it after testStand restarts.\nAdds no device. The operator confirms first.",
+        "summary": "Update the driver of an installed device type from a newer (or rebuilt) ``.sagedev``;\nits devices keep their ids, settings and wiring and use it after SAGE restarts.\nAdds no device. The operator confirms first.",
         "tags": [
           "devices"
         ],

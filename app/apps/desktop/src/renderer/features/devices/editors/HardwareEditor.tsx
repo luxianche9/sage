@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import type { Hardware, HardwarePort } from "@teststand/contracts/devices";
+import type { Hardware, HardwarePort } from "@sage/contracts/devices";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { errorMessage } from "../../../lib/errors.js";
@@ -44,7 +44,7 @@ export function HardwareEditor({ open, hardware, onClose, onChanged }: {
   const save = useMutation({
     mutationFn: async (values: HardwareEditorValues) => {
       const normalizedId = values.hardwareId.trim();
-      return await window.teststand.devices.saveHardware({
+      return await window.sage.devices.saveHardware({
         input: {
           formatVersion: 2,
           hardwareId: normalizedId,

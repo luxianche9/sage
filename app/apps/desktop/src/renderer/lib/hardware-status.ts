@@ -1,4 +1,4 @@
-import type { HardwareAvailability, DeviceStatus } from "@teststand/contracts/devices";
+import type { HardwareAvailability, DeviceStatus } from "@sage/contracts/devices";
 
 /** Device pages and wiring must describe the same hardware, not just its MCP connection. */
 export function hardwareStatus(instance?: DeviceStatus, availability?: HardwareAvailability): {

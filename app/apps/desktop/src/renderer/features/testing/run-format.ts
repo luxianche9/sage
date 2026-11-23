@@ -1,6 +1,6 @@
-import type { RunTimeline } from "@teststand/contracts/observability";
-import type { TestResult, TestRunEvent, TestRunLog } from "@teststand/contracts/testing";
-import type { TestStep } from "@teststand/contracts/testing";
+import type { RunTimeline } from "@sage/contracts/observability";
+import type { TestResult, TestRunEvent, TestRunLog } from "@sage/contracts/testing";
+import type { TestStep } from "@sage/contracts/testing";
 import { deviceName, stepDepths, type ConsoleEntry } from "../streams/index.js";
 import type { ExecutionTrace, ExecutionTraceNode } from "./run-log-model.js";
 

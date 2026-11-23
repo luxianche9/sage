@@ -100,7 +100,7 @@ export function MonitorPane({ bench, toolbar }: {
     if (!runId) return;
     setRejudging(true);
     try {
-      const result = await window.teststand.testing.rejudgeRun({ runId });
+      const result = await window.sage.testing.rejudgeRun({ runId });
       const changed = result.results.filter((item) => !item.same).length;
       if (result.consistent) toast.success(`复核一致：${result.results.length} 项判定与原结果相同`);
       else toast.error(`复核发现 ${changed} 项判定与原结果不同`);

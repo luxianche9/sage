@@ -1,4 +1,4 @@
-export const ASSISTANT_OPEN_KEY = "teststand.assistant-open";
+export const ASSISTANT_OPEN_KEY = "sage.assistant-open";
 
 export function readAssistantOpen(storage: Pick<Storage, "getItem"> = localStorage): boolean {
   return storage.getItem(ASSISTANT_OPEN_KEY) === "true";

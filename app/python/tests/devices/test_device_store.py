@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import pytest
 
-from teststand_backend.devices import DeviceStore
+from sage_backend.devices import DeviceStore
 
 PREFIX = "packages/devices/src/device-store.test.ts::"
 

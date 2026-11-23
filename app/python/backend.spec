@@ -5,21 +5,21 @@ from PyInstaller.utils.hooks import collect_data_files, collect_submodules, copy
 
 root = Path(SPECPATH)
 datas = []
-for package in ("certifi", "jsonschema_specifications", "teststand_backend.mcp_gateway", "teststand_backend.workspace"):
+for package in ("certifi", "jsonschema_specifications", "sage_backend.mcp_gateway", "sage_backend.workspace"):
     datas += collect_data_files(package)
 datas += copy_metadata("ada-url")
-# No adapter is bundled: device types are installed as .tsdev packages into the user data
+# No adapter is bundled: device types are installed as .sagedev packages into the user data
 # directory. The SDK they import is bundled whole, with its metadata (packages check its version).
-datas += copy_metadata("teststand-device-sdk")
-datas += copy_metadata("teststand-backend")  # __version__ reads it
+datas += copy_metadata("sage-device-sdk")
+datas += copy_metadata("sage-backend")  # __version__ reads it
 binaries = []
 hiddenimports = [
     "anyio._backends._asyncio", "uvicorn.loops.asyncio", "uvicorn.protocols.http.h11_impl",
     "uvicorn.lifespan.on", "sqlite3", "cryptography", "pydantic_core",
     "ada_url._ada_wrapper", "_cffi_backend",
 ]
-hiddenimports += collect_submodules("teststand_backend")
-hiddenimports += collect_submodules("teststand_device_sdk")
+hiddenimports += collect_submodules("sage_backend")
+hiddenimports += collect_submodules("sage_device_sdk")
 # Adapters may use any standard-library module; PyInstaller only bundles the ones it sees imported.
 hiddenimports += [
     "ctypes", "ctypes.wintypes", "winreg", "socket", "select", "struct", "queue", "statistics", "csv",
@@ -31,6 +31,6 @@ a = Analysis(
     noarchive=False,
 )
 pyz = PYZ(a.pure)
-exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name="teststand-backend", debug=False,
+exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name="sage-backend", debug=False,
           bootloader_ignore_signals=False, strip=False, upx=False, console=True)
-coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name="teststand-backend")
+coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name="sage-backend")

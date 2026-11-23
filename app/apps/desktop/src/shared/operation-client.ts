@@ -1,5 +1,5 @@
-import type { AppError, ErrorCategory, WireError } from "@teststand/contracts/errors";
-import { BYTES_RESULT_OPERATIONS, type OperationName } from "@teststand/contracts/operations";
+import type { AppError, ErrorCategory, WireError } from "@sage/contracts/errors";
+import { BYTES_RESULT_OPERATIONS, type OperationName } from "@sage/contracts/operations";
 import type { LocalApiEndpoint } from "./desktop-ipc.js";
 
 /** `POST /api/ops/{name}` of the Python service (design doc §9.4), with its named JSON body. Only

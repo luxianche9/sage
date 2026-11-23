@@ -4,8 +4,8 @@ from typing import Any
 
 import pytest
 
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.protocol.expr import FUNCTIONS, compile_expression
+from sage_backend.contracts.errors import AppError
+from sage_backend.protocol.expr import FUNCTIONS, compile_expression
 
 
 def evaluate(source: str, **fields: Any) -> Any:

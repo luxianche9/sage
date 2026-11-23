@@ -25,7 +25,7 @@ describe("parameter widgets", () => {
       .toEqual({ kind: "multi", min: 0, max: 31 });
     expect(widgetFor("hex", { type: "string" })).toEqual({ kind: "hex" });
     expect(widgetFor("text", { type: "string" })).toEqual({ kind: "text" });
-    expect(widgetFor("channel", { type: "integer", minimum: 0, maximum: 7, "x-teststand-widget": "slider" }))
+    expect(widgetFor("channel", { type: "integer", minimum: 0, maximum: 7, "x-sage-widget": "slider" }))
       .toMatchObject({ kind: "number" });
   });
 

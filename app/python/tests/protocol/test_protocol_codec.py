@@ -4,8 +4,8 @@ from typing import Any
 
 import pytest
 
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.protocol import (
+from sage_backend.contracts.errors import AppError
+from sage_backend.protocol import (
     Icd,
     checksums,
     decode_frame,
@@ -15,8 +15,8 @@ from teststand_backend.protocol import (
     parse_icd,
     verify_checksum,
 )
-from teststand_backend.protocol.codec import decode_field
-from teststand_backend.protocol.framing import cobs_encode, slip_encode
+from sage_backend.protocol.codec import decode_field
+from sage_backend.protocol.framing import cobs_encode, slip_encode
 
 from .icd_fixtures import ack_frame, dut_cmd, status_frame
 

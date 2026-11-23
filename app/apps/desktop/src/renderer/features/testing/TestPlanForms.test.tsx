@@ -2,7 +2,7 @@
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { TestExpressionReference, TestStep } from "@teststand/contracts/testing";
+import type { TestExpressionReference, TestStep } from "@sage/contracts/testing";
 import { BoundArgumentsForm, PlanParametersEditor, StepSettingsForm } from "./TestPlanForms.js";
 
 afterEach(() => cleanup());

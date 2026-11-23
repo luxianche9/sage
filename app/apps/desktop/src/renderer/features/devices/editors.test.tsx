@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
-import type { DeviceInstance } from "@teststand/contracts/devices";
+import type { DeviceInstance } from "@sage/contracts/devices";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { HardwareEditor } from "./editors/HardwareEditor.js";
 import { DeviceEditor } from "./editors/DeviceEditor.js";
@@ -23,7 +23,7 @@ beforeEach(() => {
   listHardware.mockResolvedValue([]);
   saveDevice.mockResolvedValue(undefined);
   refreshDevice.mockResolvedValue({ deviceId: "PCI1762", transport: { state: "online" } });
-  Object.defineProperty(window, "teststand", {
+  Object.defineProperty(window, "sage", {
     configurable: true,
     value: {
       devices: { saveHardware, listHardware, saveDevice, refreshDevice }

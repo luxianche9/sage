@@ -7,13 +7,13 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from teststand_backend.application.authorization import (
+from sage_backend.application.authorization import (
     AGENT_REQUEST_CONTEXT,
     DefaultAuthorizer,
 )
-from teststand_backend.application.services import ProjectsApplication
-from teststand_backend.contracts.validation import ValidationError
-from teststand_backend.mcp_gateway.tool_registry import ToolRegistry
+from sage_backend.application.services import ProjectsApplication
+from sage_backend.contracts.validation import ValidationError
+from sage_backend.mcp_gateway.tool_registry import ToolRegistry
 
 
 def setup(dirty: bool = False, state: str = "idle") -> tuple[Any, Any]:

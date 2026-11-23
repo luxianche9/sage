@@ -9,11 +9,11 @@ from typing import Any
 
 import pytest
 
-from teststand_backend.application import ExecutionCoordinator
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.testing import TestEngine
-from teststand_backend.testing.journal import recording_path
-from teststand_backend.testing.models import empty_plan
+from sage_backend.application import ExecutionCoordinator
+from sage_backend.contracts.errors import AppError
+from sage_backend.testing import TestEngine
+from sage_backend.testing.journal import recording_path
+from sage_backend.testing.models import empty_plan
 
 from .fake_service import FakeStreamService
 
@@ -198,7 +198,7 @@ async def test_observe_expect_guard_pass_and_rejudge_consistently(tmp_path: Path
         "answer": "Pass",
         "safe": "Pass",
     }
-    run_dir = tmp_path / ".teststand" / "runs" / completed["runId"]
+    run_dir = tmp_path / ".sage" / "runs" / completed["runId"]
     assert recording_path(run_dir) == run_dir / "run.sqlite"
     assert not (run_dir / "streams.sqlite").exists()
     kinds = {event["type"] for event in engine.runs[completed["runId"]].events}

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ProjectDocument } from "@teststand/contracts/projects";
+import type { ProjectDocument } from "@sage/contracts/projects";
 import { errorMessage } from "../errors.js";
 
 export type PendingAction = { run: () => Promise<void>; label: string };
@@ -25,7 +25,7 @@ export function useDirtyGuard(
         label: "关闭窗口",
         run: async () => {
           closing.current = true;
-          await window.teststand.window.close();
+          await window.sage.window.close();
         }
       });
     };

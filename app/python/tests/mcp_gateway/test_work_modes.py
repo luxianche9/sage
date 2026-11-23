@@ -9,13 +9,13 @@ from unittest.mock import AsyncMock, Mock
 import httpx
 import pytest
 
-from teststand_backend.application import OPERATIONS, DefaultAuthorizer
-from teststand_backend.application.registry import OperationRegistry
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.mcp_gateway import LocalMcpGateway
-from teststand_backend.mcp_gateway.gateway import _work_mode
-from teststand_backend.mcp_gateway.tool_registry import ToolRegistry
-from teststand_backend.storage.audit_log import AuditLog
+from sage_backend.application import OPERATIONS, DefaultAuthorizer
+from sage_backend.application.registry import OperationRegistry
+from sage_backend.contracts.errors import AppError
+from sage_backend.mcp_gateway import LocalMcpGateway
+from sage_backend.mcp_gateway.gateway import _work_mode
+from sage_backend.mcp_gateway.tool_registry import ToolRegistry
+from sage_backend.storage.audit_log import AuditLog
 
 AGENT = {"actor": "agent", "source": "mcp"}
 REMOTE = {
@@ -78,7 +78,7 @@ async def test_generated_tools_come_from_profiled_operations() -> None:
     registry = ToolRegistry(app)
     tools = {tool["name"]: tool for tool in registry.list(AGENT)}
     definition = tools["devices_getDefinition"]
-    assert definition["_meta"]["teststand"]["operation"] == "devices.getDefinition"
+    assert definition["_meta"]["sage"]["operation"] == "devices.getDefinition"
     assert definition["annotations"] == {
         "readOnlyHint": True,
         "destructiveHint": False,

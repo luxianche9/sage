@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from teststand_device_sdk.testing import check_device, dry_run_config, serve
-from teststand_adapter_htlt_lvdt8 import DEVICE, HtltLvdt8
-from teststand_adapter_htlt_lvdt8.pinout import signals
+from sage_device_sdk.testing import check_device, dry_run_config, serve
+from sage_plugin_htlt_lvdt8 import DEVICE, HtltLvdt8
+from sage_plugin_htlt_lvdt8.pinout import signals
 
 PUBLIC_TOOLS = {
     "get_device_info", "list_hardware", "get_hardware_info", "self_test", "lvdt_stream_read",
@@ -33,7 +33,7 @@ def test_entry_point_and_compliance():
 
 
 def test_public_contract(hh):
-    internal = {name for name, item in hh.tools.items() if item["_meta"]["teststand"]["kind"] == "internal"}
+    internal = {name for name, item in hh.tools.items() if item["_meta"]["sage"]["kind"] == "internal"}
     assert set(hh.tools) - internal == PUBLIC_TOOLS
     position = hh.tools["lvdt_set_position"]["inputSchema"]["properties"]["position"]
     assert (position["minimum"], position["maximum"]) == (-1, 1)

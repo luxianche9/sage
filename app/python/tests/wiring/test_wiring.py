@@ -4,10 +4,10 @@ from typing import Any
 
 import pytest
 
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.projects import ProjectService
-from teststand_backend.storage import SettingsStore
-from teststand_backend.wiring import ProjectWiringService
+from sage_backend.contracts.errors import AppError
+from sage_backend.projects import ProjectService
+from sage_backend.storage import SettingsStore
+from sage_backend.wiring import ProjectWiringService
 
 PREFIX = "packages/wiring/src/project-wiring-agent.test.ts::Agent canvas permissions::"
 APP_PREFIX = "packages/application/src/project-services.test.ts::project-oriented services::"
@@ -237,7 +237,7 @@ async def test_finish_failure_rejection_disconnect_shutdown(
     await restored.initialize()
     cancelled = restored.get_task(pending["wiringTaskId"])
     assert cancelled["status"] == "cancelled"
-    assert cancelled["message"] == "testStand restarted before the operator answered"
+    assert cancelled["message"] == "SAGE restarted before the operator answered"
     assert restored.get_task(task["wiringTaskId"])["status"] == "confirmed"
     service.clear_session()
     assert service.list_tasks() == []

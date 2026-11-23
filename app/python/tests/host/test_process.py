@@ -17,7 +17,7 @@ import httpx
 import pytest
 import pytest_asyncio
 
-from teststand_backend.host.runtime import TEST_SECRETS_FILE
+from sage_backend.host.runtime import TEST_SECRETS_FILE
 
 
 class OperationFailed(RuntimeError):
@@ -98,16 +98,16 @@ async def client(tmp_path: Path) -> AsyncIterator[Client]:
 
 @asynccontextmanager
 async def running_client(profile: Path) -> AsyncIterator[Client]:
-    executable = os.environ.get("TESTSTAND_BACKEND_EXECUTABLE")
-    command = [executable] if executable else [sys.executable, "-u", "-m", "teststand_backend.host"]
+    executable = os.environ.get("SAGE_BACKEND_EXECUTABLE")
+    command = [executable] if executable else [sys.executable, "-u", "-m", "sage_backend.host"]
     environment = dict(os.environ)
-    if environment.get("TESTSTAND_BACKEND_ISOLATED_ENV") == "1":
+    if environment.get("SAGE_BACKEND_ISOLATED_ENV") == "1":
         for key in list(environment):
             if key.startswith(("PYTHON", "UV_")) or key == "VIRTUAL_ENV":
                 del environment[key]
         environment["PATH"] = str(Path(os.environ["SYSTEMROOT"]) / "System32")
-    environment["TESTSTAND_AGENT_INTEGRATION_TEST_MODE"] = "1"
-    environment["TESTSTAND_GATEWAY_TEST_TOKEN"] = GATEWAY_TOKEN
+    environment["SAGE_AGENT_INTEGRATION_TEST_MODE"] = "1"
+    environment["SAGE_GATEWAY_TEST_TOKEN"] = GATEWAY_TOKEN
     process = await asyncio.create_subprocess_exec(
         *command,
         "--user-data",
@@ -191,7 +191,7 @@ async def test_real_child_settings_project_and_credentials(client: Client, tmp_p
 async def test_codex_integration_in_integration_test_mode(client: Client) -> None:
     assert (await client.invoke("agents.status", {"agent": "codex"}))["state"] == "not_installed"
     preview = await client.invoke("agents.preview", {"agent": "codex"})
-    assert preview["environmentVariable"] == "TESTSTAND_MCP_TOKEN"
+    assert preview["environmentVariable"] == "SAGE_MCP_TOKEN"
     installed = await client.invoke("agents.install", {"agent": "codex"})
     assert installed["state"] == "configured"
     assert (await client.invoke("agents.test", {"agent": "codex"}))["state"] == "configured"

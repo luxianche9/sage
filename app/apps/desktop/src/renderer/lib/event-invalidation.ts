@@ -1,5 +1,5 @@
 import type { QueryKey } from "@tanstack/react-query";
-import type { TestStandEventName } from "@teststand/contracts/desktop";
+import type { SageEventName } from "@sage/contracts/desktop";
 import { queryKeys } from "./query-keys.js";
 
 /**
@@ -17,7 +17,7 @@ export interface Invalidation {
  * test fails otherwise). Pages that follow one resource closely (plan editor, run log) additionally compare
  * the version in the event with what they hold.
  */
-export const eventInvalidations: Record<TestStandEventName, readonly Invalidation[]> = {
+export const eventInvalidations: Record<SageEventName, readonly Invalidation[]> = {
   // The backend's periodic device check saw a device change state.
   // A device that came online may have declared its streams for the first time.
   availability: [{ key: queryKeys.dashboard }, { key: queryKeys.agentTools }, { key: queryKeys.monitorStreams }],
@@ -65,9 +65,9 @@ export const eventInvalidations: Record<TestStandEventName, readonly Invalidatio
 
 /** Subscribe `invalidate` to every event per the table; returns the unsubscribe. */
 export function subscribeInvalidations(
-  subscribe: (event: TestStandEventName, listener: () => void) => () => void,
+  subscribe: (event: SageEventName, listener: () => void) => () => void,
   invalidate: (key: QueryKey | "all") => void,
-  table: Record<TestStandEventName, readonly Invalidation[]> = eventInvalidations
+  table: Record<SageEventName, readonly Invalidation[]> = eventInvalidations
 ): () => void {
   const pending = new Map<number, Set<QueryKey | "all">>();
   const timers = new Map<number, ReturnType<typeof setTimeout>>();
@@ -82,7 +82,7 @@ export function subscribeInvalidations(
       for (const item of keys) invalidate(item);
     }, delayMs));
   };
-  const stops = (Object.keys(table) as TestStandEventName[])
+  const stops = (Object.keys(table) as SageEventName[])
     .filter((event) => table[event].length > 0)
     .map((event) => subscribe(event, () => {
       for (const { key, delayMs } of table[event]) {

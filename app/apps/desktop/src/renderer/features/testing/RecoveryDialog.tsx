@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ShieldAlertIcon } from "lucide-react";
-import type { TestOperationSnapshot } from "@teststand/contracts/testing";
+import type { TestOperationSnapshot } from "@sage/contracts/testing";
 import { Badge, Button, Dialog, DialogBody, DialogContent, DialogFooter, Field, Input } from "../../ui";
 import { invalidateTestingData } from "../../lib/mutations.js";
 import { useTestRecoveryItems } from "../../lib/queries.js";
@@ -40,7 +40,7 @@ export function RecoveryDialog({ open, onClose }: { open: boolean; onClose: () =
     setBusy(operation.operationId);
     setError(undefined);
     try {
-      await window.teststand.testing.reconcileOperation({
+      await window.sage.testing.reconcileOperation({
         input: { operationId: operation.operationId, resolution, ...(note.trim() ? { note: note.trim() } : {}) }
       });
       await invalidateTestingData(client);

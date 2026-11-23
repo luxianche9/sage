@@ -6,7 +6,7 @@ For vendor drivers that only ship a 32-bit DLL (the 64-bit backend cannot load t
 ``hwcli_<card>.cpp`` with the MSVC x86 toolset (``/MT``, so the exe needs no VC++ runtime); the
 vendor DLL is loaded at run time, so nothing vendor-specific is linked. Visual Studio is found with
 ``vswhere``; ``--vcvars`` points at ``vcvarsall.bat`` directly. Each exe is written to
-``plugin/<card>/src/teststand_adapter_<card>/bin/``, where the adapter looks for it first.
+``plugin/<card>/src/sage_plugin_<card>/bin/``, where the adapter looks for it first.
 """
 
 from __future__ import annotations
@@ -47,7 +47,7 @@ def main() -> int:
     # vcvarsall calls vswhere itself and complains when it is not on PATH.
     env = {**os.environ, "PATH": f"{os.environ.get('PATH', '')};{VSWHERE.parent}"}
     for card in BRIDGES:
-        target = ADAPTERS / card / "src" / f"teststand_adapter_{card}" / "bin" / f"hwcli_{card}.exe"
+        target = ADAPTERS / card / "src" / f"sage_plugin_{card}" / "bin" / f"hwcli_{card}.exe"
         target.parent.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory() as objects:
             compile_line = subprocess.list2cmdline(

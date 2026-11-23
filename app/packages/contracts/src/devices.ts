@@ -3,7 +3,7 @@ import { z } from "zod";
 export const connectionStateSchema = z.enum(["unknown", "checking", "online", "offline", "error"]);
 export type ConnectionState = z.infer<typeof connectionStateSchema>;
 
-/** A device plugin loaded into the backend: `type` names its `teststand.devices` entry point. */
+/** A device plugin loaded into the backend: `type` names its `sage.devices` entry point. */
 export const deviceInstanceSchema = z.object({
   deviceId: z.string().min(1),
   label: z.string().min(1),
@@ -13,7 +13,7 @@ export const deviceInstanceSchema = z.object({
   enabled: z.boolean().default(true)
 }).strict();
 export type DeviceInstance = z.infer<typeof deviceInstanceSchema>;
-/** The manifest (`package.json`) of a `.tsdev` device package. */
+/** The manifest (`package.json`) of a `.sagedev` device package. */
 export interface DevicePackageManifest {
   formatVersion: 1;
   kind: "devicePlugin";
@@ -30,13 +30,13 @@ export interface DevicePackageManifest {
   builtAt?: string;
 }
 
-/** What adding a device from a `.tsdev` would install (`devices.inspectPackage`); nothing is written.
+/** What adding a device from a `.sagedev` would install (`devices.inspectPackage`); nothing is written.
  *  `present`: the driver is already here, nothing is installed. */
 export interface DevicePackageInspection {
   manifest: DevicePackageManifest;
   sha256: string;
   size: number;
-  /** `skipped`: a dependency testStand already ships; its own copy is used instead. */
+  /** `skipped`: a dependency SAGE already ships; its own copy is used instead. */
   files: { name: string; size: number; sha256: string; skipped: boolean }[];
   action: "install" | "upgrade" | "reinstall" | "present";
   installedVersion: string | null;
@@ -45,7 +45,7 @@ export interface DevicePackageInspection {
   problems: string[];
 }
 
-/** `devices.addDevice`: the new device, its first connection attempt, and whether testStand must
+/** `devices.addDevice`: the new device, its first connection attempt, and whether SAGE must
  *  restart because a newer driver replaced one already loaded. */
 export interface DeviceAdded {
   device: DeviceInstance;
@@ -53,7 +53,7 @@ export interface DeviceAdded {
   restartRequired: boolean;
 }
 /** `devices.updatePackageFromFile`: a newer driver for an installed device type; its devices
- *  (`devices`) use it once testStand restarts when `restartRequired`. */
+ *  (`devices`) use it once SAGE restarts when `restartRequired`. */
 export interface DevicePackageUpdated {
   type: string;
   version: string;
@@ -73,7 +73,7 @@ export interface InstalledDevicePackage {
 }
 export interface DevicePackages {
   packages: InstalledDevicePackage[];
-  /** A package change waits for testStand to restart. */
+  /** A package change waits for SAGE to restart. */
   restartRequired: boolean;
 }
 export type StoredDevice = DeviceInstance;

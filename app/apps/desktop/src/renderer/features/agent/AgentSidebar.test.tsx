@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { OpenCodeRuntimeStatus } from "@teststand/contracts/agents";
-import type { TestStandApi } from "@teststand/contracts/desktop";
-import type { LlmSettings } from "@teststand/contracts/storage";
+import type { OpenCodeRuntimeStatus } from "@sage/contracts/agents";
+import type { SageApi } from "@sage/contracts/desktop";
+import type { LlmSettings } from "@sage/contracts/storage";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "./test-dom";
@@ -32,8 +32,8 @@ function installApi(currentStatus: OpenCodeRuntimeStatus, settings: LlmSettings)
     },
     settings: { getLlm: vi.fn(async () => settings), saveLlm: saveLlmSettings },
     events: { subscribe: vi.fn(() => () => undefined) }
-  } as unknown as TestStandApi;
-  Object.defineProperty(window, "teststand", { configurable: true, value: api });
+  } as unknown as SageApi;
+  Object.defineProperty(window, "sage", { configurable: true, value: api });
   return { api, saveLlmSettings };
 }
 

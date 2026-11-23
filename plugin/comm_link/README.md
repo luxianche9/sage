@@ -1,6 +1,6 @@
 # 通用通信链路设备插件
 
-包 `teststand_adapter_comm_link`，设备类型 `comm_link`（入口点组 `teststand.devices`），由 testStand 后端作为插件加载。`isolation = "inproc"`：只用 Python 标准库的 socket 和 SDK 的 Windows 串口封装（`SerialPort`，kernel32），不加载厂商 DLL。不需要预装任何驱动；USB 转串口线要装它自己的驱动（CH340、CP210x、FTDI 等），装好后在设备管理器里是一个 COM 口即可。
+包 `sage_plugin_comm_link`，设备类型 `comm_link`（入口点组 `sage.devices`），由 SAGE 后端作为插件加载。`isolation = "inproc"`：只用 Python 标准库的 socket 和 SDK 的 Windows 串口封装（`SerialPort`，kernel32），不加载厂商 DLL。不需要预装任何驱动；USB 转串口线要装它自己的驱动（CH340、CP210x、FTDI 等），装好后在设备管理器里是一个 COM 口即可。
 
 一个插件实例就是一条链路，连到一个被测件。四种方式：
 
@@ -41,7 +41,7 @@
 ## 流
 
 - `link`（bytes，可写）：收到的数据（`rx`，读线程每 10 ms 轮询，每次读空后 `idle()`）、发送的数据（`tx`）、标记（`connect …`、`disconnect`、`clear_rx`、TCP 服务端的 `client … connected / disconnected`、TCP 客户端的 `disconnected: …` / `reconnected …`）。TCP 客户端断线后每 2 秒自动重连。
-- 在 testStand「变量」面板里给这条流「解析协议」，按 ICD 切帧后每个字段就是一个变量。
+- 在 SAGE「变量」面板里给这条流「解析协议」，按 ICD 切帧后每个字段就是一个变量。
 
 ## 现场验收（由用户执行）
 
@@ -53,5 +53,5 @@
 
 ```powershell
 .\plugin\tools\test.ps1 -Target comm_link   # pytest（含本机 TCP/UDP 回环）+ 合规检查
-python plugin\tools\pack.py comm_link        # plugin\dist\comm_link-1.0.0.tsdev
+python plugin\tools\pack.py comm_link        # plugin\dist\comm_link-1.0.0.sagedev
 ```

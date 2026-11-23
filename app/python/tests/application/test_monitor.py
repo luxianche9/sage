@@ -8,14 +8,14 @@ from unittest.mock import Mock
 
 import pytest
 
-from teststand_backend.application import HUMAN_REQUEST_CONTEXT as HUMAN
-from teststand_backend.application import DefaultAuthorizer, MonitorApplication
-from teststand_backend.devices import DeviceCatalogService, DeviceStore
-from teststand_backend.projects import ProjectService
-from teststand_backend.projects.icd_library import IcdLibrary
-from teststand_backend.projects.protocol_bindings import ProjectProtocols
-from teststand_backend.storage import SettingsStore
-from teststand_backend.wiring import ProjectWiringService
+from sage_backend.application import HUMAN_REQUEST_CONTEXT as HUMAN
+from sage_backend.application import DefaultAuthorizer, MonitorApplication
+from sage_backend.devices import DeviceCatalogService, DeviceStore
+from sage_backend.projects import ProjectService
+from sage_backend.projects.icd_library import IcdLibrary
+from sage_backend.projects.protocol_bindings import ProjectProtocols
+from sage_backend.storage import SettingsStore
+from sage_backend.wiring import ProjectWiringService
 
 from ..protocol.icd_fixtures import DUT_CMD_YAML
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import type { AgentIntegrationPreview, AgentIntegrationStatus } from "@teststand/contracts/agents";
-import type { DashboardSnapshot } from "@teststand/contracts/operations";
+import type { AgentIntegrationPreview, AgentIntegrationStatus } from "@sage/contracts/agents";
+import type { DashboardSnapshot } from "@sage/contracts/operations";
 import { LockIcon, PlugZapIcon, RefreshCwIcon, Trash2Icon } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { useAgentIntegration } from "../../lib/queries.js";
@@ -12,7 +12,7 @@ import { ActionDialog, Disclosure, Notice, PropRow, SettingsCard, SettingsHeader
 type Gateway = DashboardSnapshot["gateway"];
 type ConfirmKind = "remove" | "rotate" | undefined;
 
-const TOKEN_ENV = "TESTSTAND_MCP_TOKEN";
+const TOKEN_ENV = "SAGE_MCP_TOKEN";
 
 /** Gateway status, Codex one-click integration, token rotation, manual setup and the tool catalog. */
 export function AgentIntegrationPage({ gateway }: { gateway: Gateway }) {
@@ -29,29 +29,29 @@ export function AgentIntegrationPage({ gateway }: { gateway: Gateway }) {
   };
   const fail = (reason: unknown) => setActionError(errorMessage(reason));
   const install = useMutation({
-    mutationFn: () => window.teststand.agents.install({ agent: "codex" }),
+    mutationFn: () => window.sage.agents.install({ agent: "codex" }),
     onSuccess: async (result) => { setPreview(undefined); await finish(result); },
     onError: fail
   });
   const remove = useMutation({
-    mutationFn: () => window.teststand.agents.remove({ agent: "codex" }),
+    mutationFn: () => window.sage.agents.remove({ agent: "codex" }),
     onSuccess: async (result) => { setDialog(undefined); await finish(result); },
     onError: fail
   });
   const test = useMutation({
-    mutationFn: () => window.teststand.agents.test({ agent: "codex" }),
+    mutationFn: () => window.sage.agents.test({ agent: "codex" }),
     onSuccess: finish,
     onError: fail
   });
   const rotate = useMutation({
-    mutationFn: () => window.teststand.agents.rotateGatewayToken(),
+    mutationFn: () => window.sage.agents.rotateGatewayToken(),
     onSuccess: async (result) => { setDialog(undefined); await finish(result); },
     onError: fail
   });
   const openPreview = async () => {
     setActionError(undefined);
     try {
-      setPreview(await window.teststand.agents.preview({ agent: "codex" }));
+      setPreview(await window.sage.agents.preview({ agent: "codex" }));
     } catch (reason) {
       fail(reason);
     }
@@ -62,7 +62,7 @@ export function AgentIntegrationPage({ gateway }: { gateway: Gateway }) {
   const misconfigured = current?.state === "misconfigured";
   const primaryLabel = misconfigured ? "修复 Codex 配置" : current?.state === "configured" ? "重新安装" : "接入 Codex";
   const manualCommand =
-    `codex mcp add teststand --url ${gateway.endpoint} --bearer-token-env-var ${TOKEN_ENV}`;
+    `codex mcp add sage --url ${gateway.endpoint} --bearer-token-env-var ${TOKEN_ENV}`;
 
   return (
     <>
@@ -167,13 +167,13 @@ export function AgentIntegrationPage({ gateway }: { gateway: Gateway }) {
         onConfirm={() => install.mutate()}
         onClose={() => setPreview(undefined)}
       >
-        <p className="text-fg">testStand 将自动完成以下操作：</p>
+        <p className="text-fg">SAGE 将自动完成以下操作：</p>
         <ul className="list-disc space-y-1 pl-5">
           {preview?.actions.map((action) => <li key={action}>{action}</li>)}
         </ul>
         {preview?.replacesExisting && (
           <Notice tone="invalid">
-            现有 <code className="font-mono">teststand</code> MCP 条目将被替换，其他 MCP 配置不受影响。
+            现有 <code className="font-mono">sage</code> MCP 条目将被替换，其他 MCP 配置不受影响。
           </Notice>
         )}
       </ActionDialog>
@@ -188,7 +188,7 @@ export function AgentIntegrationPage({ gateway }: { gateway: Gateway }) {
         onClose={() => setDialog(undefined)}
       >
         <p>
-          将删除 Codex 中的 <code className="font-mono text-fg">teststand</code> MCP 条目和用户环境变量{" "}
+          将删除 Codex 中的 <code className="font-mono text-fg">sage</code> MCP 条目和用户环境变量{" "}
           <code className="font-mono text-fg">{TOKEN_ENV}</code>。
         </p>
       </ActionDialog>
@@ -202,7 +202,7 @@ export function AgentIntegrationPage({ gateway }: { gateway: Gateway }) {
         onConfirm={() => rotate.mutate()}
         onClose={() => setDialog(undefined)}
       >
-        <p>旧令牌会立即失效。若 Codex 已接入，testStand 会同步更新环境变量，完成后需要重启 Codex。</p>
+        <p>旧令牌会立即失效。若 Codex 已接入，SAGE 会同步更新环境变量，完成后需要重启 Codex。</p>
       </ActionDialog>
     </>
   );
@@ -222,7 +222,7 @@ function GatewayCard({ gateway }: { gateway: Gateway }) {
         </div>
       </div>
       {!gateway.running && (
-        <Notice tone="fail" className="mx-3 mb-3">testStand 必须保持打开，Codex 才能连接本地 MCP Gateway。</Notice>
+        <Notice tone="fail" className="mx-3 mb-3">SAGE 必须保持打开，Codex 才能连接本地 MCP Gateway。</Notice>
       )}
     </SettingsCard>
   );

@@ -3,11 +3,11 @@ from typing import Any
 
 import pytest
 
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.devices import DeviceCatalogService, DeviceStore
-from teststand_backend.projects import ProjectService
-from teststand_backend.storage import SettingsStore
-from teststand_backend.wiring import ProjectWiringService
+from sage_backend.contracts.errors import AppError
+from sage_backend.devices import DeviceCatalogService, DeviceStore
+from sage_backend.projects import ProjectService
+from sage_backend.storage import SettingsStore
+from sage_backend.wiring import ProjectWiringService
 
 
 def hardware(identifier: str, port_id: str) -> dict[str, Any]:

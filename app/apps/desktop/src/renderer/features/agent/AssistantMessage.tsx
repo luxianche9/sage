@@ -36,7 +36,7 @@ const groupBy: typeof byType = Object.assign(
     if (part.type === "data" || (part.type === "text" && !part.text.trim())) return ["group-chainOfThought"];
     return byType(part, context);
   }) as typeof byType,
-  { [Symbol.for("@assistant-ui/groupBy.memoKey")]: "teststand-process-group-v1" }
+  { [Symbol.for("@assistant-ui/groupBy.memoKey")]: "sage-process-group-v1" }
 );
 
 function MessageError() {

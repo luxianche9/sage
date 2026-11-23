@@ -26,14 +26,14 @@ export function AssistantSidebar({ gatewayRunning, onClose, onOpenSettings }: {
   onOpenSettings: () => void;
 }) {
   const { width, separatorProps } = useResizableWidth({
-    storageKey: "teststand.assistant-sidebar-width",
+    storageKey: "sage.assistant-sidebar-width",
     defaultWidth: 420,
     min: 300,
     max: maxSidebarWidth,
     direction: "left"
   });
   const [actionError, setActionError] = useState<string>();
-  // The "opencode" push event is handled centrally by useTestStandEvents (mounted in Shell).
+  // The "opencode" push event is handled centrally by useSageEvents (mounted in Shell).
   const statusQuery = useOpenCodeStatus();
   const settingsQuery = useLlmSettings();
   const current = statusQuery.data;

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FileSpreadsheetIcon, FileTextIcon } from "lucide-react";
-import type { TestRunLog } from "@teststand/contracts/testing";
+import type { TestRunLog } from "@sage/contracts/testing";
 import { IconButton, Spinner } from "../../ui";
 import type { ExecutionTrace } from "./run-log-model.js";
 import { eventsAsText, resultsAsCsv } from "./run-format.js";
@@ -69,7 +69,7 @@ function ExportButtons({ log }: { log: TestRunLog }) {
   const [status, setStatus] = useState<string>();
   const save = async (name: string, content: string) => {
     try {
-      const path = await window.teststand.dialogs.exportText(name, content);
+      const path = await window.sage.dialogs.exportText(name, content);
       setStatus(path ? `已导出到 ${path}` : undefined);
     } catch (cause) {
       setStatus(`导出失败：${cause instanceof Error ? cause.message : String(cause)}`);

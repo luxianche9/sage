@@ -1,7 +1,7 @@
 import {
   monitorSchema, placedPanels, type Frame, type Monitor, type MonitorPanel, type StreamRef
-} from "@teststand/contracts/monitor";
-import type { StreamDeclaration } from "@teststand/contracts/observability";
+} from "@sage/contracts/monitor";
+import type { StreamDeclaration } from "@sage/contracts/observability";
 
 /** A stream as the layout generator sees it. */
 export interface LayoutStream extends StreamRef {
@@ -45,7 +45,7 @@ export interface LayoutPreset {
   monitor: Monitor;
 }
 
-const PRESETS_KEY = "teststand.monitor.presets";
+const PRESETS_KEY = "sage.monitor.presets";
 
 export function readPresets(): LayoutPreset[] {
   try {
@@ -82,14 +82,14 @@ export function deletePreset(name: string): LayoutPreset[] {
 
 /** The file a workspace is exported as. */
 export function exportText(monitor: Monitor): string {
-  return JSON.stringify({ kind: "teststand.monitor", formatVersion: 1, monitor }, null, 2);
+  return JSON.stringify({ kind: "sage.monitor", formatVersion: 1, monitor }, null, 2);
 }
 
 /** A workspace from an exported file, or why it is not one. */
 export function importText(text: string): Monitor | string {
   try {
     const value = JSON.parse(text) as { kind?: unknown; monitor?: unknown };
-    if (value.kind !== "teststand.monitor") return "不是 testStand 运行监控布局文件";
+    if (value.kind !== "sage.monitor") return "不是 SAGE 运行监控布局文件";
     const parsed = monitorSchema.safeParse(value.monitor);
     return parsed.success ? parsed.data : `布局文件内容不正确：${parsed.error.issues[0]?.message ?? ""}`;
   } catch (cause) {

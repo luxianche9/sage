@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { appError } from "@teststand/contracts/errors";
+import { appError } from "@sage/contracts/errors";
 import { errorMessage } from "./errors.js";
 
 describe("renderer error messages", () => {

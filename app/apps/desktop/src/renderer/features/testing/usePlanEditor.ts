@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import type { TestPlan, TestPlanDraftAnalysis, TestPlanIssue } from "@teststand/contracts/testing";
+import type { TestPlan, TestPlanDraftAnalysis, TestPlanIssue } from "@sage/contracts/testing";
 import { invalidateTestingData } from "../../lib/mutations.js";
 import { queryKeys } from "../../lib/query-keys.js";
 import { useKeyboardShortcut } from "../../lib/hooks/useKeyboardShortcut.js";
@@ -50,14 +50,14 @@ export function usePlanEditor({ onRunStarted }: { onRunStarted: (runId: string) 
     const token = ++loadToken.current;
     setSelectedPlanId(id);
     try {
-      const plan = await window.teststand.testing.loadPlan({ planId: id });
+      const plan = await window.sage.testing.loadPlan({ planId: id });
       if (token === loadToken.current) { adopt(plan, keepStep); setMessage(undefined); }
     } catch (error) {
       if (token === loadToken.current) setMessage(errorText(error));
     }
   }, [adopt]);
 
-  useEffect(() => window.teststand.events.subscribe("testPlan", (payload) => {
+  useEffect(() => window.sage.events.subscribe("testPlan", (payload) => {
     const event = payload as { planId?: string; revision?: number };
     if (!selectedPlanId || event.planId !== selectedPlanId) return;
     // Events of our own saves can arrive after a later revision is already shown.
@@ -76,7 +76,7 @@ export function usePlanEditor({ onRunStarted }: { onRunStarted: (runId: string) 
     if (!draft) { setDraftAnalysis(undefined); return; }
     let stopped = false;
     const timer = window.setTimeout(() => {
-      void window.teststand.testing.analyzePlanDraft({ input: { plan: draft, baseRevision: draft.revision } })
+      void window.sage.testing.analyzePlanDraft({ input: { plan: draft, baseRevision: draft.revision } })
         .then((analysis) => { if (!stopped) setDraftAnalysis(analysis); })
         .catch(() => { if (!stopped) setDraftAnalysis(undefined); });
     }, 320);
@@ -113,7 +113,7 @@ export function usePlanEditor({ onRunStarted }: { onRunStarted: (runId: string) 
   const save = async (): Promise<boolean> => {
     if (!draft || conflict) return false;
     try {
-      const result = await window.teststand.testing.savePlan({ plan: draft, baseRevision: draft.revision });
+      const result = await window.sage.testing.savePlan({ plan: draft, baseRevision: draft.revision });
       setDraft(result.plan);
       setIssues(result.issues);
       setDirty(false);
@@ -134,7 +134,7 @@ export function usePlanEditor({ onRunStarted }: { onRunStarted: (runId: string) 
   const validate = async () => {
     if (!draft || dirty) { setMessage("请先保存当前草稿再校验。"); return; }
     try {
-      const result = await window.teststand.testing.validatePlan({ planId: draft.id });
+      const result = await window.sage.testing.validatePlan({ planId: draft.id });
       setIssues(result.issues);
       setMessage(result.valid ? "校验通过" : "计划存在阻止运行的问题");
     } catch (error) {
@@ -147,11 +147,11 @@ export function usePlanEditor({ onRunStarted }: { onRunStarted: (runId: string) 
     if (!draft || conflict) { setMessage("请先解决计划冲突再启动运行。"); return; }
     try {
       if (dirty && !await save()) return;
-      const latest = dirty ? await window.teststand.testing.loadPlan({ planId: draft.id }) : draft;
-      const validation = await window.teststand.testing.validatePlan({ planId: latest.id });
+      const latest = dirty ? await window.sage.testing.loadPlan({ planId: draft.id }) : draft;
+      const validation = await window.sage.testing.validatePlan({ planId: latest.id });
       setIssues(validation.issues);
       if (!validation.valid) { setMessage("校验未通过，未启动运行。"); return; }
-      const run = await window.teststand.testing.startRun({
+      const run = await window.sage.testing.startRun({
         input: {
           planId: latest.id,
           revision: validation.revision,
@@ -175,8 +175,8 @@ export function usePlanEditor({ onRunStarted }: { onRunStarted: (runId: string) 
   const overwrite = async () => {
     if (!draft) return;
     try {
-      const latest = await window.teststand.testing.loadPlan({ planId: draft.id });
-      const result = await window.teststand.testing.savePlan({
+      const latest = await window.sage.testing.loadPlan({ planId: draft.id });
+      const result = await window.sage.testing.savePlan({
         plan: { ...draft, revision: latest.revision }, baseRevision: latest.revision
       });
       setDraft(result.plan);
@@ -196,8 +196,8 @@ export function usePlanEditor({ onRunStarted }: { onRunStarted: (runId: string) 
     if (!draft || conflict) return;
     try {
       if (dirty && !await save()) return;
-      const latest = await window.teststand.testing.loadPlan({ planId: draft.id });
-      const result = await window.teststand.testing.applyPlanOperations({
+      const latest = await window.sage.testing.loadPlan({ planId: draft.id });
+      const result = await window.sage.testing.applyPlanOperations({
         input: {
           planId: latest.id,
           baseRevision: latest.revision,

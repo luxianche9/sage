@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from teststand_backend.devices import DeviceService, DeviceStore
+from sage_backend.devices import DeviceService, DeviceStore
 
 SERVICE = "packages/devices/src/device-service.test.ts::"
 

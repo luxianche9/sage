@@ -25,7 +25,7 @@ export function BindProtocolDialog({ hardwareId, streamId, streamType, aliases, 
   onClose: () => void;
 }) {
   const toast = useToast();
-  const icds = useQuery({ queryKey: queryKeys.icds, queryFn: () => window.teststand.testing.listIcds() });
+  const icds = useQuery({ queryKey: queryKeys.icds, queryFn: () => window.sage.testing.listIcds() });
   const usable = (icds.data ?? []).filter((item) => item.valid && (!item.transport || item.transport === streamType));
   const [icd, setIcd] = useState<string>();
   const [alias, setAlias] = useState<string>();

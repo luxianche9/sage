@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from teststand_backend.devices import DeviceService
+from sage_backend.devices import DeviceService
 
 
 def service_fixture() -> tuple[DeviceService, dict[str, Any]]:

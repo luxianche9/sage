@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { RunMessage } from "@teststand/contracts/observability";
+import type { RunMessage } from "@sage/contracts/observability";
 import {
   decodedText, fieldsText, filterMessages, messageFilters, messageIndexAt, messageLabel, spacedHex
 } from "./run-messages.js";

@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from teststand_device_sdk import (
+from sage_device_sdk import (
     DEVICE_UNREACHABLE,
     INVALID_ARGUMENT,
     BitsStream,
@@ -55,7 +55,7 @@ class __CLASS__(Device):
     prefix = "__PREFIX__"
     capabilities = ("digital_input", "digital_output")  # TODO(new_device)
     # A vendor DLL called through ctypes can crash its process: run in a child process so a crash
-    # takes down this device only (the SDK reopens it), never testStand. Use "inproc" only for
+    # takes down this device only (the SDK reopens it), never SAGE. Use "inproc" only for
     # drivers that are pure Python or the standard library (a COM port through SerialPort).
     isolation = "subprocess"
     version = "0.1.0"

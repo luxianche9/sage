@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, type PointerEvent } from "react";
-import type { RunTimeline } from "@teststand/contracts/observability";
+import type { RunTimeline } from "@sage/contracts/observability";
 import { cn } from "../../ui";
 import { relativeTime, verdictTone, type OverlayTone, type TimeRange } from "./stream-model.js";
 

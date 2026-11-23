@@ -1,7 +1,7 @@
 """The Agent can do what the operator does in the app, except the operator's own work."""
 
-from teststand_backend.application import OPERATIONS
-from teststand_backend.mcp_gateway.tool_registry import BUILTIN_TOOLS, NOT_GENERATED
+from sage_backend.application import OPERATIONS
+from sage_backend.mcp_gateway.tool_registry import BUILTIN_TOOLS, NOT_GENERATED
 
 # Operations only a person performs, each for a reason the Agent cannot stand in for.
 HUMAN_ONLY = {

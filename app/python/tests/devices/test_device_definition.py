@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, Mock
 
-from teststand_backend.devices import DeviceService, DeviceStore
-from teststand_backend.devices.plugin_transport import declared_streams
+from sage_backend.devices import DeviceService, DeviceStore
+from sage_backend.devices.plugin_transport import declared_streams
 
 HARDWARE = "PCI1710L_MCP.HARDWARE_0"
 

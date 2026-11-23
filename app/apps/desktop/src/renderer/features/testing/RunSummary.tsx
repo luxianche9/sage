@@ -1,4 +1,4 @@
-import type { TestRunLog } from "@teststand/contracts/testing";
+import type { TestRunLog } from "@sage/contracts/testing";
 import { ArrowRightIcon } from "lucide-react";
 import { Badge, Button, StatusLamp, VerdictBadge, type Tone } from "../../ui";
 import type { ExecutionTrace } from "./run-log-model.js";

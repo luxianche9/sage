@@ -1,4 +1,4 @@
-import { GRID_PX, type Frame, type PanelType } from "@teststand/contracts/monitor";
+import { GRID_PX, type Frame, type PanelType } from "@sage/contracts/monitor";
 
 /** Pixels → whole grid cells (never below 0). */
 export function cells(px: number): number {

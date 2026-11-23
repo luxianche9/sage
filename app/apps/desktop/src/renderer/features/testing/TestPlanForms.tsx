@@ -1,7 +1,7 @@
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import type {
   TestExpressionReference, TestParameter, TestStep, TestStepCatalogItem
-} from "@teststand/contracts/testing";
+} from "@sage/contracts/testing";
 import { Button, Checkbox, Field, IconButton, Input, Select } from "../../ui";
 import { SchemaArgumentsForm } from "../manual/SchemaForm.js";
 import { initialSchemaValue, schemaProperties, type JsonSchema } from "../manual/schema-form-model.js";

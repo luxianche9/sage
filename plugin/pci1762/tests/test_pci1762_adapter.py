@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import pytest
 
-from teststand_device_sdk.testing import check_device, receive_until, serve
-from teststand_adapter_pci1762 import DEVICE, Pci1762
-from teststand_adapter_pci1762.pinout import pinout
+from sage_device_sdk.testing import check_device, receive_until, serve
+from sage_plugin_pci1762 import DEVICE, Pci1762
+from sage_plugin_pci1762.pinout import pinout
 
 
 PUBLIC_TOOLS = {
@@ -29,11 +29,11 @@ def test_entry_point_and_compliance():
 
 
 def test_public_contract(hh):
-    internal = {name for name, item in hh.tools.items() if item["_meta"]["teststand"]["kind"] == "internal"}
-    assert internal == {"teststand_prepare_shutdown"}
+    internal = {name for name, item in hh.tools.items() if item["_meta"]["sage"]["kind"] == "internal"}
+    assert internal == {"sage_prepare_shutdown"}
     assert set(hh.tools) - internal == PUBLIC_TOOLS
     for name in ("pci1762_set_relay", "pci1762_set_bank"):
-        semantics = hh.tools[name]["_meta"]["teststand"]["operationSemantics"]
+        semantics = hh.tools[name]["_meta"]["sage"]["operationSemantics"]
         assert semantics["retry"] == "never_after_dispatch"
         assert semantics["safetyAction"] == {"toolName": "pci1762_safe_state", "arguments": {}}
     kind = hh.tools["pci1762_read_bit"]["inputSchema"]["properties"]["kind"]

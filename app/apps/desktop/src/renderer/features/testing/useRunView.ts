@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type { TestStandLiveApi } from "@teststand/contracts/desktop";
-import type { RunMessages, RunTimeline } from "@teststand/contracts/observability";
+import type { SageLiveApi } from "@sage/contracts/desktop";
+import type { RunMessages, RunTimeline } from "@sage/contracts/observability";
 import { queryKeys } from "../../lib/query-keys.js";
 import { runRange, type StreamSource, type TimeRange } from "../streams/index.js";
 import { activeExecutions, firstProblemExecution, resultConsoleEntries } from "./run-format.js";
@@ -14,7 +14,7 @@ import { useRunLog } from "./useRunLog.js";
  * While the run is `live` the recording is polled (it grows with every sample, and samples are
  * not events) and `liveFrames` feeds the newest data; once it ends one last read settles it.
  */
-export function useRunView(runId: string | undefined, live: boolean, liveFrames?: TestStandLiveApi["live"]) {
+export function useRunView(runId: string | undefined, live: boolean, liveFrames?: SageLiveApi["live"]) {
   const client = useQueryClient();
   const runLog = useRunLog(runId, live);
   const log = runLog.log;
@@ -32,13 +32,13 @@ export function useRunView(runId: string | undefined, live: boolean, liveFrames?
   )), [trace]);
   const timeline = useQuery({
     queryKey: queryKeys.testRunTimeline(runId ?? ""),
-    queryFn: () => window.teststand.testing.getRunTimeline({ runId: runId! }),
+    queryFn: () => window.sage.testing.getRunTimeline({ runId: runId! }),
     enabled: Boolean(runId),
     refetchInterval: live ? 1_000 : false
   });
   const messages = useQuery({
     queryKey: queryKeys.testRunMessages(runId ?? ""),
-    queryFn: () => window.teststand.testing.readRunMessages({ runId: runId! }),
+    queryFn: () => window.sage.testing.readRunMessages({ runId: runId! }),
     enabled: Boolean(runId),
     refetchInterval: live ? 2_000 : false
   });
@@ -50,9 +50,9 @@ export function useRunView(runId: string | undefined, live: boolean, liveFrames?
 
   const data: RunTimeline | undefined = timeline.data;
   const source = useMemo<StreamSource | undefined>(() => runId ? {
-    window: (keys, t0, t1, width) => window.teststand.streams.window({ runId, keys, t0, t1, width }),
-    records: (key, query) => window.teststand.testing.readRunStream({ runId, key, ...(query ? { query } : {}) }),
-    ...(live ? { live: liveFrames ?? window.teststand.streams.live } : {})
+    window: (keys, t0, t1, width) => window.sage.streams.window({ runId, keys, t0, t1, width }),
+    records: (key, query) => window.sage.testing.readRunStream({ runId, key, ...(query ? { query } : {}) }),
+    ...(live ? { live: liveFrames ?? window.sage.streams.live } : {})
   } : undefined, [runId, live, liveFrames]);
   const range = useMemo(() => runRange(data), [data]);
   const decoded: RunMessages | undefined = messages.data?.bindings.length ? messages.data : undefined;

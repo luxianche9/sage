@@ -6,13 +6,13 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from teststand_backend.application import (
+from sage_backend.application import (
     AGENT_REQUEST_CONTEXT as AGENT,
 )
-from teststand_backend.application import (
+from sage_backend.application import (
     HUMAN_REQUEST_CONTEXT as HUMAN,
 )
-from teststand_backend.application import (
+from sage_backend.application import (
     SYSTEM_REQUEST_CONTEXT,
     DefaultAuthorizer,
     DevicesApplication,
@@ -21,9 +21,9 @@ from teststand_backend.application import (
     SystemApplication,
     WiringApplication,
 )
-from teststand_backend.application.cancellation import AbortError
-from teststand_backend.contracts.agents import CAPABILITIES
-from teststand_backend.contracts.errors import AppError
+from sage_backend.application.cancellation import AbortError
+from sage_backend.contracts.agents import CAPABILITIES
+from sage_backend.contracts.errors import AppError
 
 from .test_application import HARDWARE, invocation, make_app, manual_fixture
 

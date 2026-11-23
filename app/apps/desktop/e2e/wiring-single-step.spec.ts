@@ -15,12 +15,12 @@ test.describe.serial("single-step wiring tasks", () => {
   let userData: string;
   const errors: string[] = [];
   test.beforeAll(async () => {
-    userData = await mkdtemp(join(tmpdir(), "teststand-wiring-inbox-"));
+    userData = await mkdtemp(join(tmpdir(), "sage-wiring-inbox-"));
     const projectRoot = join(userData, "wiring-fixture");
     await mkdir(projectRoot);
     await mkdir(artifacts, { recursive: true });
-    const env = { ...process.env, TESTSTAND_USER_DATA_DIR: userData,
-      TESTSTAND_GATEWAY_PORT: "0", TESTSTAND_AGENT_INTEGRATION_TEST_MODE: "1" };
+    const env = { ...process.env, SAGE_USER_DATA_DIR: userData,
+      SAGE_GATEWAY_PORT: "0", SAGE_AGENT_INTEGRATION_TEST_MODE: "1" };
     delete env.ELECTRON_RUN_AS_NODE;
     app = await electron.launch({ args: [desktopDir], cwd: desktopDir, env, timeout: 90_000 });
     page = await rendererReady(await app.firstWindow());
@@ -32,9 +32,9 @@ test.describe.serial("single-step wiring tasks", () => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await expect(page.getByRole("heading", { name: "最近项目" })).toBeVisible();
     await page.evaluate(async (root) => {
-      await window.teststand.projects.initializeFolder({ rootPath: root });
+      await window.sage.projects.initializeFolder({ rootPath: root });
       for (const hardwareId of ["DUT_A", "DUT_B"]) {
-        await window.teststand.devices.saveHardware({ input: {
+        await window.sage.devices.saveHardware({ input: {
           formatVersion: 2, hardwareId, label: hardwareId, kind: "passive",
           ports: [{ portId: "J1", name: "串口", pins: [
             { pinId: "1", position: 1, label: "TX" }, { pinId: "2", position: 2, label: "RX" },
@@ -42,8 +42,8 @@ test.describe.serial("single-step wiring tasks", () => {
           ] }]
         } });
       }
-      await window.teststand.projects.saveProject();
-      await window.teststand.projects.leaveProject();
+      await window.sage.projects.saveProject();
+      await window.sage.projects.leaveProject();
     }, projectRoot);
     await reloadAfterLeave(page);
     await page.getByText("wiring-fixture", { exact: true }).first().click();
@@ -56,7 +56,7 @@ test.describe.serial("single-step wiring tasks", () => {
   });
 
   test("logs the change once a request is confirmed and nothing for a rejected one", async () => {
-    const id = await page.evaluate(async () => (await window.teststand.wiring.requestTask({ input: { changes: [
+    const id = await page.evaluate(async () => (await window.sage.wiring.requestTask({ input: { changes: [
       { action: "connect", portA: "DUT_A.J1", portB: "DUT_B.J1", pins: [{ a: "1", b: "2" }, { a: "3", b: "3" }] }
     ] } })).wiringTaskId);
     // The request is answered in the conversation: the log has no pending cards and nothing changed yet.
@@ -65,9 +65,9 @@ test.describe.serial("single-step wiring tasks", () => {
     const changes = log.getByRole("region", { name: "变更记录" });
     await expect(log.getByRole("region", { name: "待处理" })).toHaveCount(0);
     await expect(changes.getByText(/暂无接线变更/)).toBeVisible();
-    expect(await page.evaluate((taskId) => window.teststand.wiring.getTask({ taskId }).then((task) => task.status), id)).toBe("pending");
+    expect(await page.evaluate((taskId) => window.sage.wiring.getTask({ taskId }).then((task) => task.status), id)).toBe("pending");
 
-    await page.evaluate((taskId) => window.teststand.wiring.completeTask({ taskId, outcome: "confirmed" }), id);
+    await page.evaluate((taskId) => window.sage.wiring.completeTask({ taskId, outcome: "confirmed" }), id);
     const entry = changes.getByRole("listitem").filter({ hasText: "新增接线 DUT_A 串口 ↔ DUT_B 串口" });
     await expect(entry).toBeVisible();
     await expect(entry.getByLabel("AI 接线")).toBeVisible();
@@ -77,11 +77,11 @@ test.describe.serial("single-step wiring tasks", () => {
     await expect(changes.getByText(/暂无人工更改/)).toBeVisible();
     await log.getByRole("group", { name: "日志来源" }).getByRole("button", { name: "全部" }).click();
 
-    const rejectedId = await page.evaluate(async () => (await window.teststand.wiring.requestTask({ input: { changes: [
+    const rejectedId = await page.evaluate(async () => (await window.sage.wiring.requestTask({ input: { changes: [
       { action: "disconnect", portA: "DUT_A.J1", portB: "DUT_B.J1", pins: [{ a: "1", b: "2" }] }
     ] } })).wiringTaskId);
-    await page.evaluate((taskId) => window.teststand.wiring.completeTask({ taskId, outcome: "rejected" }), rejectedId);
-    expect(await page.evaluate((taskId) => window.teststand.wiring.getTask({ taskId }).then((task) => task.status), rejectedId)).toBe("rejected");
+    await page.evaluate((taskId) => window.sage.wiring.completeTask({ taskId, outcome: "rejected" }), rejectedId);
+    expect(await page.evaluate((taskId) => window.sage.wiring.getTask({ taskId }).then((task) => task.status), rejectedId)).toBe("rejected");
     await expect(changes.getByRole("listitem")).toHaveCount(1);
     await expect(cables(page)).toHaveCount(1);
   });
@@ -99,19 +99,19 @@ test.describe.serial("single-step wiring tasks", () => {
     await expect(cables(page)).toHaveCount(2);
     await expect(page.getByRole("region", { name: "针脚列表" })).toContainText("同端口接线");
     await page.screenshot({ animations: "disabled", path: join(artifacts, "same-port-list.png") });
-    expect(await page.evaluate(async () => (await window.teststand.projects.document())?.file.wiring.connections.length)).toBe(2);
-    const taskId = await page.evaluate(async () => (await window.teststand.wiring.requestTask({ input: { changes: [
+    expect(await page.evaluate(async () => (await window.sage.projects.document())?.file.wiring.connections.length)).toBe(2);
+    const taskId = await page.evaluate(async () => (await window.sage.wiring.requestTask({ input: { changes: [
       { action: "disconnect", portA: "DUT_A.J1", portB: "DUT_A.J1", pins: [{ a: "1", b: "2" }] }
     ] } })).wiringTaskId);
-    await page.evaluate((id) => window.teststand.wiring.completeTask({ taskId: id, outcome: "confirmed" }), taskId);
+    await page.evaluate((id) => window.sage.wiring.completeTask({ taskId: id, outcome: "confirmed" }), taskId);
     await showPanel(page, "接线日志");
     const changes = page.getByRole("region", { name: "接线日志" }).getByRole("region", { name: "变更记录" });
     await expect(changes.getByText("删除接线 DUT_A 串口 ↔ DUT_A 串口")).toBeVisible();
     await page.evaluate(() => { document.documentElement.dataset.theme = "dark"; document.documentElement.classList.add("dark"); });
     await page.setViewportSize({ width: 960, height: 600 });
     await page.screenshot({ animations: "disabled", path: join(artifacts, "same-port-dark-960.png") });
-    expect(await page.evaluate((id) => window.teststand.wiring.getTask({ taskId: id }).then((task) => task.status), taskId)).toBe("confirmed");
-    expect(await page.evaluate(async () => (await window.teststand.projects.document())?.file.wiring.connections.length)).toBe(1);
+    expect(await page.evaluate((id) => window.sage.wiring.getTask({ taskId: id }).then((task) => task.status), taskId)).toBe("confirmed");
+    expect(await page.evaluate(async () => (await window.sage.projects.document())?.file.wiring.connections.length)).toBe(1);
     expect(errors).toEqual([]);
   });
 
@@ -119,7 +119,7 @@ test.describe.serial("single-step wiring tasks", () => {
     await page.setViewportSize({ width: 1280, height: 800 });
     // Cards normally arrive by dragging a device off the list; placing them here keeps the test
     // about the canvas itself. Starting from no cables, the drag below has to create one.
-    await page.evaluate(() => window.teststand.wiring.updateDocument({ wiring: {
+    await page.evaluate(() => window.sage.wiring.updateDocument({ wiring: {
       connections: [],
       nodes: [
         { hardwareId: "DUT_A", x: 0, y: 0, width: 220, height: 168,
@@ -152,8 +152,8 @@ test.describe.serial("single-step wiring tasks", () => {
     await expect(page.getByRole("region", { name: "针脚列表" })).toContainText("DUT_B");
 
     // Card and connector placement is part of the project file (format v7), not renderer state.
-    await page.evaluate(() => window.teststand.projects.saveProject());
-    const wiring = await page.evaluate(async () => (await window.teststand.projects.document())?.file.wiring);
+    await page.evaluate(() => window.sage.projects.saveProject());
+    const wiring = await page.evaluate(async () => (await window.sage.projects.document())?.file.wiring);
     expect(wiring?.nodes.map((node) => node.hardwareId)).toEqual(["DUT_A", "DUT_B"]);
     expect(wiring?.nodes[1]).toMatchObject({ x: 420, portPositions: { J1: { side: "left", offset: 0.5 } } });
     expect(wiring?.connections).toHaveLength(1);

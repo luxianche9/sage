@@ -1,13 +1,13 @@
-import type { TestStandApi } from "@teststand/contracts/desktop";
-import type { LiveFrame, LiveQuery } from "@teststand/contracts/observability";
-import { OPERATION_NAMES, type OperationApi } from "@teststand/contracts/operations";
+import type { SageApi } from "@sage/contracts/desktop";
+import type { LiveFrame, LiveQuery } from "@sage/contracts/observability";
+import { OPERATION_NAMES, type OperationApi } from "@sage/contracts/operations";
 import type { DesktopTransport } from "./transport.js";
 
 /** Project to open again after `window.relaunch` (same profile, so localStorage survives it). */
-export const REOPEN_AFTER_RELAUNCH = "teststand.reopenAfterRelaunch";
+export const REOPEN_AFTER_RELAUNCH = "sage.reopenAfterRelaunch";
 
-/** `window.teststand`: one function per backend operation (named parameters), plus main's dialogs and window. */
-export function createTestStandApi(transport: DesktopTransport): TestStandApi {
+/** `window.sage`: one function per backend operation (named parameters), plus main's dialogs and window. */
+export function createSageApi(transport: DesktopTransport): SageApi {
   const operations = operationFunctions(transport.invoke);
   const { main } = transport;
   return {

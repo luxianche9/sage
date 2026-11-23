@@ -28,19 +28,19 @@ export interface PythonBackend {
  * stdin, whose end is the shutdown signal. */
 export async function startPythonBackend(): Promise<PythonBackend> {
   const developmentRoot = resolve(app.getAppPath(), "../../python");
-  const frozen = app.isPackaged || Boolean(process.env.TESTSTAND_BACKEND_EXECUTABLE);
-  const executable = process.env.TESTSTAND_BACKEND_EXECUTABLE ?? (app.isPackaged
-    ? join(process.resourcesPath, "backend", "teststand-backend.exe")
+  const frozen = app.isPackaged || Boolean(process.env.SAGE_BACKEND_EXECUTABLE);
+  const executable = process.env.SAGE_BACKEND_EXECUTABLE ?? (app.isPackaged
+    ? join(process.resourcesPath, "backend", "sage-backend.exe")
     : join(developmentRoot, ".venv", "Scripts", "python.exe"));
   const args = [
-    ...(frozen ? [] : ["-u", "-m", "teststand_backend.host"]),
+    ...(frozen ? [] : ["-u", "-m", "sage_backend.host"]),
     "--user-data", app.getPath("userData"),
-    "--gateway-port", String(Number(process.env.TESTSTAND_GATEWAY_PORT ?? 8000)),
+    "--gateway-port", String(Number(process.env.SAGE_GATEWAY_PORT ?? 8000)),
     "--opencode", openCodeBinary(),
     ...rendererOrigins().flatMap((origin) => ["--renderer-origin", origin]),
-    ...(process.env.TESTSTAND_AGENT_INTEGRATION_TEST_MODE === "1" ? ["--integration-test-mode"] : [])
+    ...(process.env.SAGE_AGENT_INTEGRATION_TEST_MODE === "1" ? ["--integration-test-mode"] : [])
   ];
-  // TESTSTAND_GATEWAY_TEST_TOKEN reaches the service through the inherited environment only.
+  // SAGE_GATEWAY_TEST_TOKEN reaches the service through the inherited environment only.
   const child = spawn(executable, args, {
     cwd: app.isPackaged ? process.resourcesPath : developmentRoot,
     windowsHide: true,

@@ -1,6 +1,6 @@
 const packageRule = (name, allowed) => ({
   name: `${name}-package-boundary`,
-  comment: `@teststand/${name} may depend only on ${allowed.join(", ") || "no other workspace package"}.`,
+  comment: `@sage/${name} may depend only on ${allowed.join(", ") || "no other workspace package"}.`,
   severity: "error",
   from: { path: `^packages/${name}/src/`, pathNot: "\\.(?:test|spec)\\.[cm]?[jt]sx?$" },
   to: { path: `^packages/(?!${[name, ...allowed].join("|")})(?:[^/]+)/src/` }
@@ -53,7 +53,7 @@ module.exports = {
   options: {
     doNotFollow: { path: "node_modules" },
     tsPreCompilationDeps: true,
-    enhancedResolveOptions: { exportsFields: ["exports"], conditionNames: ["teststand-source", "types", "import", "default"] },
+    enhancedResolveOptions: { exportsFields: ["exports"], conditionNames: ["sage-source", "types", "import", "default"] },
     reporterOptions: { dot: { collapsePattern: "^(?:packages/[^/]+|apps/desktop)/" } }
   }
 };

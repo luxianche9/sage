@@ -1,4 +1,4 @@
-import type { ToolCatalogItem } from "@teststand/contracts/devices";
+import type { ToolCatalogItem } from "@sage/contracts/devices";
 
 /** What a device can be asked to do from its card: its own tools, without the platform's
  *  management tools and the stream plumbing every plugin carries. */

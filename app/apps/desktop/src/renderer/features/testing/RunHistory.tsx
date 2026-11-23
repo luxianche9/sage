@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { TestRunListInput, TestRunSummary } from "@teststand/contracts/testing";
+import type { TestRunListInput, TestRunSummary } from "@sage/contracts/testing";
 import { Button, cn, EmptyState, Input, Select, Spinner, toneText, verdictLabels, verdictTone } from "../../ui";
 import { useTestRuns } from "../../lib/queries.js";
 import { mergeRuns } from "./plan-helpers.js";

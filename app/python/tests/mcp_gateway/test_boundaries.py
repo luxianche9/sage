@@ -8,14 +8,14 @@ from unittest.mock import AsyncMock, Mock, patch
 import httpx
 import pytest
 
-from teststand_backend import __version__
-from teststand_backend.application import OPERATIONS
-from teststand_backend.application.registry import OperationRegistry
-from teststand_backend.contracts.errors import AppError
-from teststand_backend.contracts.validation import ValidationError
-from teststand_backend.mcp_gateway import LocalMcpGateway
-from teststand_backend.mcp_gateway.gateway import AGENT_INSTRUCTIONS
-from teststand_backend.mcp_gateway.tool_registry import BUILTIN_TOOLS, ToolRegistry
+from sage_backend import __version__
+from sage_backend.application import OPERATIONS
+from sage_backend.application.registry import OperationRegistry
+from sage_backend.contracts.errors import AppError
+from sage_backend.contracts.validation import ValidationError
+from sage_backend.mcp_gateway import LocalMcpGateway
+from sage_backend.mcp_gateway.gateway import AGENT_INSTRUCTIONS
+from sage_backend.mcp_gateway.tool_registry import BUILTIN_TOOLS, ToolRegistry
 
 
 def make_gateway() -> tuple[LocalMcpGateway, Any]:
@@ -162,7 +162,7 @@ async def test_gateway_lifecycle_durable_token_and_bind_error() -> None:
     gateway.set_change_notifier(notified)
     with pytest.raises(RuntimeError, match="not been initialized"):
         gateway.token()
-    with patch("teststand_backend.mcp_gateway.gateway.socket.socket") as factory:
+    with patch("sage_backend.mcp_gateway.gateway.socket.socket") as factory:
         factory.return_value.bind.side_effect = OSError("binding failed")
         await gateway.start()
     assert gateway.status()["lastError"] == "binding failed"
@@ -230,7 +230,7 @@ async def test_http_routes_and_tool_errors() -> None:
             assert initialization == {
                 "protocolVersion": "2025-03-26",
                 "capabilities": {"tools": {"listChanged": True}},
-                "serverInfo": {"name": "teststand", "version": __version__},
+                "serverInfo": {"name": "sage", "version": __version__},
             }
             client.headers["mcp-session-id"] = initialized.headers["mcp-session-id"]
             await client.post(url, json={"jsonrpc": "2.0", "method": "notifications/initialized"})
@@ -330,7 +330,7 @@ async def test_initialize_validation_and_failed_transport_do_not_leak_sessions()
                 **_INITIALIZE,
                 "params": {
                     **_INITIALIZE["params"],
-                    "clientInfo": {"name": "teststand-integration-check", "version": "1"},
+                    "clientInfo": {"name": "sage-integration-check", "version": "1"},
                 },
             }
             await client.post(url, json=integration, headers={"accept": "text/plain"})
@@ -430,7 +430,7 @@ async def test_waiting_tool_reports_progress_and_is_cancelled_with_its_request()
                             if message.get("method") == "notifications/progress":
                                 progress.append(message["params"])
 
-            with patch("teststand_backend.mcp_gateway.gateway.PROGRESS_INTERVAL_S", 0.02):
+            with patch("sage_backend.mcp_gateway.gateway.PROGRESS_INTERVAL_S", 0.02):
                 calling = asyncio.create_task(call())
                 try:
                     await asyncio.wait_for(started.wait(), 1)
@@ -473,7 +473,7 @@ async def test_waiting_tool_returns_the_answer() -> None:
             client.headers["mcp-session-id"] = initialized.headers["mcp-session-id"]
             await client.post(url, json={"jsonrpc": "2.0", "method": "notifications/initialized"})
             # Without a progress token the wait goes on silently until the operator answers.
-            with patch("teststand_backend.mcp_gateway.gateway.PROGRESS_INTERVAL_S", 0.02):
+            with patch("sage_backend.mcp_gateway.gateway.PROGRESS_INTERVAL_S", 0.02):
                 answered = await client.post(
                     url,
                     json={
