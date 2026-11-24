@@ -59,7 +59,7 @@ export function toFlowNode(
   };
 }
 
-/** Same-port pin connections are retained in the document and the 针脚列表 only. */
+/** Same-port pin connections are retained in the document and the 针脚表 only. */
 export function toFlowEdges(
   connections: ReadonlyArray<Pick<ProjectWiringConnection, "connectionId" | "portA" | "portB">>,
   hardware: Hardware[]

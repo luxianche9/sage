@@ -14,20 +14,19 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { CableIcon } from "lucide-react";
+import { HARDWARE_MIME } from "../../lib/hardware.js";
 import { cn, DropZone } from "../../ui/index.js";
 import { wiringNodeTypes } from "./HardwareNode.js";
 import type { HardwareFlowNode, TopologyEdge } from "./wiring-model.js";
 
 const fitOptions = { padding: 0.2, maxZoom: 1 };
 
-/** Drag payload of a device list row: its hardwareId. */
-export const HARDWARE_MIME = "application/sage-hardware";
 export type ManualPair = { portA: string; portB: string };
 export type NodeMenu = { hardwareId: string; x: number; y: number };
 
 /**
- * 端口连线: the bench as a dotted canvas of faceplate cards. Dragging between two connectors
- * creates the same cable the 针脚列表 shows; clicking one selects it for editing. Card and
+ * The 接线 page's canvas: the bench as a dotted canvas of faceplate cards. Dragging between two connectors
+ * creates the same cable the 针脚表 shows; clicking one selects it for editing. Card and
  * connector positions live in the project file, so the bench looks the same when it reopens.
  */
 export function WiringCanvas({

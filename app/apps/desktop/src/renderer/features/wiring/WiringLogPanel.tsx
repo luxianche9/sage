@@ -21,7 +21,7 @@ function logTime(iso: string): string {
 
 const changeVerbs: Record<WiringChange["kind"], string> = { added: "新增接线", removed: "删除接线", changed: "修改接线" };
 
-/** 接线日志 of the bench: every change to the saved wiring, newest first. A change made by a confirmed
+/** 变更记录, the 接线 page's second left tab: every change to the saved wiring, newest first. A change made by a confirmed
  *  AI wiring task is marked as such; wiring requests themselves are answered in the conversation. */
 export function WiringLogPanel({ hardware, header, ...props }: {
   hardware: Hardware[];

@@ -1,30 +1,31 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { createPortal } from "react-dom";
 import type { Hardware } from "@sage/contracts/devices";
 import type { ProjectWiringConnection } from "@sage/contracts/wiring";
 import { CableIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { pinText, resolvePortRef } from "../../lib/hardware.js";
-import { Button, EmptyState, IconButton, Select, cn } from "../../ui/index.js";
+import { Button, EmptyState, IconButton, cn } from "../../ui/index.js";
 import { pinCountText, touchesHardware } from "./wiring-model.js";
 
-const ALL = "";
 const columns = "grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,1fr)]";
 
 /**
- * 针脚列表: the physical wiring as it is on the bench, one row per joined pin pair, grouped by
- * cable. It says which pins are joined and nothing about signals. Its filter, counts and 新建接线
- * sit in the bench's title row (`toolbar`), or in a row of their own without one.
+ * 针脚表: the physical wiring as it is on the bench, one row per joined pin pair, grouped by cable. It says
+ * which pins are joined and nothing about signals. `filter` keeps the cables of one hardware (the one picked
+ * in the page's left column). Its counts and 新建接线 sit in the page's toolbar (`toolbar`), or in a row of
+ * their own without one.
  */
-export function PinList({ connections, hardware, busy, toolbar, onCreate, onEdit, onRemove }: {
+export function PinList({ connections, hardware, filter, busy, toolbar, onCreate, onEdit, onRemove }: {
   connections: ProjectWiringConnection[];
   hardware: Hardware[];
+  /** A hardwareId: only its cables are listed. */
+  filter?: string | undefined;
   busy: boolean;
   toolbar?: HTMLElement | null | undefined;
   onCreate: () => void;
   onEdit: (connectionId: string) => void;
   onRemove: (connectionId: string) => void;
 }) {
-  const [filter, setFilter] = useState(ALL);
   const shown = useMemo(
     () => (filter ? connections.filter((item) => touchesHardware(item, filter)) : connections),
     [connections, filter]
@@ -32,19 +33,7 @@ export function PinList({ connections, hardware, busy, toolbar, onCreate, onEdit
   const pinCount = shown.reduce((sum, item) => sum + Math.max(1, item.pins.length), 0);
   const tools = (
     <>
-      <label className="flex items-center gap-1.5 text-xs whitespace-nowrap text-fg-3">
-        硬件
-        <Select
-          aria-label="按硬件筛选"
-          className="h-7 w-48 text-xs"
-          value={filter}
-          onChange={(event) => setFilter(event.target.value)}
-        >
-          <option value={ALL}>全部</option>
-          {hardware.map((item) => <option key={item.hardwareId} value={item.hardwareId}>{item.label}</option>)}
-        </Select>
-      </label>
-      <span className="tf-label ml-2 text-fg-3">接线</span>
+      <span className="tf-label text-fg-3">接线</span>
       <span className="tf-num text-xs text-fg">{shown.length}</span>
       <span className="tf-label ml-2 text-fg-3">针脚对</span>
       <span className="tf-num text-xs text-fg">{pinCount}</span>

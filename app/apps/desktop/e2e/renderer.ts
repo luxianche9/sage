@@ -6,16 +6,29 @@ export async function rendererReady(page: Page): Promise<Page> {
   return page;
 }
 
-/** The activity bar at the window's left edge. */
+/** The page navigation at the window's left edge. */
 export function activityBar(page: Page) {
-  return page.getByRole("navigation", { name: "活动栏" });
+  return page.getByRole("navigation", { name: "页面导航" });
 }
 
-/** Show a sidebar panel (设备管理, 接线日志, 测试编排, 运行历史); a click on the shown one would fold it away. */
-export async function showPanel(page: Page, label: string): Promise<void> {
+/** Show a page of the project (设备, 接线, 协议, 流程, 运行, 记录); a click on the shown one would fold its left
+ *  column away. */
+export async function showPage(page: Page, label: string): Promise<void> {
   const button = activityBar(page).getByRole("button", { name: label, exact: true });
-  if (await button.getAttribute("aria-pressed") !== "true") await button.click();
-  await expect(button).toHaveAttribute("aria-pressed", "true");
+  if (await button.getAttribute("aria-current") !== "page") await button.click();
+  await expect(button).toHaveAttribute("aria-current", "page");
+}
+
+/** The 接线 page's left column: the hardware list, or the wiring's change log. */
+export async function showWiringLog(page: Page): Promise<void> {
+  await showPage(page, "接线");
+  await page.getByRole("group", { name: "左栏内容" }).getByRole("button", { name: "变更记录", exact: true }).click();
+}
+
+/** The 接线 page showing the canvas or the pin table. */
+export async function showWiring(page: Page, view: "画布" | "表格"): Promise<void> {
+  await showPage(page, "接线");
+  await page.getByRole("group", { name: "接线视图" }).getByRole("button", { name: view, exact: true }).click();
 }
 
 /**

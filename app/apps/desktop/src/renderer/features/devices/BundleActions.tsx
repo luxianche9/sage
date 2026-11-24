@@ -7,7 +7,7 @@ import { Button } from "../../ui";
 
 /**
  * Picks a `.sagehw` bundle and imports it, with no editor open around it. Returns undefined when the
- * file dialog is dismissed. This is the whole 导入被测件 / 夹具 path, so the 设备管理 「+」 menu and
+ * file dialog is dismissed. This is the whole 导入被测件 / 夹具 path, so the 设备 page's 「+」 menu and
  * the hardware editor's footer go through the same code.
  */
 export async function importBundleFile(kind: DeviceBundleKind): Promise<string | undefined> {

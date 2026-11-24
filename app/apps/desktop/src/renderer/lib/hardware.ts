@@ -34,3 +34,6 @@ export function pinText(port: HardwarePort | undefined, pinId: string): string {
   const short = pin.pinId.startsWith(`${port.portId}.`) ? pin.pinId.slice(port.portId.length + 1) : pin.pinId;
   return pin.label ? `${short} (${pin.label})` : short;
 }
+
+/** Drag payload of a hardware list row dropped on the wiring canvas: its hardwareId. */
+export const HARDWARE_MIME = "application/sage-hardware";

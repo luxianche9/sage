@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { IcdFieldLayout } from "@sage/contracts/testing";
-import { PencilIcon } from "lucide-react";
+import { ExternalLinkIcon } from "lucide-react";
 import { Checkbox, cn, IconButton, Input, Select } from "../../ui";
+import { openPage } from "../../lib/pages.js";
 import { queryKeys } from "../../lib/query-keys.js";
 import type { JsonSchema } from "../manual/schema-form-model.js";
-import { IcdEditorDialog } from "../protocols/IcdEditorDialog.js";
 
 /** `InvokeTool.encode`: build the frame to send with an ICD encoder (design §6.5). */
 export interface EncodeSpec {
@@ -87,7 +87,6 @@ export function EncodeEditor({ value, toolSchema, onChange }: {
   const layouts = value?.message ? icd?.encoderLayouts?.[value.message] ?? [] : [];
   const { names, auto } = encodeTargets(toolSchema);
   const set = (patch: Partial<EncodeSpec>) => value && onChange({ ...value, ...patch });
-  const [editing, setEditing] = useState(false);
 
   if (!value) {
     return (
@@ -113,8 +112,9 @@ export function EncodeEditor({ value, toolSchema, onChange }: {
         <label className="grid gap-0.5 text-xs">
           <span className="flex items-center justify-between text-fg-2">ICD
             {value.icd && (
-              <IconButton size="icon-xs" label={`编辑 ICD ${value.icd}`} onClick={() => setEditing(true)}>
-                <PencilIcon />
+              <IconButton size="icon-xs" label={`去协议页编辑 ${value.icd}`}
+                onClick={() => openPage({ page: "protocols", icd: value.icd })}>
+                <ExternalLinkIcon />
               </IconButton>
             )}
           </span>
@@ -171,7 +171,6 @@ export function EncodeEditor({ value, toolSchema, onChange }: {
             ? preview.toUpperCase().replace(/(..)(?=.)/g, "$1 ") : check.data?.error ?? "—")}
         </code>
       </div>
-      {editing && <IcdEditorDialog name={value.icd} onClose={() => setEditing(false)} />}
     </section>
   );
 }

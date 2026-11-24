@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "../../ui/toast";
 import { installTestingApi, makePlan } from "../testing/testing-api.fixture.js";
-import { IcdEditorDialog } from "./IcdEditorDialog.js";
+import { IcdEditor } from "./IcdEditor.js";
 import { newIcdDoc } from "./icd-document.js";
 
 let api: ReturnType<typeof installTestingApi>;
@@ -35,15 +35,17 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe("IcdEditorDialog", () => {
+describe("IcdEditor", () => {
   it("opens a file the table cannot show as YAML, decodes samples against it and saves the text", async () => {
     api.testing.readIcd.mockResolvedValue({ name: "dut_ack", text: "name: dut_ack\n", valid: true });
     api.testing.checkIcd.mockResolvedValue({
       ...VALID,
       decoded: { "dut.ack": [{ t: 0, fields: { code: 7 } }], "dut.$errors": [{ t: 0, reason: "checksum" }] }
     });
-    const onClose = vi.fn();
-    render(<IcdEditorDialog name="dut_ack" alias="dut" onClose={onClose} />, { wrapper: Wrapper });
+    const onSaved = vi.fn();
+    const onDirtyChange = vi.fn();
+    render(<IcdEditor name="dut_ack" alias="dut" onSaved={onSaved} onDirtyChange={onDirtyChange} />,
+      { wrapper: Wrapper });
     const editor = await screen.findByRole("textbox", { name: "ICD 内容" });
     await waitFor(() => expect((editor as HTMLTextAreaElement).value).toBe("name: dut_ack\n"));
     fireEvent.change(screen.getByRole("textbox", { name: "试解码样本" }), { target: { value: "AA 55\n01 07" } });
@@ -54,18 +56,26 @@ describe("IcdEditorDialog", () => {
     const result = await screen.findByRole("list", { name: "试解码结果" });
     expect(result.textContent).toContain("code=7");
     expect(result.textContent).toContain("校验失败");
+    // Nothing to save or restore until something is changed; a saved protocol stays open, clean again.
+    expect(onDirtyChange).toHaveBeenLastCalledWith(false);
+    expect((screen.getByRole("button", { name: "还原" }) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.change(editor, { target: { value: "name: dut_ack\n# 改过\n" } });
+    expect(onDirtyChange).toHaveBeenLastCalledWith(true);
+    expect(screen.getByText("未保存")).toBeTruthy();
     await userEvent.click(screen.getByRole("button", { name: "保存" }));
     await waitFor(() => expect(api.testing.saveIcd).toHaveBeenCalledWith({
-      input: { name: "dut_ack", text: "name: dut_ack\n" }
+      input: { name: "dut_ack", text: "name: dut_ack\n# 改过\n" }
     }));
-    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    await waitFor(() => expect(onSaved).toHaveBeenCalledWith("dut_ack"));
+    expect(onDirtyChange).toHaveBeenLastCalledWith(false);
+    expect(screen.queryByText("未保存")).toBeNull();
   });
 
   it("shows why an ICD is invalid and blocks saving it", async () => {
     api.testing.checkIcd.mockResolvedValue({
       valid: false, error: "ICD is invalid", issues: [{ path: "/framing", message: "unknown kind" }]
     });
-    render(<IcdEditorDialog onClose={vi.fn()} />, { wrapper: Wrapper });
+    render(<IcdEditor />, { wrapper: Wrapper });
     // A new protocol is checked once it has a name.
     expect(screen.queryByRole("region", { name: "检查结果" })).toBeNull();
     fireEvent.change(await screen.findByRole("textbox", { name: "协议名" }), { target: { value: "dut" } });
@@ -88,7 +98,7 @@ describe("IcdEditorDialog", () => {
     }));
     Object.assign(window.sage, { streams: { recent } });
     const source = { hardwareId: "COM", streamId: "link" };
-    render(<IcdEditorDialog name="dut" alias="dut" source={source} onClose={vi.fn()} />, { wrapper: Wrapper });
+    render(<IcdEditor name="dut" alias="dut" source={source} />, { wrapper: Wrapper });
     expect(await screen.findByRole("textbox", { name: "协议名" })).toBeTruthy();
     await userEvent.click(screen.getByRole("button", { name: /抓取最近报文/ }));
     expect(recent).toHaveBeenCalledWith({ key: "COM__link", limit: 200 });
@@ -115,7 +125,7 @@ describe("IcdEditorDialog", () => {
 
   it("switches to YAML through the backend and refuses to switch while the table is wrong", async () => {
     api.testing.checkIcd.mockResolvedValue(VALID);
-    render(<IcdEditorDialog onClose={vi.fn()} />, { wrapper: Wrapper });
+    render(<IcdEditor />, { wrapper: Wrapper });
     fireEvent.change(await screen.findByRole("textbox", { name: "协议名" }), { target: { value: "riu" } });
     api.testing.renderIcd.mockResolvedValueOnce({ valid: false, error: "messages.0.fields.0: bad" });
     await userEvent.click(screen.getByRole("button", { name: "YAML" }));

@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { _electron as electron, expect, test, type ElectronApplication, type Page } from "@playwright/test";
-import { activityBar, reloadAfterLeave, rendererReady, showPanel } from "./renderer.js";
+import { activityBar, reloadAfterLeave, rendererReady, showPage, showWiring } from "./renderer.js";
 
 const desktopDir = resolve(import.meta.dirname, "..");
 
@@ -52,7 +52,7 @@ test.describe.serial("desktop controls preserve real keyboard and pointer intera
     }, projectRoot);
     await reloadAfterLeave(page);
     await page.getByText("interaction-fixture", { exact: true }).first().click();
-    await expect(page.getByRole("region", { name: "运行监控" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "设备页" })).toBeVisible();
   });
 
   test.afterAll(async () => {
@@ -60,25 +60,33 @@ test.describe.serial("desktop controls preserve real keyboard and pointer intera
     if (userData && dirname(userData) === resolve(tmpdir())) await rm(userData, { recursive: true, force: true });
   });
 
-  test("restores the sidebar width after switching panels and reloading", async () => {
-    const sidebar = page.getByRole("separator", { name: "调整侧栏宽度", exact: true });
+  test("restores the left column width after switching pages and reloading", async () => {
+    // Each page has its own separator; only the shown page's is visible.
+    const sidebar = page.getByRole("separator", { name: "调整左栏宽度", exact: true });
     const sidebarWidth = () => sidebar.evaluate((element) =>
       parseFloat((element.parentElement as HTMLElement).style.gridTemplateColumns));
-    await showPanel(page, "设备管理");
+    await showPage(page, "设备");
     const bounds = (await sidebar.boundingBox())!;
     await page.mouse.move(bounds.x + 2, bounds.y + bounds.height / 2);
     await page.mouse.down();
     await page.mouse.move(bounds.x + 62, bounds.y + bounds.height / 2, { steps: 8 });
     await page.mouse.up();
     const width = await sidebarWidth();
-    // The panels share the sidebar and its width.
-    await showPanel(page, "测试编排");
+    // The pages share one left column width.
+    await showPage(page, "运行");
     expect(await sidebarWidth()).toBe(width);
     await page.reload();
     await page.getByText("interaction-fixture", { exact: true }).first().click();
-    await showPanel(page, "测试编排");
+    // The project reopens on the page it was left on.
+    await expect(activityBar(page).getByRole("button", { name: "运行", exact: true })).toHaveAttribute("aria-current", "page");
     await expect.poll(sidebarWidth).toBe(width);
-    await showPanel(page, "设备管理");
+    // A second click on the shown page's icon folds its left column away; a third brings it back.
+    await activityBar(page).getByRole("button", { name: "运行", exact: true }).click();
+    await expect(sidebar).toHaveCount(0);
+    await expect(page.getByRole("complementary", { name: "运行步骤" })).toBeHidden();
+    await activityBar(page).getByRole("button", { name: "运行", exact: true }).click();
+    await expect(page.getByRole("complementary", { name: "运行步骤" })).toBeVisible();
+    await showPage(page, "设备");
   });
 
   test("resizes the sidebar from the keyboard and retains its bounded width", async () => {
@@ -110,8 +118,7 @@ test.describe.serial("desktop controls preserve real keyboard and pointer intera
   });
 
   test("keeps empty native Select options and keyboard selection with same-port support", async () => {
-    await page.getByRole("group", { name: "台架视图" }).getByRole("button", { name: "工位接线", exact: true }).click();
-    await page.getByRole("group", { name: "接线视图" }).getByRole("button", { name: "针脚列表", exact: true }).click();
+    await showWiring(page, "表格");
     await page.getByRole("button", { name: "新建接线", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "新建接线", exact: true });
     const source = dialog.getByLabel("起点端口");
@@ -150,15 +157,17 @@ test.describe.serial("desktop controls preserve real keyboard and pointer intera
       deviceId: "KEYBOARD_DEV", label: "Keyboard device", hardwareId: "KEYBOARD_DEV_CARD", type: "demo",
       settings: {}, enabled: true
     } }));
-    await showPanel(page, "设备管理");
-    const row = page.getByRole("complementary", { name: "设备列表" }).getByRole("button", { name: "详细 Keyboard device" });
-    await row.click();
-    await page.getByRole("dialog", { name: "Keyboard device" }).getByRole("button", { name: "编辑", exact: true }).click();
-    const dialog = page.getByRole("dialog", { name: "编辑设备", exact: true });
-    await expect(dialog.getByLabel(/设备类型|运行模式/)).toHaveCount(0);
-    await dialog.getByLabel("名称").fill("Keyboard relay card");
-    await dialog.getByLabel("名称").press("Enter");
-    await expect(dialog).toBeHidden();
+    await showPage(page, "设备");
+    await page.getByRole("complementary", { name: "设备列表" }).getByRole("button", { name: /^Keyboard device/ }).click();
+    // The device's page: its form opens in place of the first card, not in a dialog.
+    const detail = page.getByRole("main", { name: "设备 Keyboard device" });
+    await detail.getByRole("button", { name: "编辑", exact: true }).click();
+    const form = page.getByRole("form", { name: "编辑设备", exact: true });
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(form.getByLabel(/设备类型|运行模式/)).toHaveCount(0);
+    await form.getByLabel("名称").fill("Keyboard relay card");
+    await form.getByLabel("名称").press("Enter");
+    await expect(form).toHaveCount(0);
     const saved = await page.evaluate(async () => (await window.sage.system.dashboard()).devices
       .find((instance) => instance.deviceId === "KEYBOARD_DEV"));
     expect(saved).toMatchObject({ label: "Keyboard relay card", hardwareId: "KEYBOARD_DEV_CARD" });
@@ -169,14 +178,14 @@ test.describe.serial("desktop controls preserve real keyboard and pointer intera
   });
 
   test("discards unsaved hardware editor changes on Escape", async () => {
-    await showPanel(page, "设备管理");
+    await showPage(page, "设备");
     const hardware = page.getByRole("complementary", { name: "设备列表" }).getByRole("button", { name: /^DUT_A/ });
     await hardware.click();
-    await page.getByRole("dialog", { name: "DUT_A" }).getByRole("button", { name: "编辑", exact: true }).click();
-    const editor = page.getByRole("dialog", { name: "编辑硬件", exact: true });
+    await page.getByRole("main", { name: "被测件 DUT_A" }).getByRole("button", { name: "编辑", exact: true }).click();
+    const editor = page.getByRole("form", { name: "编辑硬件", exact: true });
     await editor.getByLabel("显示名称").fill("Unsaved keyboard edit");
     await page.keyboard.press("Escape");
-    await expect(editor).toBeHidden();
+    await expect(editor).toHaveCount(0);
     await expect(hardware).toContainText("DUT_A");
     await expect(hardware).not.toContainText("Unsaved keyboard edit");
   });
@@ -215,9 +224,9 @@ test.describe.serial("desktop controls preserve real keyboard and pointer intera
     }).toBeLessThanOrEqual(1);
     expect(await page.evaluate((keys) => Object.fromEntries(keys.map((key) => [key, localStorage.getItem(key)])), Object.keys(savedWidths))).toEqual(savedWidths);
     await page.getByText("interaction-fixture", { exact: true }).first().click();
-    await expect(activityBar(page).getByRole("button", { name: "设备管理", exact: true })).toBeVisible();
-    await showPanel(page, "设备管理");
-    const separator = page.getByRole("separator", { name: "调整侧栏宽度", exact: true });
-    await expect.poll(() => separator.evaluate((element) => parseFloat((element.parentElement as HTMLElement).style.gridTemplateColumns))).toBe(Number(savedWidths["sage.bench-devices-width"]));
+    await expect(activityBar(page).getByRole("button", { name: "设备", exact: true })).toBeVisible();
+    await showPage(page, "设备");
+    const separator = page.getByRole("separator", { name: "调整左栏宽度", exact: true });
+    await expect.poll(() => separator.evaluate((element) => parseFloat((element.parentElement as HTMLElement).style.gridTemplateColumns))).toBe(Number(savedWidths["sage.page-left-width"]));
   });
 });

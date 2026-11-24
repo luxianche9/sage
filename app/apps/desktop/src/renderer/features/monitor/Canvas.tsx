@@ -20,19 +20,21 @@ const GRID_BACKGROUND = {
 };
 
 /**
- * 运行监控's canvas: one page on which every panel sits where it was put, like a host-computer front panel.
+ * The host-computer canvas of the 运行 and 记录 pages: one page on which every panel sits where it was put,
+ * like a front panel.
  * Outside 编辑布局 the panels are live and operated. In 编辑布局 a panel is moved by dragging it, resized on
  * its corner, removed with × and picked for the property panel by a click; it is not operated meanwhile.
  * Components dropped on an empty spot make a panel there.
  */
-export function Canvas({ workspace, editing, selected, onSelect, empty }: {
+export function Canvas({ workspace, editing, selected, onSelect, emptyTitle, empty }: {
   workspace: MonitorWorkspace;
   /** 编辑布局: panels are arranged, not operated. */
   editing: boolean;
   selected: string | undefined;
   onSelect: (id: string | undefined) => void;
-  /** Offered while the canvas is empty. */
-  empty: ReactNode;
+  /** Said while the canvas is empty, with what `empty` offers under it. */
+  emptyTitle: string;
+  empty?: ReactNode;
 }) {
   const panels = workspace.monitor.panels as Array<MonitorPanel & { frame: Frame }>;
   const extent = useMemo(() => canvasExtent(panels.map((panel) => panel.frame)), [panels]);
@@ -116,7 +118,7 @@ export function Canvas({ workspace, editing, selected, onSelect, empty }: {
           ))}
         </div>
         {!panels.length && (
-          <DropZone icon={<LayoutDashboardIcon />} title="从「组件」拖控件到这里">{empty}</DropZone>
+          <DropZone icon={<LayoutDashboardIcon />} title={emptyTitle}>{empty}</DropZone>
         )}
       </div>
     </>

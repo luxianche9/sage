@@ -6,8 +6,8 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import type { DeviceInstance } from "@sage/contracts/devices";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { HardwareEditor } from "./editors/HardwareEditor.js";
-import { DeviceEditor } from "./editors/DeviceEditor.js";
+import { HardwareEditor } from "./HardwareEditor.js";
+import { DeviceEditor } from "./DeviceEditor.js";
 
 const saveHardware = vi.fn();
 const listHardware = vi.fn();
@@ -40,7 +40,7 @@ describe("device and hardware editors", () => {
   it("saves a passive hardware definition", async () => {
     const onClose = vi.fn();
     const onChanged = vi.fn(async () => undefined);
-    render(<HardwareEditor open onClose={onClose} onChanged={onChanged} />, { wrapper: Wrapper });
+    render(<HardwareEditor onClose={onClose} onChanged={onChanged} />, { wrapper: Wrapper });
 
     await userEvent.clear(screen.getByLabelText(/稳定 hardwareId/));
     await userEvent.type(screen.getByLabelText(/稳定 hardwareId/), "DUT_MAIN");

@@ -7,7 +7,7 @@ export type WelcomeLayout = z.infer<typeof welcomeLayoutSchema>;
 /** `chat`: OpenAI-compatible Chat Completions (most providers); `responses`: OpenAI Responses API. */
 export const llmApiSchema = z.enum(["chat", "responses"]);
 export type LlmApi = z.infer<typeof llmApiSchema>;
-/** 运行监控 was merged into the bench's signal view; a stored "runs" falls back to the bench. */
+/** Kept for stored settings; the desktop remembers the project page itself (docs/decisions 0006). */
 export const projectViewSchema = z.enum(["bench", "plans"]).catch("bench");
 export type ProjectView = z.infer<typeof projectViewSchema>;
 

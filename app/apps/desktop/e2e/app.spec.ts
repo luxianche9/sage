@@ -6,7 +6,7 @@ import { promisify } from "node:util";
 import { _electron as electron, expect, test, type ElectronApplication, type Page } from "@playwright/test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import { activityBar, reloadAfterLeave, rendererReady, showPanel } from "./renderer.js";
+import { activityBar, reloadAfterLeave, rendererReady, showPage, showWiringLog } from "./renderer.js";
 
 const desktopDir = resolve(import.meta.dirname, "..");
 const workspaceDir = resolve(desktopDir, "../..");
@@ -57,11 +57,11 @@ test.describe.serial("SAGE folder project desktop", () => {
     await expect(page.getByRole("heading", { name: "最近项目" })).toBeVisible();
     await expect(page.getByRole("button", { name: "打开项目文件夹" })).toBeVisible();
     await expect(page.getByRole("button", { name: "设置", exact: true })).toBeVisible();
-    await expect(activityBar(page).getByRole("button", { name: "设备管理", exact: true })).toHaveCount(0);
+    await expect(activityBar(page).getByRole("button", { name: "设备", exact: true })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "打开 AI 侧栏" })).toHaveCount(0);
     await page.getByRole("button", { name: "设置", exact: true }).click();
     await expect(page.getByRole("heading", { name: "外观" })).toBeVisible();
-    await expect(activityBar(page).getByRole("button", { name: "设备管理", exact: true })).toHaveCount(0);
+    await expect(activityBar(page).getByRole("button", { name: "设备", exact: true })).toHaveCount(0);
     await page.getByRole("button", { name: "返回", exact: true }).click();
     await expect(page.getByRole("heading", { name: "最近项目" })).toBeVisible();
     await page.screenshot({ path: resolve(artifactDir, "welcome-light.png"), fullPage: true });
@@ -77,12 +77,12 @@ test.describe.serial("SAGE folder project desktop", () => {
     // Every launch still returns to the welcome page even when recent projects exist.
     await expect(page.getByRole("heading", { name: "最近项目" })).toBeVisible();
     await page.getByText("project-a", { exact: true }).first().click();
-    // One screen: the activity bar switches the sidebar's panels; runs are watched on the monitor panel.
-    for (const label of ["设备管理", "组件", "接线日志", "测试编排", "运行历史"]) {
+    // Six pages, one icon each; a project opens on 设备 the first time.
+    for (const label of ["设备", "接线", "协议", "流程", "运行", "记录"]) {
       await expect(activityBar(page).getByRole("button", { name: label, exact: true })).toBeVisible();
     }
-    await expect(page.getByRole("tab", { name: "测试编排", exact: true })).toHaveCount(0);
-    await expect(page.getByRole("tab", { name: "运行监控", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "设备页" })).toBeVisible();
+    await expect(page.getByRole("region", { name: "运行页" })).toBeHidden();
     await expect(page.getByRole("button", { name: "打开 AI 侧栏" })).toBeVisible();
   });
 
@@ -110,13 +110,16 @@ test.describe.serial("SAGE folder project desktop", () => {
     expect(result.afterSave.dirty).toBe(false);
     expect(result.beforeSave?.file.wiring.connections[0]?.pins).toEqual([{ a: "1", b: "1" }, { a: "2", b: "2" }]);
 
-    await showPanel(page, "设备管理");
+    // A click in the list shows the part in the page's centre, not in a dialog.
+    await showPage(page, "设备");
     const list = page.getByRole("complementary", { name: "设备列表" });
+    await list.getByRole("button", { name: /^DUT_B/ }).click();
+    await expect(page.getByRole("main", { name: "被测件 DUT_B" }).getByText("光纤口")).toBeVisible();
     await list.getByRole("button", { name: /^DUT_A/ }).click();
-    await expect(page.getByRole("dialog", { name: "DUT_A" }).getByText("光纤口")).toBeVisible();
-    await page.keyboard.press("Escape");
-    await page.screenshot({ path: resolve(artifactDir, "bench-page.png"), fullPage: true });
-    await showPanel(page, "接线日志");
+    await expect(page.getByRole("main", { name: "被测件 DUT_A" }).getByText("光纤口")).toBeVisible();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await page.screenshot({ path: resolve(artifactDir, "devices-page.png"), fullPage: true });
+    await showWiringLog(page);
     const log = page.getByRole("region", { name: "接线日志" });
     await expect(log.getByRole("region", { name: "变更记录" })).toBeVisible();
     await expect(log.getByText("新增接线 DUT_A J1 ↔ DUT_B J1").first()).toBeVisible();
@@ -132,7 +135,7 @@ test.describe.serial("SAGE folder project desktop", () => {
       { action: "disconnect", portA: "DUT_A.J1", portB: "DUT_B.J1", pins: [{ a: "1", b: "1" }, { a: "2", b: "2" }] }
     ] } })).wiringTaskId);
     // Wiring requests are answered in the conversation only; the log lists what changed.
-    await showPanel(page, "接线日志");
+    await showWiringLog(page);
     const changes = page.getByRole("region", { name: "接线日志" }).getByRole("region", { name: "变更记录" });
     const before = await changes.getByRole("listitem").count();
     const task = await page.evaluate(async (id) => {
@@ -162,7 +165,7 @@ test.describe.serial("SAGE folder project desktop", () => {
     await expect(page.getByText("MCP Gateway", { exact: false }).first()).toBeVisible();
     await expect(page.getByText("Codex", { exact: true }).first()).toBeVisible();
 
-    await activityBar(page).getByRole("button", { name: "设备管理", exact: true }).click();
+    await activityBar(page).getByRole("button", { name: "设备", exact: true }).click();
     const openAssistant = page.getByRole("button", { name: "打开 AI 侧栏" });
     if (await openAssistant.isVisible()) await openAssistant.click();
     await expect(page.getByRole("button", { name: "关闭 AI 侧栏" })).toBeVisible();
@@ -253,8 +256,8 @@ test.describe.serial("SAGE folder project desktop", () => {
 
       expect(results.results).not.toEqual(expect.arrayContaining([expect.objectContaining({ name: "通信结果" })]));
 
-      // The 测试 panel shows both groups of the flow: the one left out of the run and the aborted one.
-      await showPanel(page, "测试编排");
+      // The 运行 page's left column shows both groups of the flow: the one left out and the aborted one.
+      await showPage(page, "运行");
       const tree = page.getByRole("tree", { name: "测试流程" });
       await expect(tree.getByRole("treeitem", { name: /通信功能/ })).toContainText("未选");
       await expect(tree.getByRole("treeitem", { name: /供电功能/ })).toContainText("终止");
@@ -282,7 +285,7 @@ test.describe.serial("SAGE folder project desktop", () => {
     await expect(dialog.getByRole("button", { name: "保存并继续" })).toBeVisible();
     await expect(dialog.getByRole("button", { name: "放弃修改" })).toBeVisible();
     await dialog.getByRole("button", { name: "取消" }).click();
-    await expect(activityBar(page).getByRole("button", { name: "设备管理", exact: true })).toBeVisible();
+    await expect(activityBar(page).getByRole("button", { name: "设备", exact: true })).toBeVisible();
     await requestLeaveProject(page);
     await dialog.getByRole("button", { name: "放弃修改" }).click();
     await expect(page.getByRole("heading", { name: "最近项目" })).toBeVisible();

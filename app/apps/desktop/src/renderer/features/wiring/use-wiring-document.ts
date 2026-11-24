@@ -15,7 +15,7 @@ import {
 
 /**
  * The physical wiring of the shared project document — pin connections plus the cards of the
- * 端口连线 canvas — and every edit the two 工位接线 views can make. Edits go to the project buffer
+ * 端口连线 canvas — and every edit the 接线 page's two views can make. Edits go to the project buffer
  * through `wiring.updateDocument`; the main process decides what marks the project dirty.
  */
 export function useWiringDocument() {

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useTestStepCatalog } from "../../lib/queries.js";
 import { Spinner } from "../../ui";
 import { EditorToolbar } from "./EditorToolbar.js";
@@ -10,10 +10,15 @@ import { StepProperties } from "./StepProperties.js";
 import type { PlanEditor } from "./usePlanEditor.js";
 
 /**
- * The plan editor's flow: command bar, banners and the three region trees of the open plan. The
- * selected step unfolds in place with its properties; 计划属性 shows the plan's own above them.
+ * The plan editor's flow, the centre of the 流程 page: command bar, banners and the three region trees of
+ * the open plan. The selected step unfolds in place with its properties; 计划属性 shows the plan's own above
+ * them. `footer` sits under the flow (the validation issues).
  */
-export function PlanEditorPane({ editor, onIssues }: { editor: PlanEditor; onIssues: () => void }) {
+export function PlanEditorPane({ editor, onIssues, footer }: {
+  editor: PlanEditor;
+  onIssues: () => void;
+  footer?: ReactNode;
+}) {
   const { draft, dirty, mutate } = editor;
   const [planProperties, setPlanProperties] = useState(false);
   const referenceCounts = useMemo(() => draft ? collectReferenceCounts(draft) : {}, [draft]);
@@ -81,6 +86,7 @@ export function PlanEditorPane({ editor, onIssues }: { editor: PlanEditor; onIss
           <div className="grid h-full place-items-center"><Spinner label="正在读取测试流程…" /></div>
         )}
       </div>
+      {footer}
     </main>
   );
 }

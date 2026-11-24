@@ -25,23 +25,8 @@ export function RunParametersDialog({ open, plan, value, onChange, onClose }: {
   );
 }
 
-export function IssuesDialog({ open, issues, onSelect, onClose }: {
-  open: boolean;
-  issues: TestPlanIssue[];
-  onSelect: (issue: TestPlanIssue) => void;
-  onClose: () => void;
-}) {
-  return (
-    <Dialog open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
-      <DialogContent title={`校验问题（${issues.length}）`} size="lg">
-        <DialogBody><IssueList issues={issues} onSelect={onSelect} /></DialogBody>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-/** Validation issues grouped by category (结构 / 类型 / 设备 / 接线 / 安全 / 覆盖). */
-function IssueList({ issues, onSelect }: {
+/** Validation issues grouped by category (结构 / 类型 / 设备 / 接线 / 安全 / 覆盖); a click picks the step. */
+export function IssueList({ issues, onSelect }: {
   issues: TestPlanIssue[];
   onSelect?: (issue: TestPlanIssue) => void;
 }) {

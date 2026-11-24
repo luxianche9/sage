@@ -4,6 +4,7 @@ import type { ProjectDocument } from "@sage/contracts/projects";
 import { useCurrentTestRun } from "../lib/queries.js";
 import { openRunMonitor } from "../lib/run-focus.js";
 import { isActiveRun } from "../features/testing/plan-helpers.js";
+import { SafeAllButton } from "../features/monitor/index.js";
 import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger, StatusLamp, cn } from "../ui";
 import type { AppPage } from "./app-navigation.js";
 
@@ -58,6 +59,7 @@ export function TitleBar(props: {
       <span className="flex-1 self-stretch" />
 
       {inProject && <RunIndicator />}
+      {inProject && <SafeAllButton className={cn(barButton, "disabled:pointer-events-none disabled:opacity-45")} />}
       {inProject && (
         <button
           type="button"
@@ -76,7 +78,7 @@ export function TitleBar(props: {
   );
 }
 
-/** The run in progress, wherever it was started; a click shows it on the bench's signal view. */
+/** The run in progress, wherever it was started; a click shows it on the 运行 page. */
 function RunIndicator() {
   const run = useCurrentTestRun().data;
   if (!isActiveRun(run)) return null;
@@ -85,7 +87,7 @@ function RunIndicator() {
     <button
       type="button"
       aria-label={`正在运行 ${run.planName}，查看运行`}
-      title="在测试台架的信号视图中查看本次运行"
+      title="去运行页查看本次运行"
       onClick={() => openRunMonitor(run.runId)}
       className={cn(barButton, "max-w-56")}
     >

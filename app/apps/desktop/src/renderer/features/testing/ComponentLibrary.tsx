@@ -14,7 +14,7 @@ export type DragDescriptor =
   | { kind: "catalog"; item: TestStepCatalogItem }
   | { kind: "device"; hardware: Hardware };
 
-/** 组件库 tab: step catalog by category plus managed hardware; drag into a region or click to append. */
+/** The 流程 page's left column: step catalog by category plus managed hardware; drag into a region or click to append. */
 export function ComponentLibrary({ enabled, onAdd, onAddDevice }: {
   /** False while the test flow is not loaded; rows are then inert. */
   enabled: boolean;
@@ -45,7 +45,7 @@ export function ComponentLibrary({ enabled, onAdd, onAddDevice }: {
                 />
               ))}
             {category === "硬件" && !managed.length && (
-              <EmptyState compact title="没有受管设备" description="在设备管理中添加 managed hardware。" />
+              <EmptyState compact title="没有受管设备" description="先在设备页添加设备。" />
             )}
           </div>
         </Section>

@@ -1,1 +1,1 @@
-export { BenchPage } from "./BenchPage.js";
+export { DevicesPage } from "./DevicesPage.js";

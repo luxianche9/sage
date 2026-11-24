@@ -1,7 +1,7 @@
 const OPEN_RUN = "sage:open-run";
 let pending: string | undefined;
 
-/** Shows a run on the bench's signal view (the shell switches to the bench; the view picks the run up). */
+/** Shows a run on the 运行 page (the shell switches to it; the page picks the run up). */
 export function openRunMonitor(runId: string) {
   pending = runId;
   window.dispatchEvent(new CustomEvent(OPEN_RUN, { detail: { runId } }));
@@ -26,20 +26,4 @@ export function onRunRequested(listener: (runId: string) => void): () => void {
   };
   window.addEventListener(OPEN_RUN, handler);
   return () => window.removeEventListener(OPEN_RUN, handler);
-}
-
-const FOCUS_STEP = "sage:focus-step";
-
-/** Zooms the signal view to the time one step of the shown run took. */
-export function focusRunStep(executionId: string) {
-  window.dispatchEvent(new CustomEvent(FOCUS_STEP, { detail: { executionId } }));
-}
-
-export function onRunStepFocused(listener: (executionId: string) => void): () => void {
-  const handler = (event: Event) => {
-    const executionId = (event as CustomEvent<{ executionId?: string }>).detail?.executionId;
-    if (executionId) listener(executionId);
-  };
-  window.addEventListener(FOCUS_STEP, handler);
-  return () => window.removeEventListener(FOCUS_STEP, handler);
 }

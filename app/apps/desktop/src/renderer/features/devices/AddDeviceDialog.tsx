@@ -4,7 +4,7 @@ import type { DeviceAdded, DevicePackageInspection } from "@sage/contracts/devic
 import { RotateCwIcon, ShieldAlertIcon } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { Button, Dialog, DialogBody, DialogContent, DialogFooter, Input } from "../../ui";
-import { EditorField } from "./editors/EditorField.js";
+import { EditorField } from "./EditorField.js";
 
 const size = (bytes: number) =>
   bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.ceil(bytes / 1024)} KB`;

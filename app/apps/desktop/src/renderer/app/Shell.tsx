@@ -11,8 +11,8 @@ import { useSageEvents } from "../lib/hooks/useSageEvents.js";
 import { useKeyboardShortcut } from "../lib/hooks/useKeyboardShortcut.js";
 import { useDirtyGuard } from "../lib/hooks/useDirtyGuard.js";
 import { chooseProjectFolder } from "../lib/projects.js";
+import { onPageRequested, readLastPage, writeLastPage, type ProjectPage } from "../lib/pages.js";
 import { onRunRequested } from "../lib/run-focus.js";
-import { onSidePanelRequested, type SidePanel } from "../lib/side-panel.js";
 import { ManualCheckDialog } from "../features/testing/ManualCheckDialog.js";
 import { ActivityBar } from "./ActivityBar.js";
 import { appNavigationReducer, initialAppNavigation, type AppPage } from "./app-navigation.js";
@@ -58,7 +58,8 @@ function Shell() {
   const project = useProjectDocument();
   const [navigation, navigate] = useReducer(appNavigationReducer, initialAppNavigation);
   const [assistantOpen, setAssistantOpen] = useState(readAssistantOpen);
-  const [panel, setPanel] = useState<SidePanel | undefined>("devices");
+  const [projectPage, setProjectPage] = useState<ProjectPage>(readLastPage);
+  const [leftOpen, setLeftOpen] = useState(true);
   const [pendingSelection, setPendingSelection] = useState<ProjectFolderSelection>();
   const toast = useToast();
   const setError = useCallback((message?: string) => { if (message) toast.error(message); }, [toast]);
@@ -92,23 +93,29 @@ function Shell() {
   // Only the operator's own choice is remembered; closing the sidebar with the project is not one.
   const showAssistant = useCallback((open: boolean) => { writeAssistantOpen(open); setAssistantOpen(open); }, []);
   useEffect(() => { if (!project.data) setAssistantOpen(false); }, [project.data]);
+  /** Shows a page with its left column: a column folded on one page is not left folded on the next. */
+  const showPage = useCallback((next: ProjectPage) => {
+    writeLastPage(next);
+    setProjectPage(next);
+    setLeftOpen(true);
+    navigate({ type: "show-content", page: "project" });
+  }, []);
   useEffect(() => {
     if (!project.data) return;
-    const stopPanels = onSidePanelRequested((next) => {
-      navigate({ type: "show-content", page: "bench" });
-      setPanel(next);
-    });
-    // The operator started a run: watch it on the bench's signal view, which is already watching.
-    const stopRuns = onRunRequested(() => navigate({ type: "show-content", page: "bench" }));
+    // A button that names its destination ("去协议页", "编辑流程") sent the operator to another page.
+    const stopPages = onPageRequested((request) => showPage(request.page));
+    // The operator started a run, or asked for the running one: it is watched on the 运行 page.
+    const stopRuns = onRunRequested(() => showPage("run"));
     return () => {
-      stopPanels();
+      stopPages();
       stopRuns();
     };
-  }, [project.data]);
+  }, [project.data, showPage]);
 
   const enterProject = useCallback(async () => {
     await syncProject();
-    navigate({ type: "show-content", page: "bench" });
+    setProjectPage(readLastPage());
+    navigate({ type: "show-content", page: "project" });
     setAssistantOpen(readAssistantOpen());
   }, [syncProject]);
 
@@ -142,14 +149,10 @@ function Shell() {
     if (navigation.page === "settings" || beforeNavigation({ next: "settings" })) navigate({ type: "open-settings" });
   };
   const returnFromSettings = () => navigate({ type: "return-from-settings", hasProject: Boolean(project.data) });
-  /** An activity bar icon: show its panel, or fold the sidebar away when it is the one shown. */
-  const togglePanel = (next: SidePanel) => {
-    if (navigation.page === "settings") {
-      returnFromSettings();
-      setPanel(next);
-      return;
-    }
-    setPanel((current) => current === next ? undefined : next);
+  /** An activity bar icon: show its page, or fold the left column away when it is the page shown. */
+  const pickPage = (next: ProjectPage) => {
+    if (navigation.page !== "settings" && next === projectPage) setLeftOpen((open) => !open);
+    else showPage(next);
   };
 
   const handleProjectAction = (action: ProjectAction) => {
@@ -185,17 +188,17 @@ function Shell() {
       />
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <ActivityBar
-          panel={panel}
+          page={projectPage}
           inProject={page !== "welcome" && Boolean(currentProject)}
           settingsOpen={page === "settings"}
           theme={theme.resolved}
-          onPanel={togglePanel}
+          onPage={pickPage}
           onSettings={() => (page === "settings" ? returnFromSettings() : openSettings())}
           onToggleTheme={() => void theme.select(theme.resolved === "dark" ? "light" : "dark")}
         />
         <main className="flex min-h-0 min-w-0 flex-1 flex-col">
           {/* One boundary per open project: switching its pages must not remount them. */}
-          <ErrorBoundary key={page === "bench" ? `project-${currentProject?.rootPath}` : `content-${page}`}>
+          <ErrorBoundary key={page === "project" ? `project-${currentProject?.rootPath}` : `content-${page}`}>
             <Suspense fallback={<FeatureFallback />}>
               {page === "settings"
                 ? <SettingsPage
@@ -205,7 +208,7 @@ function Shell() {
                     onBack={returnFromSettings}
                   />
                 : page !== "welcome" && currentProject
-                  ? <ProjectWorkspace panel={panel} />
+                  ? <ProjectWorkspace page={projectPage} leftOpen={leftOpen} />
                   : <WelcomePage onOpened={() => enterProject()} />}
             </Suspense>
           </ErrorBoundary>

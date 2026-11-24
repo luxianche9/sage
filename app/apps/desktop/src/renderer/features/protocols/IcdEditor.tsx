@@ -1,10 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { IcdCheck } from "@sage/contracts/testing";
-import { DownloadIcon, Table2Icon, WandSparklesIcon } from "lucide-react";
-import {
-  Badge, Button, cn, Dialog, DialogBody, DialogContent, DialogFooter, Field, Input, SegmentedControl, Textarea
-} from "../../ui";
+import { DownloadIcon, SaveIcon, Table2Icon, Undo2Icon, WandSparklesIcon } from "lucide-react";
+import { Badge, Button, cn, Field, Input, SegmentedControl, Textarea, Toolbar } from "../../ui";
 import { useToast } from "../../ui/toast.js";
 import { errorMessage } from "../../lib/errors.js";
 import { queryKeys } from "../../lib/query-keys.js";
@@ -14,7 +12,6 @@ import { icdTemplate, parseSamples, sampleIssue, trialRows } from "./icd-model.j
 import { ChecksumSection, EncodersSection, FramingSection, MessagesSection } from "./IcdTables.js";
 
 type Mode = "table" | "yaml";
-type Editing = { name?: string; alias?: string };
 
 const modeOptions = [
   { value: "table", label: "表格", title: "按帧格式、报文、字段逐项填写" },
@@ -27,16 +24,21 @@ function declaredName(text: string): string | undefined {
 }
 
 /**
- * The protocol (ICD) editor. 表格 edits it field by field; YAML edits the file itself. Sample bytes — pasted,
- * or the stream's last bytes when it was opened for one — are decoded as they would be live; pick a frame to
- * see it byte by byte and turn bytes into fields.
+ * The protocol (ICD) editor, the centre of the 协议 page. 表格 edits it field by field; YAML edits the file
+ * itself. Sample bytes — pasted, or the last bytes of the stream it decodes — are decoded as they would be
+ * live; pick a frame to see it byte by byte and turn bytes into fields. Without `name` it writes a new one.
  */
-export function IcdEditorDialog({ name, alias, source, onClose, onSaved }: Editing & {
-  /** The raw stream it is written for: its recent bytes can be taken as samples. */
+export function IcdEditor({ name, alias, source, bindings, onSaved, onDirtyChange }: {
+  name?: string | undefined;
+  /** The alias it is bound under, so trial-decoded fields read as they will live. */
+  alias?: string | undefined;
+  /** The raw stream it decodes: its recent bytes can be taken as samples. */
   source?: { hardwareId: string; streamId: string } | undefined;
-  onClose: () => void;
+  /** Shown under the command bar: the streams this protocol decodes. */
+  bindings?: ReactNode;
   /** Called with the saved ICD's name, e.g. to select an ICD just created. */
   onSaved?: (name: string) => void;
+  onDirtyChange?: (dirty: boolean) => void;
 }) {
   const client = useQueryClient();
   const toast = useToast();
@@ -56,7 +58,9 @@ export function IcdEditorDialog({ name, alias, source, onClose, onSaved }: Editi
   });
   const [mode, setMode] = useState<Mode>("table");
   const [doc, setDoc] = useState<IcdDoc>(() => newIcdDoc(""));
-  const [text, setText] = useState("");
+  const [text, setText] = useState(() => (name ? "" : icdTemplate("")));
+  const [dirty, setDirty] = useState(false);
+  const [restored, setRestored] = useState(0);
   const [algorithms, setAlgorithms] = useState<readonly string[]>(["sum8", "xor8", "crc8", "crc16_modbus"]);
   const [message, setMessage] = useState(0);
   const [highlight, setHighlight] = useState<string>();
@@ -65,13 +69,26 @@ export function IcdEditorDialog({ name, alias, source, onClose, onSaved }: Editi
   const [check, setCheck] = useState<IcdCheck>();
   useEffect(() => {
     const data = opened.data;
-    if (!data) return;
+    // A new protocol starts from the blank table it was given, whatever was typed before this ran.
+    if (!data || !name) return;
     setText(data.text);
     if (data.algorithms) setAlgorithms(data.algorithms);
     if (data.document) setDoc(data.document as unknown as IcdDoc);
     // A file the table cannot show (broken YAML, invalid ICD) opens as text.
-    setMode(name && !data.document ? "yaml" : "table");
-  }, [opened.data, name]);
+    setMode(data.document ? "table" : "yaml");
+    setDirty(false);
+    // `restored` re-applies a refetch that read the same content (the query keeps the same object then).
+  }, [opened.data, name, restored]);
+  const restore = () => {
+    if (name) { void opened.refetch().then(() => setRestored((count) => count + 1)); return; }
+    setDoc(newIcdDoc(""));
+    setText(icdTemplate(""));
+    setMode("table");
+    setDirty(false);
+  };
+  useEffect(() => { onDirtyChange?.(dirty); }, [dirty, onDirtyChange]);
+  const changeDoc = (next: IcdDoc) => { setDoc(next); setDirty(true); };
+  const changeText = (next: string) => { setText(next); setDirty(true); };
 
   const samples = useMemo(() => parseSamples(samplesText), [samplesText]);
   const badSample = sampleIssue(samples);
@@ -120,12 +137,12 @@ export function IcdEditorDialog({ name, alias, source, onClose, onSaved }: Editi
     }),
     onSuccess: async (result) => {
       toast.success(`已保存协议 ${result.name}`);
+      setDirty(false);
       await client.invalidateQueries({ queryKey: queryKeys.icds });
       // Bound ICDs decide which protocol fields the devices offer.
       await client.invalidateQueries({ queryKey: queryKeys.protocols });
       await client.invalidateQueries({ queryKey: queryKeys.monitorStreams });
       onSaved?.(result.name);
-      onClose();
     },
     onError: (error) => toast.error(errorMessage(error))
   });
@@ -156,98 +173,104 @@ export function IcdEditorDialog({ name, alias, source, onClose, onSaved }: Editi
     && (doc.framing.header ?? "").replace(/\s/g, "").toUpperCase() !== header.replace(/\s/g, "");
 
   return (
-    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent title={creating ? "新建协议（ICD）" : `编辑协议 ${name}`} size="xl"
-        className="w-[min(1360px,calc(100vw-80px))]"
-        actions={<SegmentedControl<Mode> label="编辑方式" size="xs" value={mode} options={modeOptions}
-          onChange={(next) => void switchMode(next)} />}>
-        <DialogBody className="grid h-[70vh] min-h-0 grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] gap-3">
-          <div className="grid min-h-0 content-start gap-2 overflow-x-hidden overflow-y-auto pr-1">
-            {opened.error && <p className="text-xs text-fail">读取失败：{errorMessage(opened.error)}</p>}
-            {mode === "table" ? (
-              <>
-                <div className="flex flex-wrap items-end gap-2">
-                  <Field label="协议名" className="w-44">
-                    <Input aria-label="协议名" className="font-mono" value={doc.name} disabled={!creating}
-                      onChange={(event) => setDoc({ ...doc, name: event.target.value })} />
-                  </Field>
-                  <Field label="说明" className="min-w-0 flex-1">
-                    <Input aria-label="协议说明" value={doc.description ?? ""}
-                      onChange={(event) => setDoc({ ...doc, description: event.target.value || null })} />
-                  </Field>
-                  <Field label="数据形式" className="shrink-0">
-                    <SegmentedControl<"bytes" | "frames"> label="数据形式" size="xs" value={doc.transport}
-                      options={[{ value: "bytes", label: "字节流" }, { value: "frames", label: "报文流" }]}
-                      onChange={(transport) => setDoc({
-                        ...doc, transport,
-                        framing: transport === "frames" ? null : doc.framing ?? newIcdDoc("").framing ?? null
-                      })} />
-                  </Field>
-                </div>
-                <FramingSection doc={doc} onChange={setDoc} />
-                <ChecksumSection doc={doc} algorithms={algorithms} onChange={setDoc} />
-                <MessagesSection doc={doc} selected={Math.min(message, Math.max(0, doc.messages.length - 1))}
-                  highlight={highlight} onSelect={setMessage} onChange={setDoc} />
-                <EncodersSection doc={doc} onChange={setDoc} />
-              </>
-            ) : (
-              <>
-                {creating && (
-                  <p className={cn("text-xs", fileName ? "text-fg-2" : "text-fail")}>
-                    {fileName ? <code className="font-mono">icd/{fileName}.icd.yaml</code>
-                      : <>缺少 <code className="font-mono">name</code>（字母、数字、下划线，不以数字开头）</>}
-                  </p>
-                )}
-                <Textarea aria-label="ICD 内容" className="h-[62vh] font-mono text-xs" spellCheck={false} value={text}
-                  onChange={(event) => setText(event.target.value)} />
-              </>
-            )}
-          </div>
-          <div className="grid min-h-0 content-start gap-2 overflow-y-auto">
-            <Field label="样本报文" error={badSample} hint="每行一段十六进制，按到达顺序拼接后切帧">
-              <Textarea aria-label="试解码样本" className="h-28 font-mono text-xs" spellCheck={false}
-                placeholder={"AA 55 08 01 00 3C 12 9F\n# 注释"}
-                value={samplesText} onChange={(event) => { setSamplesText(event.target.value); setRow(undefined); }} />
-            </Field>
-            <div className="flex flex-wrap items-center gap-1.5">
-              {source && (
-                <Button size="xs" disabled={capture.isPending} onClick={() => capture.mutate()}
-                  title={`取 ${source.hardwareId}/${source.streamId} 最近收到的字节`}>
-                  <DownloadIcon />抓取最近报文
-                </Button>
+    <main aria-label={creating ? "新建协议" : `协议 ${name}`} className="flex h-full min-h-0 min-w-0 flex-col">
+      <Toolbar aria-label="协议工具栏">
+        <strong className="min-w-0 truncate text-sm font-semibold text-fg">
+          {creating ? "新建协议（ICD）" : name}
+        </strong>
+        {dirty && <Badge tone="invalid">未保存</Badge>}
+        <span className="flex-1" />
+        <SegmentedControl<Mode> label="编辑方式" size="xs" value={mode} options={modeOptions}
+          onChange={(next) => void switchMode(next)} />
+        <Button size="sm" variant="outline" disabled={!dirty || opened.isFetching}
+          title="放弃没保存的修改，回到文件里的内容" onClick={restore}>
+          <Undo2Icon />还原
+        </Button>
+        <Button size="sm" variant="primary" disabled={!fileName || save.isPending || check?.valid === false}
+          onClick={() => save.mutate()}>
+          <SaveIcon />保存
+        </Button>
+      </Toolbar>
+      {bindings}
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] gap-3 p-3">
+        <div className="grid min-h-0 content-start gap-2 overflow-x-hidden overflow-y-auto pr-1">
+          {opened.error && <p className="text-xs text-fail">读取失败：{errorMessage(opened.error)}</p>}
+          {mode === "table" ? (
+            <>
+              <div className="flex flex-wrap items-end gap-2">
+                <Field label="协议名" className="w-44">
+                  <Input aria-label="协议名" className="font-mono" value={doc.name} disabled={!creating}
+                    onChange={(event) => changeDoc({ ...doc, name: event.target.value })} />
+                </Field>
+                <Field label="说明" className="min-w-0 flex-1">
+                  <Input aria-label="协议说明" value={doc.description ?? ""}
+                    onChange={(event) => changeDoc({ ...doc, description: event.target.value || null })} />
+                </Field>
+                <Field label="数据形式" className="shrink-0">
+                  <SegmentedControl<"bytes" | "frames"> label="数据形式" size="xs" value={doc.transport}
+                    options={[{ value: "bytes", label: "字节流" }, { value: "frames", label: "报文流" }]}
+                    onChange={(transport) => changeDoc({
+                      ...doc, transport,
+                      framing: transport === "frames" ? null : doc.framing ?? newIcdDoc("").framing ?? null
+                    })} />
+                </Field>
+              </div>
+              <FramingSection doc={doc} onChange={changeDoc} />
+              <ChecksumSection doc={doc} algorithms={algorithms} onChange={changeDoc} />
+              <MessagesSection doc={doc} selected={Math.min(message, Math.max(0, doc.messages.length - 1))}
+                highlight={highlight} onSelect={setMessage} onChange={changeDoc} />
+              <EncodersSection doc={doc} onChange={changeDoc} />
+            </>
+          ) : (
+            <>
+              {creating && (
+                <p className={cn("text-xs", fileName ? "text-fg-2" : "text-fail")}>
+                  {fileName ? <code className="font-mono">icd/{fileName}.icd.yaml</code>
+                    : <>缺少 <code className="font-mono">name</code>（字母、数字、下划线，不以数字开头）</>}
+                </p>
               )}
-              <Button size="xs" disabled={Boolean(badSample) || run.isPending} onClick={() => run.mutate()}>
-                检查并试解码
-              </Button>
-              {headerDiffers && header && (
-                <Button size="xs" variant="ghost" title="每段样本都以这几个字节开头"
-                  onClick={() => doc.framing && setDoc({ ...doc, framing: { ...doc.framing, header } })}>
-                  <WandSparklesIcon />帧头可能是 {header}
-                </Button>
-              )}
-            </div>
-            {!unnamed && <IcdCheckResult check={check} rows={rows} selected={row} onSelect={setRow} />}
-            {picked && mode === "table" && pickedBytes.length > 0 && (
-              <ByteInspector bytes={pickedBytes} label={picked.label} doc={doc}
-                matched={matched >= 0 ? matched : undefined}
-                onChange={(next, index, field) => { setDoc(next); setMessage(index); setHighlight(field); }} />
-            )}
-            {picked && mode === "yaml" && (
-              <Button size="xs" variant="ghost" className="justify-self-start" onClick={() => switchMode("table")}>
-                <Table2Icon />逐字节查看这一帧
+              <Textarea aria-label="ICD 内容" className="h-[62vh] font-mono text-xs" spellCheck={false} value={text}
+                onChange={(event) => changeText(event.target.value)} />
+            </>
+          )}
+        </div>
+        <div className="grid min-h-0 content-start gap-2 overflow-y-auto">
+          <Field label="样本报文" error={badSample} hint="每行一段十六进制，按到达顺序拼接后切帧">
+            <Textarea aria-label="试解码样本" className="h-28 font-mono text-xs" spellCheck={false}
+              placeholder={"AA 55 08 01 00 3C 12 9F\n# 注释"}
+              value={samplesText} onChange={(event) => { setSamplesText(event.target.value); setRow(undefined); }} />
+          </Field>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {source && (
+              <Button size="xs" disabled={capture.isPending} onClick={() => capture.mutate()}
+                title={`取 ${source.hardwareId}/${source.streamId} 最近收到的字节`}>
+                <DownloadIcon />抓取最近报文
               </Button>
             )}
+            <Button size="xs" disabled={Boolean(badSample) || run.isPending} onClick={() => run.mutate()}>
+              检查并试解码
+            </Button>
+            {headerDiffers && header && (
+              <Button size="xs" variant="ghost" title="每段样本都以这几个字节开头"
+                onClick={() => doc.framing && changeDoc({ ...doc, framing: { ...doc.framing, header } })}>
+                <WandSparklesIcon />帧头可能是 {header}
+              </Button>
+            )}
           </div>
-        </DialogBody>
-        <DialogFooter>
-          <Button onClick={onClose}>取消</Button>
-          <Button variant="primary" disabled={!fileName || save.isPending || check?.valid === false}
-            onClick={() => save.mutate()}>
-            保存
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          {!unnamed && <IcdCheckResult check={check} rows={rows} selected={row} onSelect={setRow} />}
+          {picked && mode === "table" && pickedBytes.length > 0 && (
+            <ByteInspector bytes={pickedBytes} label={picked.label} doc={doc}
+              matched={matched >= 0 ? matched : undefined}
+              onChange={(next, index, field) => { changeDoc(next); setMessage(index); setHighlight(field); }} />
+          )}
+          {picked && mode === "yaml" && (
+            <Button size="xs" variant="ghost" className="justify-self-start" onClick={() => switchMode("table")}>
+              <Table2Icon />逐字节查看这一帧
+            </Button>
+          )}
+        </div>
+      </div>
+    </main>
   );
 }
 

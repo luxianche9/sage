@@ -1,4 +1,4 @@
-type ContentPage = "welcome" | "bench";
+type ContentPage = "welcome" | "project";
 export type AppPage = ContentPage | "settings";
 
 export type AppNavigationState = {
@@ -23,7 +23,7 @@ export function appNavigationReducer(state: AppNavigationState, action: AppNavig
   }
   if (action.type === "return-from-settings") {
     if (state.page !== "settings") return state;
-    const target = !action.hasProject && state.settingsReturnPage === "bench" ? "welcome" : state.settingsReturnPage;
+    const target = !action.hasProject && state.settingsReturnPage === "project" ? "welcome" : state.settingsReturnPage;
     return { ...state, page: target };
   }
   return { ...state, page: action.page };

@@ -39,7 +39,7 @@ export interface FeatureSelection {
 /**
  * 测试流程 as an outliner: every step of every region as a tree, with the state it has in the run
  * shown (or 未执行 without one). 功能组 carry the checkbox that picks them for the next run and their
- * result. A step that ran picks its time on the signal view; a double click edits the step.
+ * result. A step that ran picks its time on the canvas beside it; a double click edits the step.
  */
 export function PlanFlow({ trace, selectedStepId, typeLabel, selection, onSelect, onEdit }: {
   trace: ExecutionTrace;
@@ -47,7 +47,8 @@ export function PlanFlow({ trace, selectedStepId, typeLabel, selection, onSelect
   typeLabel: (type: string) => string;
   selection?: FeatureSelection | undefined;
   onSelect: (node: ExecutionTraceNode) => void;
-  onEdit: (stepId?: string) => void;
+  /** Edit a step (or add the first one): where the flow can be edited from. Absent for a recorded run. */
+  onEdit?: ((stepId?: string) => void) | undefined;
 }) {
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
   const toggle = (executionId: string) => setCollapsed((current) => {
@@ -70,7 +71,7 @@ export function PlanFlow({ trace, selectedStepId, typeLabel, selection, onSelect
           selection={selection}
           onToggle={() => toggle(node.executionId)}
           onSelect={() => onSelect(node)}
-          onEdit={() => onEdit(node.stepId)}
+          onEdit={() => onEdit?.(node.stepId)}
         />
         {open && children.length > 0 && <ul role="group">{rows(children, depth + 1)}</ul>}
       </li>
@@ -78,7 +79,9 @@ export function PlanFlow({ trace, selectedStepId, typeLabel, selection, onSelect
   });
   const regions = regionOrder.filter((region) => trace.regions[region].length);
   if (!regions.length) {
-    return <div className="p-3"><AddSlot onClick={() => onEdit()}>添加步骤</AddSlot></div>;
+    return onEdit
+      ? <div className="p-3"><AddSlot onClick={() => onEdit()}>添加步骤</AddSlot></div>
+      : <p className="p-3 text-xs text-fg-3">这次运行没有步骤。</p>;
   }
   return (
     <ul role="tree" aria-label="测试流程" className="py-1">

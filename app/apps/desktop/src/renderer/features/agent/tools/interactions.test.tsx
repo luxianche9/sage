@@ -4,7 +4,7 @@ import type { OpenCodePermissionRequest, OpenCodeQuestionRequest } from "@assist
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { onSidePanelRequested } from "../../../lib/side-panel.js";
+import { onPageRequested } from "../../../lib/pages.js";
 import { OpenCodePermissionCard } from "./PermissionCard";
 import { OpenCodeQuestionCard } from "./QuestionCard";
 import { UnattachedInteractions } from "./interactions";
@@ -83,9 +83,9 @@ describe("OpenCode interaction cards", () => {
       .toEqual({ files: ["a.ts"], added: 1, removed: 1 });
   });
 
-  it("renders test plan revisions and opens the test panel", async () => {
+  it("renders test plan revisions and opens the flow page", async () => {
     const navigate = vi.fn();
-    const stop = onSidePanelRequested(navigate);
+    const stop = onPageRequested(navigate);
     render(
       <TestPlanTool
         type="tool-call"
@@ -104,8 +104,8 @@ describe("OpenCode interaction cards", () => {
     expect(screen.getByText("台架测试")).toBeTruthy();
     expect(screen.getByText("rev 4")).toBeTruthy();
     expect(screen.getByText("修改 2 个节点")).toBeTruthy();
-    await userEvent.click(screen.getByRole("button", { name: "在测试面板查看" }));
-    expect(navigate).toHaveBeenCalledWith("testing");
+    await userEvent.click(screen.getByRole("button", { name: "在流程页查看" }));
+    expect(navigate).toHaveBeenCalledWith({ page: "flow" });
     stop();
   });
 });

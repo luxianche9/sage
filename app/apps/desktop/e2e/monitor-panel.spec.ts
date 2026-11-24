@@ -4,7 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import {
   _electron as electron, expect, test, type ElectronApplication, type Page
 } from "@playwright/test";
-import { reloadAfterLeave, rendererReady, showPanel } from "./renderer.js";
+import { reloadAfterLeave, rendererReady, showPage, showWiring } from "./renderer.js";
 
 const desktopDir = resolve(import.meta.dirname, "..");
 const artifacts = resolve(desktopDir, "../../output/playwright/monitor-panel");
@@ -70,7 +70,8 @@ test.describe.serial("monitor panel and pin list", () => {
 
 
   test("places the panels the Agent adds, and moves, resizes and removes them in edit mode", async () => {
-    const panel = page.getByRole("region", { name: "运行监控" });
+    await showPage(page, "运行");
+    const panel = page.getByRole("region", { name: "上位机画布" });
     await page.evaluate(async (id) => {
       await window.sage.monitor.update({ input: { operations: [
         { op: "addPanel", panel: { id: "dio", type: "digital", title: "继电器", sources: [{ hardwareId: id, streamId: "di" }] } },
@@ -89,8 +90,12 @@ test.describe.serial("monitor panel and pin list", () => {
       }
     }
     // 编辑布局: drag a panel by 100 px (5 cells), pull its corner, remove another.
-    const tools = page.getByRole("toolbar", { name: "台架工具栏" });
+    // While the layout is edited the left column is the component library, not the test flow.
+    const tools = page.getByRole("toolbar", { name: "画布工具栏" });
+    await expect(page.getByRole("complementary", { name: "运行步骤" })).toBeVisible();
     await tools.getByRole("button", { name: "编辑布局" }).click();
+    await expect(page.getByRole("complementary", { name: "编辑布局" })).toBeVisible();
+    await expect(page.getByRole("complementary", { name: "运行步骤" })).toHaveCount(0);
     const before = frames.find((_, index) => index === 1)!;
     const handle = relays.getByRole("button", { name: "移动 继电器" });
     const box = (await handle.boundingBox())!;
@@ -113,14 +118,15 @@ test.describe.serial("monitor panel and pin list", () => {
     await panel.getByRole("button", { name: "删除 结果" }).click();
     await expect(panel.locator("[data-canvas-item='results']")).toHaveCount(0);
     await page.screenshot({ path: join(artifacts, "workspace.png") });
-    await tools.getByRole("button", { name: "编辑布局" }).click();
+    await tools.getByRole("button", { name: "完成编辑" }).click();
+    await expect(page.getByRole("complementary", { name: "运行步骤" })).toBeVisible();
     const ids = await page.evaluate(async () =>
       (await window.sage.monitor.get()).panels.map((item) => item.id));
     expect(ids).toEqual(["scope", "dio"]);
   });
 
 
-  test("shows a run started from the test panel with its event timeline from the first step", async () => {
+  test("shows a run with its steps beside the canvas, and replays it from the records page", async () => {
     await page.evaluate(async () => {
       const flow = await window.sage.testing.loadPlan({ planId: "flow" });
       await window.sage.testing.applyPlanOperations({ input: {
@@ -132,37 +138,59 @@ test.describe.serial("monitor panel and pin list", () => {
         ]
       } });
     });
-    await showPanel(page, "测试编排");
+    await showPage(page, "运行");
     await page.getByRole("toolbar", { name: "测试流程操作" }).getByRole("button", { name: "运行", exact: true }).click();
-    const panel = page.getByRole("region", { name: "运行监控" });
+    const panel = page.getByRole("region", { name: "上位机画布" });
     await expect(panel).toContainText("运行监控运行");
+    // The steps stay beside the canvas for the whole run.
+    const steps = page.getByRole("complementary", { name: "运行步骤" }).getByRole("tree", { name: "测试流程" });
+    await expect(steps.getByRole("treeitem", { name: /第一步/ })).toBeVisible();
     // The event timeline: regions, steps, verdicts and calls on the run's time axis.
     const overview = panel.getByRole("region", { name: "运行概览" });
     await expect(overview).toBeVisible();
     await expect(overview.getByText("第一步").first()).toBeVisible();
     await page.screenshot({ path: join(artifacts, "run.png") });
-    // Finished, the run stays on the panel as a replay until the operator returns to live data.
+    // Finished, the run stays on the page until the operator returns to live data.
     await expect(panel.getByRole("button", { name: "返回实时" })).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByRole("toolbar", { name: "台架工具栏" })).toContainText("历史回放");
+    const canvasTools = panel.getByRole("toolbar", { name: "画布工具栏" });
+    await expect(canvasTools).toContainText("上次运行");
     await panel.getByRole("button", { name: "返回实时" }).click();
     await expect(overview).toHaveCount(0);
+    await expect(canvasTools).toContainText("实时数据");
+
+    // 记录: picking the run replays it on that page; the 运行 page still shows live data.
+    await showPage(page, "记录");
+    const records = page.getByRole("complementary", { name: "运行记录" });
+    await records.getByRole("list", { name: "运行记录" }).getByRole("button", { name: /运行监控运行/ }).first().click();
+    const replay = page.getByRole("region", { name: "运行回放" });
+    await expect(replay.getByRole("toolbar", { name: "画布工具栏" })).toContainText("历史回放");
+    await expect(replay.getByRole("region", { name: "运行概览" })).toBeVisible();
+    await expect(replay.getByRole("button", { name: "编辑布局" })).toHaveCount(0);
+    // The left column is now this run's steps; the arrow goes back to the list.
+    await expect(records.getByRole("tree", { name: "测试流程" }).getByRole("treeitem", { name: /第一步/ })).toBeVisible();
+    await page.screenshot({ path: join(artifacts, "record.png") });
+    await records.getByRole("button", { name: "返回全部记录" }).click();
+    await expect(records.getByRole("list", { name: "运行记录" })).toBeVisible();
+    await expect(replay).toHaveCount(0);
+    await showPage(page, "运行");
+    await expect(canvasTools).toContainText("实时数据");
   });
 
 
-  test("shows the physical wiring as a pin list", async () => {
-    await page.getByRole("group", { name: "台架视图" }).getByRole("button", { name: "工位接线", exact: true }).click();
+  test("shows the physical wiring as a pin table and as a canvas", async () => {
+    await showWiring(page, "表格");
     const list = page.getByRole("region", { name: "针脚列表" });
     await expect(list).toContainText("被测板");
-    const row = page.getByRole("toolbar", { name: "台架工具栏" });
-    await expect(row.getByRole("group", { name: "针脚列表工具" }).getByRole("button", { name: "新建接线" })).toBeVisible();
-    await expect(row.getByRole("group", { name: "运行监控工具" })).toBeHidden();
+    const row = page.getByRole("toolbar", { name: "接线工具栏" });
+    await expect(row.getByRole("group", { name: "针脚表工具" }).getByRole("button", { name: "新建接线" })).toBeVisible();
+    await expect(row.getByRole("group", { name: "画布工具" })).toBeHidden();
     await expect(list).toContainText("1 (EN)");
     await page.screenshot({ path: join(artifacts, "pin-list.png") });
 
-    // 端口连线 is the other half of 工位接线: the same cables, on a canvas with nothing placed yet.
-    await page.getByRole("group", { name: "接线视图" }).getByRole("button", { name: "端口连线", exact: true }).click();
+    // The canvas is the other view of the same cables, with nothing placed on it yet.
+    await showWiring(page, "画布");
     await expect(page.getByText("把左侧设备拖到这里，再从端口拖线")).toBeVisible();
-    await expect(row.getByRole("group", { name: "端口连线工具" })).toContainText("画布设备");
+    await expect(row.getByRole("group", { name: "画布工具" })).toContainText("画布硬件");
     expect(errors).toEqual([]);
   });
 });

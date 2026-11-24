@@ -13,7 +13,7 @@ from sage_backend.util import Record
 
 theme_choice_schema = enum("system", "light", "dark")
 welcome_layout_schema = enum("grid", "list")
-# 运行监控 was merged into the bench's signal view; a stored "runs" falls back to the bench.
+# Kept for stored settings; the desktop remembers the project page itself (docs/decisions 0006).
 project_view_schema = enum("bench", "plans").catch("bench")
 # How OpenCode talks to the endpoint: OpenAI-compatible Chat Completions (DeepSeek, Qwen, Kimi,
 # GLM, most gateways) or the OpenAI Responses API (OpenAI, and gateways whose Chat Completions

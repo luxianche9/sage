@@ -1,15 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  HammerIcon, LayoutDashboardIcon, ListChecksIcon, PencilRulerIcon, RadioIcon, ShieldCheckIcon, TimerResetIcon, XIcon
-} from "lucide-react";
+import { LayoutDashboardIcon, ListChecksIcon, PencilRulerIcon, RadioIcon, TimerResetIcon } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { queryKeys } from "../../lib/query-keys.js";
-import { onRunStepFocused } from "../../lib/run-focus.js";
 import {
-  Button, Dialog, DialogBody, DialogContent, DialogFooter, EmptyState, Field, IconButton, Input, Menu, MenuContent,
-  MenuItem, MenuSeparator, MenuTrigger, PanelHeader, useConfirm, useToast
+  Button, Dialog, DialogBody, DialogContent, DialogFooter, Field, IconButton, Input, Menu, MenuContent,
+  MenuItem, MenuSeparator, MenuTrigger, Toolbar, useConfirm, useToast
 } from "../../ui/index.js";
 import { RunOverview, streamUnit, type ConsoleJump, type StreamSource } from "../streams/index.js";
 import { RunControls } from "../testing/EditorToolbar.js";
@@ -27,21 +23,33 @@ import type { BenchRun } from "./use-bench-run.js";
 import { useManualControl } from "./use-manual-control.js";
 import { setFocusedPanel, useMonitorWorkspace, type MonitorWorkspace } from "./use-monitor-workspace.js";
 
+/** 编辑布局, owned by the 运行 page: its left column shows the component library and the picked panel. */
+export type CanvasLayout = {
+  editing: boolean;
+  onEditing: (editing: boolean) => void;
+  selected: string | undefined;
+  onSelect: (id: string | undefined) => void;
+};
+
+/** A step picked in a flow beside the canvas; `seq` makes picking the same step again count. */
+export type StepFocus = { executionId: string; seq: number };
+
 /**
- * 运行监控 of 测试台架: one canvas page of panels placed freely, like a host-computer front panel —
- * oscilloscopes, values, gauges, big numbers, lamps, XY plots, digital front panels, state timelines, status
- * words, terminals, bus traces, frame details, switches, sliders, buttons and control panels, labels, the
- * run's results and decoded messages — each showing the device streams (or protocol fields) dropped on it, all
- * on one time axis. The canvas is the project's (the Agent builds it too); 编辑布局 moves, resizes and
- * configures panels. Without a run it shows the devices' live data; a run that starts
- * takes over at once, with
- * its event timeline under the canvas; a finished run picked from the history is replayed the same way.
- * Devices can be controlled by hand from the displays and controls, except those a running test holds.
+ * The host-computer canvas, the centre of the 运行 and 记录 pages: one page of panels placed freely, like a
+ * front panel — oscilloscopes, values, gauges, lamps, terminals, bus traces, switches, sliders, buttons, the
+ * run's results and decoded messages — each showing the device streams (or protocol fields) dropped on it,
+ * all on one time axis. The canvas is the project's (the Agent builds it too).
+ *
+ * On the 运行 page (`layout` given) it shows the devices' live data; a run that starts takes over at once,
+ * with its header above and its event timeline under the canvas, and stays shown when it ends until 返回实时.
+ * 编辑布局 moves, resizes and configures panels; devices can be controlled by hand from the displays and
+ * controls, except those a running test holds. On the 记录 page (no `layout`) a finished run is replayed the
+ * same way and nothing can be changed.
  */
-export function MonitorPane({ bench, toolbar }: {
+export function MonitorPane({ bench, layout, stepFocus }: {
   bench: BenchRun;
-  /** Where the bench's title row keeps this view's tools. */
-  toolbar: HTMLElement | null;
+  layout?: CanvasLayout | undefined;
+  stepFocus?: StepFocus | undefined;
 }) {
   const client = useQueryClient();
   const toast = useToast();
@@ -56,16 +64,18 @@ export function MonitorPane({ bench, toolbar }: {
     () => (mode === "live" || !view.source ? { live: hub } : view.source),
     [mode, hub, view.source]
   );
-  useLiveKeepalive(hub, workspace.streams.map((stream) => stream.key));
+  // Only the 运行 page keeps the live feed open: a replay reads the recording.
+  useLiveKeepalive(hub, layout ? workspace.streams.map((stream) => stream.key) : []);
   const [jump, setJump] = useState<ConsoleJump>();
   const [rejudging, setRejudging] = useState(false);
   const [frame, selectFrame] = useState<SelectedFrame>();
-  const [activePanelId, setActivePanelId] = useState<string>();
-  const [editing, setEditing] = useState(false);
+  const editing = Boolean(layout?.editing) && !control.running;
+  const activePanelId = layout?.selected;
+  const selectPanel = layout?.onSelect;
   const focus = useCallback((id: string | undefined) => {
-    setActivePanelId(id);
+    selectPanel?.(id);
     setFocusedPanel(id);
-  }, []);
+  }, [selectPanel]);
   const results = view.runLog.log?.results;
   const rows = useMemo(() => {
     if (!runId || !results) return [];
@@ -85,10 +95,10 @@ export function MonitorPane({ bench, toolbar }: {
       scrollTo(start);
     }
   }, [scrollTo, time, timeline]);
-  // A step picked in the test panel's flow.
+  // A step picked in the flow beside the canvas.
   const zoomRef = useRef(zoomStep);
   zoomRef.current = zoomStep;
-  useEffect(() => onRunStepFocused((executionId) => zoomRef.current(executionId)), []);
+  useEffect(() => { if (stepFocus) zoomRef.current(stepFocus.executionId); }, [stepFocus]);
   const pick = useCallback((tb: number, scroll: boolean) => {
     time.pick(tb);
     if (scroll) scrollTo(tb);
@@ -112,56 +122,22 @@ export function MonitorPane({ bench, toolbar }: {
   };
   useEffect(() => { if (workspace.error) toast.error(errorMessage(workspace.error)); }, [workspace.error, toast]);
 
-  const safeAll = async () => {
-    const ok = await confirm({
-      title: "全部回到安全状态",
-      message: "依次调用每台设备的安全状态工具：模拟输出回 0、数字输出拉低、继电器释放、波形停止。",
-      confirmLabel: "全部安全",
-      danger: true
-    });
-    if (!ok) return;
-    const failures = await control.safeAll();
-    if (failures.length) toast.error(`有设备未能回到安全状态：${failures.join("；")}`);
-    else toast.success("所有设备已回到安全状态");
-  };
-
   const notify = useMemo(() => ({
     error: (message: string) => toast.error(message),
     success: (message: string) => toast.success(message)
   }), [toast]);
-  const selectedPanel = workspace.monitor.panels.find((panel) => panel.id === activePanelId);
   const context = useMemo<MonitorStaticContextValue>(() => ({
     workspace, source, bench, rows, jump, pick, zoomStep, control, frame, selectFrame, activePanelId, notify
   }), [workspace, source, bench, rows, jump, pick, zoomStep, control, frame, selectFrame, activePanelId, notify]);
 
-  const tools = (
-    <span className="ml-auto flex items-center gap-1">
-      <span className="mr-1 text-2xs whitespace-nowrap text-fg-3">
-        {mode === "live" ? "实时数据" : mode === "run" ? "本次运行" : "历史回放"}
-      </span>
-      <TimebaseControls time={time} />
-      <IconButton label="复位时间轴" size="icon-sm" variant="ghost" disabled={time.follow} onClick={time.reset}>
-        <TimerResetIcon />
-      </IconButton>
-      <IconButton label="编辑布局" size="icon-sm" variant="ghost" aria-pressed={editing} disabled={control.running}
-        title={control.running ? "测试运行中，布局锁定"
-          : editing ? "完成编辑：控件恢复可操作" : "编辑布局：拖动、改大小、设置和删除控件"}
-        className={editing ? "bg-signal/15 text-signal" : undefined}
-        onClick={() => { setEditing((current) => !current); focus(undefined); }}>
-        <PencilRulerIcon />
-      </IconButton>
-      <LayoutMenu workspace={workspace} onError={(message) => toast.error(message)}
-        onDone={(message) => toast.success(message)} />
-      <IconButton label="全部安全状态" size="icon-sm" variant="ghost" disabled={control.running}
-        title={control.running ? "测试运行中，由测试流程负责安全状态" : "所有设备回到安全状态"}
-        onClick={() => void safeAll()}>
-        <ShieldCheckIcon />
-      </IconButton>
-    </span>
+  const layoutMenu = (labelled: boolean) => (
+    <LayoutMenu workspace={workspace} labelled={labelled} onError={(message) => toast.error(message)}
+      onDone={(message) => toast.success(message)} />
   );
+  const modeLabel = mode === "live" ? "实时数据" : mode === "run" ? "本次运行" : layout ? "上次运行" : "历史回放";
   const runActions = (
     <>
-      {mode === "replay" && (
+      {mode === "replay" && layout && (
         <Button size="xs" variant="outline" onClick={() => setRunId(undefined)}><RadioIcon />返回实时</Button>
       )}
       {live && <RunControls run={run} confirm={confirm} onStart={() => undefined} onChanged={refreshRun} />}
@@ -174,8 +150,27 @@ export function MonitorPane({ bench, toolbar }: {
   );
 
   return (
-    <section aria-label="运行监控" className="relative flex h-full min-h-0 min-w-0 flex-col">
-      {toolbar && createPortal(tools, toolbar)}
+    <section aria-label={layout ? "上位机画布" : "运行回放"} className="relative flex h-full min-h-0 min-w-0 flex-col">
+      <Toolbar aria-label="画布工具栏" className="h-9 gap-1 px-2">
+        <span className="text-2xs whitespace-nowrap text-fg-3">{modeLabel}</span>
+        <span className="flex-1" />
+        <TimebaseControls time={time} />
+        <IconButton label="复位时间轴" size="icon-sm" variant="ghost" disabled={time.follow} onClick={time.reset}>
+          <TimerResetIcon />
+        </IconButton>
+        {layout && (
+          <>
+            <Button size="xs" variant={editing ? "primary" : "outline"} aria-pressed={editing}
+              disabled={control.running}
+              title={control.running ? "测试运行中，布局锁定"
+                : editing ? "完成编辑：控件恢复可操作" : "编辑布局：拖动、改大小、设置和删除控件"}
+              onClick={() => { layout.onEditing(!layout.editing); focus(undefined); }}>
+              <PencilRulerIcon />{editing ? "完成编辑" : "编辑布局"}
+            </Button>
+            {layoutMenu(false)}
+          </>
+        )}
+      </Toolbar>
       {runId && (
         <RunHeader
           state={view.runLog}
@@ -191,20 +186,10 @@ export function MonitorPane({ bench, toolbar }: {
       <MonitorTimeContext.Provider value={time}>
         <MonitorContext.Provider value={context}>
           <div className="flex min-h-0 flex-1">
-            <Canvas key={workspace.projectId ?? "none"} workspace={workspace} editing={editing && !control.running}
+            <Canvas key={workspace.projectId ?? "none"} workspace={workspace} editing={editing}
               selected={activePanelId} onSelect={focus}
-              empty={<LayoutMenu workspace={workspace} labelled onError={(message) => toast.error(message)}
-                onDone={(message) => toast.success(message)} />} />
-            {editing && selectedPanel && (
-              <aside aria-label="属性" className="flex w-64 shrink-0 flex-col border-l border-line bg-surface-1">
-                <PanelHeader title="属性" actions={(
-                  <IconButton label="关闭属性" size="icon-sm" variant="ghost" onClick={() => focus(undefined)}>
-                    <XIcon />
-                  </IconButton>
-                )} />
-                <EmptyState compact icon={<HammerIcon />} title="属性面板重做中" />
-              </aside>
-            )}
+              emptyTitle={layout ? "画布还是空的：按数据生成布局，或点「编辑布局」从左栏拖控件" : "这个项目的画布上还没有控件"}
+              empty={layout ? layoutMenu(true) : undefined} />
           </div>
         </MonitorContext.Provider>
       </MonitorTimeContext.Provider>

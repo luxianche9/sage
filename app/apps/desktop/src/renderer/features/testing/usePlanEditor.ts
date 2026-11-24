@@ -161,7 +161,7 @@ export function usePlanEditor({ onRunStarted }: { onRunStarted: (runId: string) 
           ...features ? { features } : {}
         }
       });
-      // The signal view is live as soon as it knows the run is the current one: tell it first.
+      // The 运行 page is live as soon as it knows the run is the current one: tell it first.
       client.setQueryData(queryKeys.testRun, run);
       onRunStarted(run.runId);
       await invalidateTestingData(client);

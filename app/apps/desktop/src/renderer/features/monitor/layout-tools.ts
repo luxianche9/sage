@@ -89,7 +89,7 @@ export function exportText(monitor: Monitor): string {
 export function importText(text: string): Monitor | string {
   try {
     const value = JSON.parse(text) as { kind?: unknown; monitor?: unknown };
-    if (value.kind !== "sage.monitor") return "不是 SAGE 运行监控布局文件";
+    if (value.kind !== "sage.monitor") return "不是 SAGE 上位机画布的布局文件";
     const parsed = monitorSchema.safeParse(value.monitor);
     return parsed.success ? parsed.data : `布局文件内容不正确：${parsed.error.issues[0]?.message ?? ""}`;
   } catch (cause) {

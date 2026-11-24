@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { _electron as electron, expect, test, type Page } from "@playwright/test";
-import { reloadAfterLeave, rendererReady, showPanel } from "./renderer.js";
+import { reloadAfterLeave, rendererReady, showPage } from "./renderer.js";
 
 const desktopDir = resolve(import.meta.dirname, "..");
 const gatewayPort = 18082;
@@ -29,10 +29,15 @@ test("settings returns to the page that opened it", async () => {
     await expect(devices).toBeVisible();
     await openSettingsAndReturn(page, () => expect(devices).toBeVisible());
 
-    await showPanel(page, "测试编排");
-    const editFlow = page.getByRole("toolbar", { name: "测试流程操作" }).getByRole("button", { name: "编辑" });
+    // Settings returns to the project page it was opened from, not to the first one.
+    await showPage(page, "运行");
+    const editFlow = page.getByRole("toolbar", { name: "测试流程操作" }).getByRole("button", { name: "编辑流程" });
     await expect(editFlow).toBeEnabled();
-    await openSettingsAndReturn(page, () => expect(editFlow).toBeEnabled());
+    await openSettingsAndReturn(page, () => expect(editFlow).toBeVisible());
+    // 编辑流程 names its destination: it opens the 流程 page, where the editor is the page, not a dialog.
+    await editFlow.click();
+    await expect(page.getByRole("main", { name: "测试流程编辑器" })).toBeVisible();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
 
   } finally {
     await application.close().catch(() => undefined);

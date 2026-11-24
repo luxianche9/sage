@@ -7,10 +7,13 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import type { TestPlan, TestRunEvent } from "@sage/contracts/testing";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { onRunRequested } from "../../lib/run-focus.js";
+import { onPageRequested } from "../../lib/pages.js";
+import { onRunRequested, openRunMonitor } from "../../lib/run-focus.js";
 import { useBenchRun } from "../monitor/use-bench-run.js";
-import { TestPanel } from "./TestPanel.js";
+import { FlowPage } from "./FlowPage.js";
+import { RunPanel } from "./RunPanel.js";
 import { installTestingApi, makePlan, makeRun, makeSummary } from "./testing-api.fixture.js";
+import { usePlanEditor } from "./usePlanEditor.js";
 
 const plan = makePlan();
 let api: ReturnType<typeof installTestingApi>;
@@ -25,14 +28,26 @@ function flowWithFeatures(): TestPlan {
   return flow;
 }
 
-function Panel() {
-  return <TestPanel bench={useBenchRun()} />;
+/** The 流程 page and the 运行 page's left column on one draft, as the project workspace mounts them. */
+function Pages() {
+  const editor = usePlanEditor({ onRunStarted: openRunMonitor });
+  const bench = useBenchRun();
+  return (
+    <>
+      <FlowPage editor={editor} />
+      <RunPanel bench={bench} editor={editor} onFocusStep={() => undefined} />
+    </>
+  );
 }
 
 function Wrapper({ children }: { children: ReactNode }) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   return <QueryClientProvider client={client}><ToastProvider>{children}</ToastProvider></QueryClientProvider>;
 }
+
+const flowPage = () => screen.getByRole("region", { name: "流程页" });
+const runColumn = () => screen.getByRole("complementary", { name: "运行步骤" });
+const runTools = () => screen.getByRole("toolbar", { name: "测试流程操作" });
 
 beforeEach(() => {
   api = installTestingApi([plan]);
@@ -45,27 +60,28 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("TestPanel", () => {
-  it("adds a step in the editor dialog, saves, validates and starts the saved revision", async () => {
+describe("flow page and run column", () => {
+  it("adds a step on the flow page, saves, validates and starts the saved revision", async () => {
     const requested = vi.fn();
     const stop = onRunRequested(requested);
-    render(<Panel />, { wrapper: Wrapper });
-    expect(await screen.findByRole("button", { name: "添加步骤" })).toBeTruthy();
+    render(<Pages />, { wrapper: Wrapper });
+    expect(await within(runColumn()).findByRole("button", { name: "添加步骤" })).toBeTruthy();
     expect(api.testing.loadPlan).toHaveBeenCalledWith({ planId: "flow" });
-    await userEvent.click(screen.getByRole("button", { name: "编辑" }));
-    const dialog = await screen.findByRole("dialog");
-    await userEvent.click(await within(dialog).findByRole("button", { name: /延时/ }));
-    expect(within(dialog).getAllByLabelText("删除步骤")).toHaveLength(1);
-    await userEvent.click(within(dialog).getByRole("button", { name: "保存" }));
+    // The editor is a page, not a dialog.
+    expect(screen.queryByRole("dialog")).toBeNull();
+    const cards = within(flowPage()).getByRole("complementary", { name: "步骤卡片" });
+    await userEvent.click(await within(cards).findByRole("button", { name: /延时/ }));
+    expect(within(flowPage()).getAllByLabelText("删除步骤")).toHaveLength(1);
+    // The run column shows the same draft, marked unsaved until it is saved.
+    expect(within(runColumn()).getByText("未保存")).toBeTruthy();
+    await userEvent.click(within(flowPage()).getByRole("button", { name: "保存" }));
     await waitFor(() => expect(api.testing.savePlan).toHaveBeenCalledOnce());
-    await userEvent.keyboard("{Escape}");
-    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
-    // The flow in the sidebar shows the step.
-    const flow = screen.getByRole("tree", { name: "测试流程" });
+    await waitFor(() => expect(within(runColumn()).queryByText("未保存")).toBeNull());
+    const flow = within(runColumn()).getByRole("tree", { name: "测试流程" });
     expect(within(flow).getAllByRole("treeitem")).toHaveLength(1);
-    await userEvent.click(screen.getByRole("button", { name: "校验" }));
+    await userEvent.click(within(runTools()).getByRole("button", { name: "校验" }));
     await waitFor(() => expect(api.testing.validatePlan).toHaveBeenCalledWith({ planId: "flow" }));
-    await userEvent.click(screen.getByRole("button", { name: "运行" }));
+    await userEvent.click(within(runTools()).getByRole("button", { name: "运行" }));
     await waitFor(() => expect(api.testing.startRun).toHaveBeenCalledWith({
       input: expect.objectContaining({
         planId: "flow", revision: 1, executionRevision: "exec", requestId: "request-id", parameters: {}
@@ -75,14 +91,28 @@ describe("TestPanel", () => {
     expect(api.testing.startRun).not.toHaveBeenCalledWith({
       input: expect.objectContaining({ features: expect.anything() })
     });
-    // The started run opens on the bench's signal view.
+    // The started run is shown on the 运行 page.
     await waitFor(() => expect(requested).toHaveBeenCalledWith("run"));
+    stop();
+  });
+
+  it("sends the operator to the flow page to edit, naming the step that was double-clicked", async () => {
+    api = installTestingApi([flowWithFeatures()]);
+    const navigate = vi.fn();
+    const stop = onPageRequested(navigate);
+    render(<Pages />, { wrapper: Wrapper });
+    await userEvent.click(await within(runTools()).findByRole("button", { name: "编辑流程" }));
+    expect(navigate).toHaveBeenLastCalledWith({ page: "flow" });
+    await userEvent.dblClick(await within(runColumn()).findByText("通信"));
+    expect(navigate).toHaveBeenLastCalledWith({ page: "flow", stepId: "comm" });
+    // The flow page unfolds that step with its properties.
+    expect(await within(flowPage()).findByDisplayValue("通信")).toBeTruthy();
     stop();
   });
 
   it("runs only the ticked 功能组 and remembers the ones left out", async () => {
     api = installTestingApi([flowWithFeatures()]);
-    const view = render(<Panel />, { wrapper: Wrapper });
+    const view = render(<Pages />, { wrapper: Wrapper });
     const power = await screen.findByRole("checkbox", { name: "选择 供电" });
     expect(screen.getByText("已选 2/2 功能组")).toBeTruthy();
     expect(screen.getAllByText("未测")).toHaveLength(2);
@@ -90,18 +120,18 @@ describe("TestPanel", () => {
     await userEvent.click(power);
     expect(screen.getByText("已选 1/2 功能组")).toBeTruthy();
     // Ticking does not fold the group.
-    expect(screen.getByRole("treeitem", { name: /供电/ }).getAttribute("aria-expanded")).toBe("true");
-    await userEvent.click(screen.getByRole("button", { name: "运行" }));
+    expect(within(runColumn()).getByRole("treeitem", { name: /供电/ }).getAttribute("aria-expanded")).toBe("true");
+    await userEvent.click(within(runTools()).getByRole("button", { name: "运行" }));
     await waitFor(() => expect(api.testing.startRun).toHaveBeenCalledWith({
       input: expect.objectContaining({ planId: "flow", features: ["comm"] })
     }));
 
     await userEvent.click(screen.getByRole("checkbox", { name: "选择 通信" }));
     expect(screen.getByText("已选 0/2 功能组")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "运行" }).hasAttribute("disabled")).toBe(true);
+    expect(within(runTools()).getByRole("button", { name: "运行" }).hasAttribute("disabled")).toBe(true);
 
     view.unmount();
-    render(<Panel />, { wrapper: Wrapper });
+    render(<Pages />, { wrapper: Wrapper });
     expect(await screen.findByText("已选 0/2 功能组")).toBeTruthy();
   });
 
@@ -123,39 +153,33 @@ describe("TestPanel", () => {
       nextEventSequence: 4, nextResultSequence: 0, latestEventSequence: 3, latestResultSequence: 0,
       hasMoreEvents: false, hasMoreResults: false
     }) as never);
-    render(<Panel />, { wrapper: Wrapper });
+    render(<Pages />, { wrapper: Wrapper });
     expect(await screen.findByText("FAIL")).toBeTruthy();
     expect(screen.getByText("未选")).toBeTruthy();
     expect(api.testing.listRuns).toHaveBeenCalledWith({ input: { planId: "flow", limit: 1 } });
     // Raw run state stays out of the flow toolbar.
-    const toolbar = screen.getByRole("toolbar", { name: "测试流程操作" });
-    expect(within(toolbar).queryByText(/Fail/)).toBeNull();
+    expect(within(runTools()).queryByText(/Fail/)).toBeNull();
   });
 
   it("protects a dirty draft when an AI flow revision arrives", async () => {
-    render(<Panel />, { wrapper: Wrapper });
-    await screen.findByRole("button", { name: "添加步骤" });
-    await userEvent.click(screen.getByRole("button", { name: "编辑" }));
-    const dialog = await screen.findByRole("dialog");
-    await userEvent.click(within(dialog).getByRole("button", { name: /计划属性/ }));
-    const name = await within(dialog).findByDisplayValue(plan.name);
+    render(<Pages />, { wrapper: Wrapper });
+    await within(runColumn()).findByRole("button", { name: "添加步骤" });
+    await userEvent.click(within(flowPage()).getByRole("button", { name: /计划属性/ }));
+    const name = await within(flowPage()).findByDisplayValue(plan.name);
     await userEvent.type(name, " 本地修改");
     await act(async () => api.subscribers.get("testPlan")?.({ planId: "flow", revision: 2 }));
-    expect(await within(dialog).findByText(/AI 或磁盘已修改测试流程/)).toBeTruthy();
-    expect(within(dialog).getByRole("button", { name: "保存" }).hasAttribute("disabled")).toBe(true);
-    expect(within(dialog).getByRole("button", { name: "重载 AI 版本" })).toBeTruthy();
-    // Closed, the panel still marks the draft unsaved and conflicting.
-    await userEvent.keyboard("{Escape}");
-    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
-    expect(screen.getByText("未保存")).toBeTruthy();
-    expect(screen.getByText("冲突")).toBeTruthy();
+    expect(await within(flowPage()).findByText(/AI 或磁盘已修改测试流程/)).toBeTruthy();
+    expect(within(flowPage()).getByRole("button", { name: "保存" }).hasAttribute("disabled")).toBe(true);
+    expect(within(flowPage()).getByRole("button", { name: "重载 AI 版本" })).toBeTruthy();
+    // The run column marks the same draft unsaved and conflicting.
+    expect(within(runColumn()).getByText("未保存")).toBeTruthy();
+    expect(within(runColumn()).getByText("冲突")).toBeTruthy();
 
     // Keeping the local draft saves it over the latest revision.
-    await userEvent.click(screen.getByRole("button", { name: "编辑" }));
-    await userEvent.click(await within(await screen.findByRole("dialog")).findByRole("button", { name: "保留本地草稿" }));
+    await userEvent.click(within(flowPage()).getByRole("button", { name: "保留本地草稿" }));
     await waitFor(() => expect(api.testing.savePlan).toHaveBeenCalledWith({
       plan: expect.objectContaining({ id: "flow", name: `${plan.name} 本地修改` }), baseRevision: 1
     }));
-    await waitFor(() => expect(screen.queryByText("冲突")).toBeNull());
+    await waitFor(() => expect(within(runColumn()).queryByText("冲突")).toBeNull());
   });
 });

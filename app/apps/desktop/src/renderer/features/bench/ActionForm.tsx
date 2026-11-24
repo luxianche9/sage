@@ -4,14 +4,13 @@ import type { ToolCatalogItem } from "@sage/contracts/devices";
 import { PlayIcon } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
 import { queryKeys } from "../../lib/query-keys.js";
-import { Badge, Button, Dialog, DialogBody, DialogContent, DialogFooter, Spinner } from "../../ui";
+import { Button, Spinner } from "../../ui";
 import { InvocationResult, type InvocationOutcome } from "../manual/InvocationResult.js";
 import { SchemaArgumentsForm } from "../manual/SchemaForm.js";
 import { initialSchemaValue } from "../manual/schema-form-model.js";
 import { validateSchemaArguments } from "../manual/schema-validation.js";
 import { ToolFieldContext } from "../manual/widgets.js";
 import { useManualControl } from "../monitor/use-manual-control.js";
-import { actionKind } from "./device-actions.js";
 
 const TIMEOUT_MS = 30_000;
 
@@ -19,34 +18,13 @@ const asObject = (value: unknown): Record<string, unknown> =>
   value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
 
 /**
- * One device action: its parameters as a form, then 确认执行 runs it once and shows the result.
- * The dialog stays open so the same action can be repeated or its parameters changed.
+ * One device action, unfolded under its row on the 设备 page: its parameters as a form, then 确认执行 runs it
+ * once and shows the result. It stays open so the same action can be repeated or its parameters changed.
  */
-export function ActionDialog({ action, title, deviceLabel, hardwareId, available, onClose }: {
-  action: ToolCatalogItem | undefined;
-  title: string;
-  deviceLabel: string;
-  hardwareId: string;
-  available: boolean;
-  onClose: () => void;
-}) {
-  return (
-    <Dialog open={Boolean(action)} onOpenChange={(open) => { if (!open) onClose(); }}>
-      {action && (
-        <DialogContent title={`${deviceLabel} · ${title}`} size="md">
-          <ActionForm key={action.externalName} action={action} hardwareId={hardwareId} available={available}
-            onClose={onClose} />
-        </DialogContent>
-      )}
-    </Dialog>
-  );
-}
-
-function ActionForm({ action, hardwareId, available, onClose }: {
+export function ActionForm({ action, hardwareId, available }: {
   action: ToolCatalogItem;
   hardwareId: string;
   available: boolean;
-  onClose: () => void;
 }) {
   const client = useQueryClient();
   const [values, setValues] = useState(() => asObject(initialSchemaValue(action.inputSchema)));
@@ -54,7 +32,6 @@ function ActionForm({ action, hardwareId, available, onClose }: {
   const [outcome, setOutcome] = useState<InvocationOutcome>();
   const started = useRef(0);
   const validation = useMemo(() => validateSchemaArguments(action.inputSchema, values), [action.inputSchema, values]);
-  const kind = actionKind(action);
   const locked = useManualControl().lockOf(hardwareId);
   const hasFields = Object.keys(asObject(action.inputSchema.properties)).length > 0;
 
@@ -76,31 +53,24 @@ function ActionForm({ action, hardwareId, available, onClose }: {
   });
 
   return (
-    <>
-      <DialogBody className="grid gap-3">
-        <div className="flex items-start gap-2">
-          <Badge tone={kind.tone}>{kind.label}</Badge>
-          {action.description && <p className="text-xs break-words text-fg-2">{action.description}</p>}
-        </div>
-        {hasFields ? (
-          <ToolFieldContext.Provider value={{ hardwareId, tool: action.remoteName }}>
-            <SchemaArgumentsForm schema={action.inputSchema} value={values} onChange={setValues}
-              onValidityChange={setFormValid} />
-          </ToolFieldContext.Provider>
-        ) : (
-          <p className="text-xs text-fg-3">该动作没有参数。</p>
-        )}
-        {validation.errors.length > 0 && (
-          <ul className="grid gap-1 rounded-md border border-invalid/40 bg-invalid/10 px-2.5 py-2 text-xs text-fg-2">
-            {validation.errors.map((message, index) => <li key={index}>{message}</li>)}
-          </ul>
-        )}
-        {!available && <p role="alert" className="text-xs text-fail">设备当前不在线，恢复在线后才能执行。</p>}
-        {locked && <p role="alert" className="text-xs text-fail">测试运行中，运行结束后才能手动控制这台设备。</p>}
-        {outcome && <InvocationResult outcome={outcome} />}
-      </DialogBody>
-      <DialogFooter>
-        <Button onClick={onClose}>关闭</Button>
+    <div className="grid gap-3 border-t border-line bg-surface-0/60 px-3 py-3">
+      {action.description && <p className="text-xs break-words text-fg-2">{action.description}</p>}
+      {hasFields ? (
+        <ToolFieldContext.Provider value={{ hardwareId, tool: action.remoteName }}>
+          <SchemaArgumentsForm schema={action.inputSchema} value={values} onChange={setValues}
+            onValidityChange={setFormValid} />
+        </ToolFieldContext.Provider>
+      ) : (
+        <p className="text-xs text-fg-3">该动作没有参数。</p>
+      )}
+      {validation.errors.length > 0 && (
+        <ul className="grid gap-1 rounded-md border border-invalid/40 bg-invalid/10 px-2.5 py-2 text-xs text-fg-2">
+          {validation.errors.map((message, index) => <li key={index}>{message}</li>)}
+        </ul>
+      )}
+      {!available && <p role="alert" className="text-xs text-fail">设备当前不在线，恢复在线后才能执行。</p>}
+      {locked && <p role="alert" className="text-xs text-fail">测试运行中，运行结束后才能手动控制这台设备。</p>}
+      <div>
         <Button
           variant="primary"
           disabled={!available || Boolean(locked) || !formValid || !validation.valid || run.isPending}
@@ -109,7 +79,8 @@ function ActionForm({ action, hardwareId, available, onClose }: {
           {run.isPending ? <Spinner /> : <PlayIcon />}
           {run.isPending ? "正在执行…" : "确认执行"}
         </Button>
-      </DialogFooter>
-    </>
+      </div>
+      {outcome && <InvocationResult outcome={outcome} />}
+    </div>
   );
 }

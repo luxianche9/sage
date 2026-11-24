@@ -222,7 +222,7 @@ PLATFORM_TOOLS = [
     _platform(
         "get_project",
         "读取当前打开工程的根目录、持久化文档、接线连接与未保存状态。用于确定工作区和已有连接；"
-        "无工程时按返回状态先打开或初始化工程。接线列表和运行监控都不证明物理导通。",
+        "无工程时按返回状态先打开或初始化工程。接线列表和上位机画布都不证明物理导通。",
         _EMPTY,
         {"anyOf": [_PROJECT, {"type": "null"}]},
         operation="projects.document",
@@ -249,7 +249,7 @@ PLATFORM_TOOLS = [
     ),
     _platform(
         "save_project",
-        "通过项目服务保存当前工程（接线列表与运行监控）。检查返回的 dirty 状态；"
+        "通过项目服务保存当前工程（接线列表与上位机画布）。检查返回的 dirty 状态；"
         "保存记录不执行物理接线。"
         "Python 源文件的写入状态与工程文档的保存状态分别核对。",
         _EMPTY,
@@ -391,7 +391,7 @@ PLATFORM_TOOLS = [
     ),
     _platform(
         "get_monitor",
-        "读取运行监控画布（一整页，像上位机界面）上的面板：id、类型、标题、显示的流（sources）、"
+        "读取上位机画布（运行页中间的那一整页）上的面板：id、类型、标题、显示的流（sources）、"
         "设置（settings）和位置 frame {x, y, w, h}（20px 栅格单位）。显示类：scope 示波器、"
         "digital 数字量、terminal 终端、trace 总线跟踪、values 数值表、gauge 仪表、timeline 状态"
         "时间线、register 状态字、xy XY 图、detail 报文详情、number 大数字、lamp 指示灯、label "
@@ -404,7 +404,7 @@ PLATFORM_TOOLS = [
     ),
     _platform(
         "update_monitor",
-        "按用户要求搭建运行监控画布（上位机界面）。会先给操作员看你的改动，确认后才生效。"
+        "按用户要求搭建上位机画布（运行页中间的那一整页）。会先给操作员看你的改动，确认后才生效。"
         "operations 按顺序执行：addPanel 新建面板（类型、标题、要显示的流、设置、frame 位置；"
         "不给 frame 就放到第一个空位）、removePanel、updatePanel 改标题、设置或 frame"
         "（移动 / 改大小）、"

@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { _electron as electron, expect, test, type ElectronApplication, type Page } from "@playwright/test";
-import { reloadAfterLeave, rendererReady, showPanel } from "./renderer.js";
+import { reloadAfterLeave, rendererReady, showWiring, showWiringLog } from "./renderer.js";
 
 const desktopDir = resolve(import.meta.dirname, "..");
 const artifacts = resolve(desktopDir, "../../output/playwright/wiring-single-step");
@@ -47,7 +47,7 @@ test.describe.serial("single-step wiring tasks", () => {
     }, projectRoot);
     await reloadAfterLeave(page);
     await page.getByText("wiring-fixture", { exact: true }).first().click();
-    await page.getByRole("button", { name: "工位接线", exact: true }).click();
+    await showWiring(page, "表格");
     await expect(page.getByRole("region", { name: "针脚列表" })).toBeVisible();
   });
   test.afterAll(async () => {
@@ -60,7 +60,7 @@ test.describe.serial("single-step wiring tasks", () => {
       { action: "connect", portA: "DUT_A.J1", portB: "DUT_B.J1", pins: [{ a: "1", b: "2" }, { a: "3", b: "3" }] }
     ] } })).wiringTaskId);
     // The request is answered in the conversation: the log has no pending cards and nothing changed yet.
-    await showPanel(page, "接线日志");
+    await showWiringLog(page);
     const log = page.getByRole("region", { name: "接线日志" });
     const changes = log.getByRole("region", { name: "变更记录" });
     await expect(log.getByRole("region", { name: "待处理" })).toHaveCount(0);
@@ -104,7 +104,7 @@ test.describe.serial("single-step wiring tasks", () => {
       { action: "disconnect", portA: "DUT_A.J1", portB: "DUT_A.J1", pins: [{ a: "1", b: "2" }] }
     ] } })).wiringTaskId);
     await page.evaluate((id) => window.sage.wiring.completeTask({ taskId: id, outcome: "confirmed" }), taskId);
-    await showPanel(page, "接线日志");
+    await showWiringLog(page);
     const changes = page.getByRole("region", { name: "接线日志" }).getByRole("region", { name: "变更记录" });
     await expect(changes.getByText("删除接线 DUT_A 串口 ↔ DUT_A 串口")).toBeVisible();
     await page.evaluate(() => { document.documentElement.dataset.theme = "dark"; document.documentElement.classList.add("dark"); });
@@ -128,8 +128,7 @@ test.describe.serial("single-step wiring tasks", () => {
           portPositions: { J1: { side: "left", offset: 0.5 } } }
       ]
     } }));
-    await page.getByRole("group", { name: "台架视图" }).getByRole("button", { name: "工位接线", exact: true }).click();
-    await page.getByRole("group", { name: "接线视图" }).getByRole("button", { name: "端口连线", exact: true }).click();
+    await showWiring(page, "画布");
     const handle = (hardwareId: string) =>
       page.locator(`.react-flow__handle[data-nodeid="${hardwareId}"][data-handleid="J1"]`);
     await expect(handle("DUT_A")).toBeVisible();
@@ -144,10 +143,14 @@ test.describe.serial("single-step wiring tasks", () => {
     const editor = page.getByRole("dialog", { name: "编辑针脚", exact: true });
     await expect(editor).toBeVisible();
     await editor.getByRole("button", { name: "取消" }).click();
+    // The new cable stays picked: its ends and pins show in the strip under the canvas, not in a side column.
+    const strip = page.getByRole("complementary", { name: "端口接线详情" });
+    await expect(strip).toContainText("DUT_B");
+    await expect(strip.getByRole("button", { name: "编辑针脚" })).toBeVisible();
     await page.screenshot({ animations: "disabled", path: join(artifacts, "port-canvas.png") });
 
-    // The two views are one document: the canvas cable is a row in the pin list.
-    await page.getByRole("group", { name: "接线视图" }).getByRole("button", { name: "针脚列表", exact: true }).click();
+    // The two views are one document: the canvas cable is a row in the pin table.
+    await showWiring(page, "表格");
     await expect(cables(page)).toHaveCount(1);
     await expect(page.getByRole("region", { name: "针脚列表" })).toContainText("DUT_B");
 

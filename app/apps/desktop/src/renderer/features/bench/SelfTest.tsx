@@ -1,44 +1,23 @@
-import { useEffect, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import type { ToolCatalogItem } from "@sage/contracts/devices";
 import { RotateCwIcon, ShieldCheckIcon } from "lucide-react";
 import { errorMessage } from "../../lib/errors.js";
-import { Button, cn, Dialog, DialogBody, DialogContent, DialogFooter, Spinner, StatusLamp, toneText } from "../../ui";
+import { Button, cn, Section, Spinner, StatusLamp, toneText } from "../../ui";
 import { selfTestReport, type SelfTestReport } from "./self-test.js";
 
 const TIMEOUT_MS = 60_000;
 const GRID = "grid grid-cols-[64px_minmax(120px,1fr)_minmax(90px,1fr)_minmax(90px,1fr)] items-center gap-2 px-2";
 
 /**
- * A plugin's self-test: the checks it makes on the card (identity, versions, channel counts,
- * register readback, the rate a stream really reaches), each with what it measured and expected.
- * It only reads, so it runs as soon as the dialog opens. Passing says the plugin and the card
- * agree; the wiring is proved by the acceptance steps in the plugin's README.
+ * A plugin's self-test, as a section of the device's page: the checks it makes on the card (identity,
+ * versions, channel counts, register readback, the rate a stream really reaches), each with what it measured
+ * and expected. It only reads. Passing says the plugin and the card agree; the wiring is proved by the
+ * acceptance steps in the plugin's README.
  */
-export function SelfTestDialog({ tool, hardwareId, deviceLabel, available, onClose }: {
-  tool: ToolCatalogItem | undefined;
-  hardwareId: string;
-  deviceLabel: string;
-  available: boolean;
-  onClose: () => void;
-}) {
-  return (
-    <Dialog open={Boolean(tool)} onOpenChange={(open) => { if (!open) onClose(); }}>
-      {tool && (
-        <DialogContent title={`${deviceLabel} · 自检`} size="lg">
-          <SelfTestRun key={`${hardwareId}:${tool.externalName}`} tool={tool} hardwareId={hardwareId}
-            available={available} onClose={onClose} />
-        </DialogContent>
-      )}
-    </Dialog>
-  );
-}
-
-function SelfTestRun({ tool, hardwareId, available, onClose }: {
+export function SelfTest({ tool, hardwareId, available }: {
   tool: ToolCatalogItem;
   hardwareId: string;
   available: boolean;
-  onClose: () => void;
 }) {
   const run = useMutation({
     mutationFn: async (): Promise<SelfTestReport> => {
@@ -50,34 +29,26 @@ function SelfTestRun({ tool, hardwareId, available, onClose }: {
       return report;
     }
   });
-  const started = useRef(false);
-  useEffect(() => {
-    if (available && !started.current) {
-      started.current = true;
-      run.mutate();
-    }
-  }, [available, run]);
   const report = run.data;
 
   return (
-    <>
-      <DialogBody className="grid gap-3">
-        <p className="flex items-center gap-1.5 text-xs text-fg-2">
-          <ShieldCheckIcon className="size-3.5 shrink-0 text-pass" />只读检查，不改变输出；接线与电压仍需现场实测
-        </p>
-        {!available && <p role="alert" className="text-xs text-fail">设备当前不在线，恢复在线后才能自检。</p>}
-        {run.isPending && <Spinner label="正在自检" />}
-        {run.isError && <p role="alert" className="text-xs break-words text-fail">{errorMessage(run.error)}</p>}
-        {report && <SelfTestTable report={report} />}
-      </DialogBody>
-      <DialogFooter>
-        <Button onClick={onClose}>关闭</Button>
-        <Button variant="primary" disabled={!available || run.isPending} onClick={() => run.mutate()}>
+    <Section
+      title="自检"
+      actions={(
+        <Button size="xs" variant="outline" disabled={!available || run.isPending} onClick={() => run.mutate()}>
           {run.isPending ? <Spinner /> : <RotateCwIcon />}
-          重新自检
+          {report || run.isError ? "重新自检" : "开始自检"}
         </Button>
-      </DialogFooter>
-    </>
+      )}
+    >
+      <p className="flex items-center gap-1.5 text-xs text-fg-2">
+        <ShieldCheckIcon className="size-3.5 shrink-0 text-pass" />只读检查，不改变输出；接线与电压仍需现场实测
+      </p>
+      {!available && <p role="alert" className="text-xs text-fail">设备当前不在线，恢复在线后才能自检。</p>}
+      {run.isPending && <Spinner label="正在自检" />}
+      {run.isError && <p role="alert" className="text-xs break-words text-fail">{errorMessage(run.error)}</p>}
+      {report && !run.isPending && <SelfTestTable report={report} />}
+    </Section>
   );
 }
 
