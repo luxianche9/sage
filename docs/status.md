@@ -23,13 +23,14 @@
 
 ## 下一步
 
-1. **旧分支**：GitHub 上还有 `feat/hmi-builder`、`sage`、`monitor-panel`、`signal-view`、`run-monitor-transparency`、`ai-devkit`，都已打归档标签（见 0005），本地新 clone 只有 `main`。2026-11-24 已核对：每个分支的最新提交都包含在 `main` 或某个 `archive/*` 标签里（`feat/hmi-builder` 只在 `archive/teststand-hmi` 里），删掉不丢代码；等用户确认后删。
-2. **工控机环境**：写 `scripts/setup.ps1`（uv、pnpm 走 npmmirror 安装而不是 corepack、Python 3.11、Electron 的解压问题见下），在两台工控机 clone 到 `E:\Project\sage` 并跑 `.\scripts\verify.ps1 -Quick`。
-3. **以后再做**（用户 2026-11-23：硬件准备不足）：实机测试框架 `lab/`（规则见 0004）、厂商 DLL 存放办法、开发机 USB 转串口试点、虚拟实验室（见 0005）。
-4. **文档**：`docs/技术架构说明.md`（1248 行）按代码重写精简；PPT、Word、截图这类大文件以后不再提交。
-5. **代码内部重构**：见下方记下的问题，逐个和用户商量。
+1. **工控机环境**：写 `scripts/setup.ps1`（uv、pnpm 走 npmmirror 安装而不是 corepack、Python 3.11、Electron 的解压问题见下），在两台工控机 clone 到 `E:\Project\sage` 并跑 `.\scripts\verify.ps1 -Quick`。
+2. **以后再做**（用户 2026-11-23：硬件准备不足）：实机测试框架 `lab/`（规则见 0004）、厂商 DLL 存放办法、开发机 USB 转串口试点、虚拟实验室（见 0005）。
+3. **文档**：`docs/技术架构说明.md`（1248 行）按代码重写精简；PPT、Word、截图这类大文件以后不再提交。
+4. **代码内部重构**：见下方记下的问题，逐个和用户商量。
 
 ## 已知问题
+
+- GitHub 上只剩 `main`：6 个旧分支已于 2026-11-24 删除，内容都在 `archive/*` 标签里（见 0005）。工控机上若还有这些分支的本地副本，`git fetch --prune` 后可删。
 
 - GitHub 仓库已改名为 `sage`（2026-11-24），开发机已改远端地址；**两台工控机还要执行** `git remote set-url origin https://github.com/luxianche9/sage.git`（不改也能用，GitHub 会跳转）。
 
