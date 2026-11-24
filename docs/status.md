@@ -2,7 +2,7 @@
 
 每次工作结束更新这份文件并提交。写**现在是什么状态、下一步做什么、已知问题**；已经定下的事写进 `docs/decisions/`，不写在这里。
 
-最后更新：2026-11-23（开发机）
+最后更新：2026-11-24（开发机）
 
 ## 现在的状态
 
@@ -23,14 +23,15 @@
 
 ## 下一步
 
-1. **GitHub 仓库改名**：GitHub 上仓库还是旧名，用户在网页上改成 `sage`，然后本机执行 `git remote set-url origin https://github.com/luxianche9/sage.git`（不改也能用，GitHub 会自动跳转）。
-2. **旧分支**：GitHub 上还有 `feat/hmi-builder`、`sage`、`monitor-panel`、`signal-view`、`run-monitor-transparency`、`ai-devkit`，都已打归档标签（见 0005），本地新 clone 只有 `main`。删远端分支前列清单给用户确认。
-3. **工控机环境**：写 `scripts/setup.ps1`（uv、pnpm 走 npmmirror 安装而不是 corepack、Python 3.11、Electron 的解压问题见下），在两台工控机 clone 到 `E:\Project\sage` 并跑 `.\scripts\verify.ps1 -Quick`。
-4. **以后再做**（用户 2026-11-23：硬件准备不足）：实机测试框架 `lab/`（规则见 0004）、厂商 DLL 存放办法、开发机 USB 转串口试点、虚拟实验室（见 0005）。
-5. **文档**：`docs/技术架构说明.md`（1248 行）按代码重写精简；PPT、Word、截图这类大文件以后不再提交。
-6. **代码内部重构**：见下方记下的问题，逐个和用户商量。
+1. **旧分支**：GitHub 上还有 `feat/hmi-builder`、`sage`、`monitor-panel`、`signal-view`、`run-monitor-transparency`、`ai-devkit`，都已打归档标签（见 0005），本地新 clone 只有 `main`。2026-11-24 已核对：每个分支的最新提交都包含在 `main` 或某个 `archive/*` 标签里（`feat/hmi-builder` 只在 `archive/teststand-hmi` 里），删掉不丢代码；等用户确认后删。
+2. **工控机环境**：写 `scripts/setup.ps1`（uv、pnpm 走 npmmirror 安装而不是 corepack、Python 3.11、Electron 的解压问题见下），在两台工控机 clone 到 `E:\Project\sage` 并跑 `.\scripts\verify.ps1 -Quick`。
+3. **以后再做**（用户 2026-11-23：硬件准备不足）：实机测试框架 `lab/`（规则见 0004）、厂商 DLL 存放办法、开发机 USB 转串口试点、虚拟实验室（见 0005）。
+4. **文档**：`docs/技术架构说明.md`（1248 行）按代码重写精简；PPT、Word、截图这类大文件以后不再提交。
+5. **代码内部重构**：见下方记下的问题，逐个和用户商量。
 
 ## 已知问题
+
+- GitHub 仓库已改名为 `sage`（2026-11-24），开发机已改远端地址；**两台工控机还要执行** `git remote set-url origin https://github.com/luxianche9/sage.git`（不改也能用，GitHub 会跳转）。
 
 - **Electron 在 Node 24 上解压不完整**：`pnpm install` 时 Electron 自己的安装脚本从镜像下载成功（缓存在 `%LOCALAPPDATA%\electron\Cache\`，校验和与官方一致），但解压只解出第一个文件就退出且不报错，结果是 `dist/` 只有 `locales`，运行时报 "Electron failed to install correctly"。处理：用 Windows 自带的 tar 解压缓存里的 zip 到 `app/node_modules/.pnpm/electron@36.9.5/node_modules/electron/dist/`，再写 `path.txt`（内容 `electron.exe`）。`setup.ps1` 要自动做这一步。
 - `pnpm install` 需要重建模块目录时会弹确认提示，非交互运行会卡住或中止；加 `--config.confirmModulesPurge=false`。重建会删掉已解压的 Electron，之后要重做上一条。
