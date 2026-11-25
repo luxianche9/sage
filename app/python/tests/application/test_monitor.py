@@ -160,20 +160,20 @@ async def test_add_puts_each_stream_on_a_panel_that_draws_its_type(tmp_path: Pat
 
 async def test_add_never_creates_a_panel(tmp_path: Path) -> None:
     monitor, projects = await fixture(tmp_path)
-    await monitor.update(HUMAN, {"operations": [{"op": "addPanel", "panel": {"type": "control"}}]})
+    await monitor.update(HUMAN, {"operations": [{"op": "addPanel", "panel": {"type": "label"}}]})
     with pytest.raises(
         Exception, match=r"no panel can show CARD.ai0 \(scalar\); add one with addPanel"
     ):
         await monitor.update(HUMAN, {"add": [AI0]})
-    assert shown(projects.monitor()) == [("control", "control", [])]
+    assert shown(projects.monitor()) == [("label", "label", [])]
 
 
 async def test_add_skips_a_stream_some_panel_already_shows(tmp_path: Path) -> None:
     monitor, _ = await fixture(tmp_path)
     await monitor.update(
-        HUMAN, {"operations": [{"op": "addPanel", "panel": {"type": "digital", "sources": [DI]}}]}
+        HUMAN, {"operations": [{"op": "addPanel", "panel": {"type": "lamp", "sources": [DI]}}]}
     )
-    assert shown(await monitor.update(HUMAN, {"add": [DI]})) == [("digital", "digital", [DI])]
+    assert shown(await monitor.update(HUMAN, {"add": [DI]})) == [("lamp", "lamp", [DI])]
 
 
 async def test_remove_takes_a_stream_off_every_panel(tmp_path: Path) -> None:
@@ -183,12 +183,12 @@ async def test_remove_takes_a_stream_off_every_panel(tmp_path: Path) -> None:
         {
             "operations": [
                 {"op": "addPanel", "panel": {"type": "scope", "sources": [AI0, DI]}},
-                {"op": "addPanel", "panel": {"type": "digital", "sources": [DI]}},
+                {"op": "addPanel", "panel": {"type": "lamp", "sources": [DI]}},
             ]
         },
     )
     result = await monitor.update(HUMAN, {"remove": [DI, AI1]})
-    assert shown(result) == [("scope", "scope", [AI0]), ("digital", "digital", [])]
+    assert shown(result) == [("scope", "scope", [AI0]), ("lamp", "lamp", [])]
 
 
 async def test_panel_operations_apply_in_order(tmp_path: Path) -> None:
@@ -293,7 +293,7 @@ async def test_panels_sit_where_they_are_put_and_new_ones_take_a_free_spot(
     )
     assert [panel["frame"] for panel in result["panels"]] == [
         moved,
-        {"x": 8, "y": 0, "w": 5, "h": 2},
+        {"x": 8, "y": 0, "w": 10, "h": 3},
     ]
     # A project of an earlier version has panels without frames: they are placed when read.
     projects.update_monitor(
@@ -365,18 +365,19 @@ async def test_panels_replace_every_panel(tmp_path: Path) -> None:
         {
             "panels": [
                 {"id": "a", "type": "values", "sources": [AI0, AI1]},
-                {"id": "b", "type": "timeline", "sources": [DI], "settings": {"x": 1}},
+                {"id": "b", "type": "lamp", "sources": [DI], "settings": {"x": 1}},
             ],
         },
     )
-    assert shown(result) == [("a", "values", [AI0, AI1]), ("b", "timeline", [DI])]
+    assert shown(result) == [("a", "values", [AI0, AI1]), ("b", "lamp", [DI])]
     assert result["panels"][1]["settings"] == {"x": 1}
     with pytest.raises(Exception, match="a values panel draws"):
         await monitor.update(HUMAN, {"panels": [{"id": "a", "type": "values", "sources": [DI]}]})
 
 
-async def test_controls_are_checked_against_the_device_tools(tmp_path: Path) -> None:
+async def test_a_binding_gets_its_widget_from_the_component(tmp_path: Path) -> None:
     monitor, _ = await fixture(tmp_path)
+    bare = {key: value for key, value in RELAY.items() if key != "widget"}
     result = await monitor.update(
         HUMAN,
         {
@@ -384,64 +385,67 @@ async def test_controls_are_checked_against_the_device_tools(tmp_path: Path) -> 
                 {
                     "op": "addPanel",
                     "panel": {
-                        "id": "ctl",
-                        "type": "control",
-                        "settings": {"controls": [{**RELAY, "fixed": {"channel": 3}}]},
+                        "id": "k3",
+                        "type": "switch",
+                        "sources": [DI],
+                        "settings": {
+                            "bit": 3,
+                            "control": {**bare, "fixed": {"channel": 3}, "on": 1, "off": 0},
+                        },
                     },
                 },
                 {
-                    "op": "addControl",
-                    "panelId": "ctl",
-                    "control": {
-                        "hardwareId": "CARD",
-                        "tool": "card_safe_state",
-                        "widget": "button",
+                    "op": "addPanel",
+                    "panel": {
+                        "id": "safe",
+                        "type": "button",
+                        "settings": {"control": {"hardwareId": "CARD", "tool": "card_safe_state"}},
                     },
                 },
             ]
         },
     )
-    controls = result["panels"][0]["settings"]["controls"]
-    assert [(item["id"], item["tool"], item["fixed"]) for item in controls] == [
-        ("c1", "card_set_relay", {"channel": 3}),
-        ("c2", "card_safe_state", {}),
-    ]
-    result = await monitor.update(
-        HUMAN, {"operations": [{"op": "removeControl", "panelId": "ctl", "controlId": "c1"}]}
-    )
-    assert [item["id"] for item in result["panels"][0]["settings"]["controls"]] == ["c2"]
+    switch, button = (panel["settings"] for panel in result["panels"])
+    assert switch["bit"] == 3
+    assert (switch["control"]["widget"], switch["control"]["tool"]) == ("toggle", "card_set_relay")
+    assert (switch["control"]["on"], switch["control"]["off"]) == (1, 0)
+    assert (button["control"]["widget"], button["control"]["fixed"]) == ("button", {})
 
 
-async def test_a_control_needs_an_existing_tool_and_its_arguments(tmp_path: Path) -> None:
+async def test_a_binding_needs_an_existing_tool_and_its_arguments(tmp_path: Path) -> None:
     monitor, _ = await fixture(tmp_path)
-    await monitor.update(HUMAN, {"operations": [{"op": "addPanel", "panel": {"type": "control"}}]})
+    await monitor.update(
+        HUMAN, {"operations": [{"op": "addPanel", "panel": {"id": "k0", "type": "switch"}}]}
+    )
 
-    async def add(control: Json) -> None:
-        await monitor.update(
-            HUMAN, {"operations": [{"op": "addControl", "panelId": "control", "control": control}]}
-        )
-
-    with pytest.raises(Exception, match="CARD has no tool fly; tools: safe_state, set_relay"):
-        await add({**RELAY, "tool": "fly"})
-    with pytest.raises(Exception, match="set_relay takes no argument volts"):
-        await add({**RELAY, "fixed": {"volts": 1}})
-    with pytest.raises(Exception, match="a toggle control needs the param it sets"):
-        await add({"hardwareId": "CARD", "tool": "set_relay", "widget": "toggle"})
-    with pytest.raises(Exception, match="GHOST is not a registered device"):
-        await add({**RELAY, "hardwareId": "GHOST"})
-    with pytest.raises(Exception, match="panel scope is not a control panel"):
+    async def bind(control: Json, panel: str = "k0") -> None:
         await monitor.update(
             HUMAN,
             {
                 "operations": [
-                    {"op": "addPanel", "panel": {"type": "scope"}},
-                    {"op": "addControl", "panelId": "scope", "control": RELAY},
+                    {"op": "updatePanel", "panelId": panel, "settings": {"control": control}}
                 ]
             },
         )
 
+    with pytest.raises(Exception, match="CARD has no tool fly; tools: safe_state, set_relay"):
+        await bind({**RELAY, "tool": "fly"})
+    with pytest.raises(Exception, match="set_relay takes no argument volts"):
+        await bind({**RELAY, "fixed": {"volts": 1}})
+    with pytest.raises(Exception, match="a toggle control needs the param it sets"):
+        await bind({"hardwareId": "CARD", "tool": "set_relay"})
+    with pytest.raises(Exception, match="GHOST is not a registered device"):
+        await bind({**RELAY, "hardwareId": "GHOST"})
+    with pytest.raises(Exception, match="a switch takes a toggle control"):
+        await bind({**RELAY, "widget": "slider"})
+    # A component that operates nothing keeps whatever its settings hold.
+    await monitor.update(
+        HUMAN, {"operations": [{"op": "addPanel", "panel": {"id": "s", "type": "scope"}}]}
+    )
+    await bind({"anything": 1}, "s")
 
-async def test_controls_of_an_offline_device_are_kept_unchecked(tmp_path: Path) -> None:
+
+async def test_bindings_of_an_offline_device_are_kept_unchecked(tmp_path: Path) -> None:
     monitor, _ = await fixture(tmp_path, known=False)
     result = await monitor.update(
         HUMAN,
@@ -449,12 +453,26 @@ async def test_controls_of_an_offline_device_are_kept_unchecked(tmp_path: Path) 
             "operations": [
                 {
                     "op": "addPanel",
-                    "panel": {
-                        "type": "control",
-                        "settings": {"controls": [{**RELAY, "tool": "x"}]},
-                    },
+                    "panel": {"type": "switch", "settings": {"control": {**RELAY, "tool": "x"}}},
                 }
             ]
         },
     )
-    assert result["panels"][0]["settings"]["controls"][0]["tool"] == "x"
+    assert result["panels"][0]["settings"]["control"]["tool"] == "x"
+
+
+def test_a_project_with_components_that_no_longer_exist_still_opens() -> None:
+    from sage_backend.contracts.projects import parse_project_file
+    from sage_backend.projects.project_service import empty_project_file
+
+    stored = {
+        **empty_project_file("old"),
+        "monitor": {
+            "panels": [
+                {"id": "d", "type": "digital", "sources": [DI]},
+                {"id": "s", "type": "scope", "sources": [AI0]},
+                {"id": "c", "type": "control", "settings": {"controls": []}},
+            ]
+        },
+    }
+    assert [panel["id"] for panel in parse_project_file(stored)["monitor"]["panels"]] == ["s"]

@@ -2,63 +2,63 @@ import { z } from "zod";
 import type { DeviceStream } from "./observability.js";
 
 /**
- * The project's monitor canvas: one page of panels, each drawing the device streams of the types it takes
- * (`PANEL_SOURCE_TYPES`) at its `frame` (grid cells of `GRID_PX`); a `control` panel holds controls bound to
- * device tools, and the one-control widgets (`button`, `switch`, `slider`) hold one in `settings.control`.
+ * The project's host-computer canvas: one page of components (a `panel` each in the project file), each
+ * drawing the device streams of the types it takes (`PANEL_SOURCE_TYPES`) at its `frame` (grid cells of
+ * `GRID_PX`). The operating components (`button`, `switch`, `slider`, `select`) hold one binding to a device
+ * tool in `settings.control` and show their first source as the value read back. Components are bound to
+ * hardware by hand, in their properties (docs/decisions 0007).
  */
 export const streamRefSchema = z.object({ hardwareId: z.string().min(1), streamId: z.string().min(1) }).strict();
 export type StreamRef = z.infer<typeof streamRefSchema>;
 
 export const PANEL_TYPES = [
-  "scope", "digital", "terminal", "trace", "values", "gauge", "timeline", "register", "xy", "detail", "control",
-  "sources", "inspector", "results", "messages", "number", "lamp", "switch", "slider", "button", "label"
+  "scope", "number", "values", "lamp", "terminal", "trace", "button", "switch", "slider", "select", "results",
+  "label", "group"
 ] as const;
 export type PanelType = (typeof PANEL_TYPES)[number];
 export const panelTypeSchema = z.enum(PANEL_TYPES);
 
-/** Stream types each panel type draws. */
+/** Stream types each component draws (for an operating component: the stream it reads back). */
 export const PANEL_SOURCE_TYPES: Readonly<Record<PanelType, readonly string[]>> = {
   scope: ["scalar", "block", "bits"],
-  digital: ["bits"],
-  terminal: ["bytes", "frames", "events"],
-  trace: ["bytes", "frames"],
-  values: ["scalar", "block"],
-  gauge: ["scalar", "block"],
-  timeline: ["bits"],
-  register: ["bits"],
-  xy: ["scalar", "block"],
-  detail: [],
-  control: [],
-  sources: [],
-  inspector: [],
-  results: [],
-  messages: [],
   number: ["scalar", "block"],
+  values: ["scalar", "block"],
   lamp: ["bits", "scalar"],
+  terminal: ["bytes", "frames"],
+  trace: ["bytes", "frames"],
+  button: [],
   switch: ["bits", "scalar"],
   slider: ["scalar", "block"],
-  button: [],
-  label: []
+  select: ["scalar", "bits"],
+  results: [],
+  label: [],
+  group: []
 };
 
 /** Pixels per canvas grid cell. */
 export const GRID_PX = 20;
 /** Columns new panels are placed within (the canvas grows as needed). */
 export const CANVAS_COLUMNS = 60;
-/** Width and height in cells a new panel of each type gets (as the backend places it). */
+/** Width and height in cells a new component of each type gets (as the backend places it). */
 export const PANEL_SIZES: Readonly<Record<PanelType, readonly [number, number]>> = {
-  scope: [30, 14], digital: [20, 7], terminal: [24, 12], trace: [30, 14], values: [20, 10], gauge: [10, 9],
-  timeline: [24, 9], register: [14, 9], xy: [14, 14], detail: [14, 12], control: [12, 6], sources: [12, 18],
-  inspector: [12, 18], results: [20, 10], messages: [24, 12], number: [6, 3], lamp: [5, 2], switch: [6, 2],
-  slider: [10, 3], button: [5, 2], label: [8, 2]
+  scope: [30, 14], number: [8, 4], values: [20, 10], lamp: [10, 3], terminal: [24, 12], trace: [30, 14],
+  button: [6, 2], switch: [8, 2], slider: [12, 3], select: [10, 3], results: [20, 10], label: [8, 2],
+  group: [16, 10]
 };
-export const CONTROL_WIDGETS = ["button", "toggle", "slider", "presets"] as const;
-export type ControlWidget = (typeof CONTROL_WIDGETS)[number];
 
-/** A control of a `control` panel: calls `tool` of the device with `fixed` and, but for a button,
- *  the operator's value of `param`. */
+export type ControlWidget = "button" | "toggle" | "slider" | "presets";
+/** The widget of each operating component's binding. */
+export const PANEL_WIDGETS: Partial<Record<PanelType, ControlWidget>> = {
+  button: "button", switch: "toggle", slider: "slider", select: "presets"
+};
+
+/**
+ * The write half of a component's binding: calls `tool` of the device with `fixed` and, but for a button,
+ * the operator's value in `param`. A switch sends `on` / `off` (true / false when absent); a slider a number
+ * within `min`..`max`; a select one of `presets` (named by `labels`).
+ */
 export interface MonitorControl {
-  id: string;
+  id?: string;
   label?: string;
   hardwareId: string;
   tool: string;
@@ -66,8 +66,12 @@ export interface MonitorControl {
   param?: string;
   fixed: Record<string, unknown>;
   presets?: unknown[];
+  labels?: string[];
+  on?: unknown;
+  off?: unknown;
   min?: number;
   max?: number;
+  step?: number;
 }
 
 export const frameSchema = z.object({
@@ -100,9 +104,7 @@ export type MonitorOperation =
   | { op: "removePanel"; panelId: string }
   | { op: "updatePanel"; panelId: string; title?: string; settings?: Record<string, unknown>; frame?: Frame }
   | { op: "addSources"; panelId: string; sources: StreamRef[] }
-  | { op: "removeSources"; panelId: string; sources: StreamRef[] }
-  | { op: "addControl"; panelId: string; control: Omit<MonitorControl, "id" | "fixed"> & { id?: string; fixed?: Record<string, unknown> } }
-  | { op: "removeControl"; panelId: string; controlId: string };
+  | { op: "removeSources"; panelId: string; sources: StreamRef[] };
 
 /**
  * `panels` replaces every panel; `operations` then apply in order; `remove` takes each stream off

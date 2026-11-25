@@ -644,11 +644,11 @@ export interface paths {
         /**
          * Change the canvas: ``panels`` replaces every panel (a generated layout, an import);
          *     ``operations`` then apply in order (add / remove / update — retitle, settings, move or
-         *     resize — a panel, add / remove its sources or controls); ``remove`` takes each stream off
+         *     resize — a panel, add / remove its sources); ``remove`` takes each stream off
          *     every panel and ``add`` puts it on the first panel that draws its type (never creating
          *     one). A new panel without a frame goes in the first free spot. A stream must belong to a
          *     registered device and, once the device's streams are known, be one it declares (or a
-         *     protocol field) and one the panel can draw; a control must name a tool its device has,
+         *     protocol field) and one the panel can draw; a binding must name a tool its device has,
          *     with arguments the tool takes. An Agent's change waits for the operator to confirm it.
          *     Stays in the project buffer until the project is saved. Returns the canvas.
          */

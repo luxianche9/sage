@@ -1,6 +1,6 @@
 from typing import Any
 
-from sage_backend.contracts.monitor import monitor_schema
+from sage_backend.contracts.monitor import PANEL_TYPES, monitor_schema
 from sage_backend.contracts.validation import (
     array,
     enum,
@@ -79,7 +79,24 @@ protocols_update_schema = obj(
 
 
 def parse_project_file(value: Any) -> Record:
-    return parse_record(project_file_schema, value)
+    """A project file. Canvas components of a type that no longer exists (the panels of before
+    docs/decisions 0008) are dropped: the canvas is rebuilt, the rest of the project is kept."""
+    return parse_record(project_file_schema, _without_retired_panels(value))
+
+
+def _without_retired_panels(value: Any) -> Any:
+    if not isinstance(value, dict):
+        return value
+    monitor = value.get("monitor")
+    if not isinstance(monitor, dict) or not isinstance(monitor.get("panels"), list):
+        return value
+    panels: list[Any] = monitor["panels"]
+    known = [
+        panel for panel in panels if not isinstance(panel, dict) or panel.get("type") in PANEL_TYPES
+    ]
+    if len(known) == len(panels):
+        return value
+    return {**value, "monitor": {**monitor, "panels": known}}
 
 
 def parse_protocol_bindings(value: Any) -> list[Record]:

@@ -212,6 +212,22 @@ class StreamRecorder:
         track.task = asyncio.create_task(track.run(source), name=f"record:{key}")
         return track
 
+    def revive(self, hardware_id: str, stream_id: str) -> bool:
+        """Start a stream that could not be opened when it was added: its device was not loaded
+        then. It is recorded from now on. True when the stream is being recorded."""
+        track = self.track(hardware_id, stream_id)
+        if track is None or not self.active:
+            return False
+        if track.task is not None:
+            return not track.ended
+        try:
+            source = self.sources.source(hardware_id, stream_id, since=None)
+        except Exception:
+            return False
+        track.ended = False
+        track.task = asyncio.create_task(track.run(source), name=f"record:{track.key}")
+        return True
+
     def track(self, hardware_id: str, stream_id: str) -> _Track | None:
         return self.tracks.get(stream_key(hardware_id, stream_id))
 

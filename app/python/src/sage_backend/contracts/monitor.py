@@ -1,13 +1,12 @@
-"""The project's monitor canvas: one page of panels, each showing some device streams.
+"""The project's host-computer canvas: one page of components, each showing some device streams.
 
-A panel has a ``type`` that decides how it draws its ``sources`` (streams a device plugin
-declares or protocol fields) — see :data:`SOURCE_TYPES`; a panel ignores sources it cannot draw.
-``settings`` are the panel's own (see :data:`PANEL_SETTINGS`); a ``control`` panel's
-``settings.controls`` are buttons, switches and sliders bound to device tools with some arguments
-fixed, and the one-control widgets (``button``, ``switch``, ``slider``) hold one in
-``settings.control`` and show their first source as the value read back. ``frame`` is where the
-panel sits on the canvas, in grid cells (:data:`GRID_PX` pixels); a panel without one is placed
-in the first free spot.
+A component (a ``panel`` in the project file) has a ``type`` that decides how it draws its
+``sources`` (streams a device plugin declares or protocol fields) — see :data:`SOURCE_TYPES`; it
+ignores sources it cannot draw. ``settings`` are its own (see :data:`PANEL_SETTINGS`). The
+operating components (``button``, ``switch``, ``slider``, ``select``) hold one binding to a device
+tool in ``settings.control`` and show their first source as the value read back; the operator
+binds them by hand (docs/decisions 0007). ``frame`` is where the component sits on the canvas, in
+grid cells (:data:`GRID_PX` pixels); one without a frame is placed in the first free spot.
 """
 
 from typing import Any
@@ -28,77 +27,59 @@ from sage_backend.util import Record
 
 SOURCE_TYPES: dict[str, tuple[str, ...]] = {
     "scope": ("scalar", "block", "bits"),
-    "digital": ("bits",),
-    "terminal": ("bytes", "frames", "events"),
-    "trace": ("bytes", "frames"),
-    "values": ("scalar", "block"),
-    "gauge": ("scalar", "block"),
-    "timeline": ("bits",),
-    "register": ("bits",),
-    "xy": ("scalar", "block"),
-    "detail": (),
-    "control": (),
-    "sources": (),
-    "inspector": (),
-    "results": (),
-    "messages": (),
     "number": ("scalar", "block"),
+    "values": ("scalar", "block"),
     "lamp": ("bits", "scalar"),
+    "terminal": ("bytes", "frames"),
+    "trace": ("bytes", "frames"),
+    "button": (),
     "switch": ("bits", "scalar"),
     "slider": ("scalar", "block"),
-    "button": (),
+    "select": ("scalar", "bits"),
+    "results": (),
     "label": (),
+    "group": (),
 }
 PANEL_TYPES = tuple(SOURCE_TYPES)
 PANEL_DESCRIPTIONS = {
-    "scope": "oscilloscope of sampled streams (analog overlaid, bits as logic lanes)",
-    "digital": "bits streams as lamps / relay contacts; a click toggles a line the device drives",
-    "terminal": "serial and bus records as text or hex, with a send bar for serial ports",
-    "trace": "bus trace table: by time or one row per id (fixed), column filters, changed "
-    "bytes highlighted, decoded with an ICD",
-    "values": "table of current value, min / max / mean and a sparkline per stream; setpoints "
-    "can be set from it",
-    "gauge": "one dial, bar or big number per stream",
-    "timeline": "state timeline: one row per bit, coloured while set",
-    "register": "status word: hex, a grid of bits, named bit fields, changed bits highlighted",
-    "xy": "XY plot: the first source on X, the second on Y",
-    "detail": "fields and bytes of the frame selected in a trace panel",
-    "control": "buttons, switches and sliders bound to device tools",
-    "sources": "tree of devices and their streams, to drag onto panels",
-    "inspector": "settings of the selected panel",
-    "results": "the run's verdicts",
-    "messages": "the run's messages decoded with its ICDs",
-    "number": "one value in large digits with its unit",
-    "lamp": "one indicator lamp: a bit of a bits stream, or a value that is not 0",
-    "switch": "an on/off switch that calls a device tool and shows the state read back",
-    "slider": "a slider / input that calls a device tool and shows the value read back",
+    "scope": "waveform over time: analog streams overlaid, bits streams as logic lanes",
+    "number": "one value with its unit, as digits, a bar or a dial; red outside its limits",
+    "values": "table of many streams: current value, min / max / mean over the shown window",
+    "lamp": "indicator lamps: the bits of a bits stream (all, or settings.bits), or a value "
+    "at or above settings.threshold",
+    "terminal": "serial and bus records as text or hex",
+    "trace": "frame table: one row per record with direction, id and bytes; a row unfolds",
     "button": "a button that calls a device tool once",
+    "switch": "an on/off switch that calls a device tool and shows the state read back",
+    "slider": "a slider that calls a device tool on release and shows the value read back",
+    "select": "a choice of preset values that calls a device tool with the one picked",
+    "results": "the run's verdicts",
     "label": "static text: a heading or a note on the canvas",
+    "group": "a titled frame drawn behind the components placed inside it",
 }
 PANEL_SETTINGS = {
-    "trace": '{mode: "time" | "fixed", icd?: ICD name}',
+    "number": '{display?: "digits" | "bar" | "dial", min?, max?, decimals?: 0..6, lo?, hi?}',
     "values": "{limits?: {'<hardwareId>/<streamId>': {lo?, hi?}}}",
-    "gauge": '{style: "dial" | "bar" | "number", min?, max?, limits?}',
-    "register": "{fields?: [{name, lsb, width}]}",
-    "control": "{controls: [control]}",
-    "number": "{decimals?: 0..6}",
-    "lamp": '{bit?: n (of a bits stream), onText?, offText?, color?: "pass"|"fail"|"run"|"signal"}',
-    "switch": "{control: control (widget toggle), bit?: n}",
-    "slider": "{control: control (widget slider)}",
-    "button": "{control: control (widget button)}",
-    "label": '{text, size?: "sm"|"md"|"lg"}',
+    "lamp": "{bits?: [n] (of a bits stream; all when absent), threshold?: number (a value)}",
+    "terminal": '{mode?: "text" | "hex"}',
+    "button": "{control: control (widget button), confirm?: boolean}",
+    "switch": "{control: control (widget toggle; on / off are the values sent, true / false "
+    "when absent), bit?: n (of the bits stream read back)}",
+    "slider": "{control: control (widget slider; min / max / step)}",
+    "select": "{control: control (widget presets; presets are the values, labels their names)}",
+    "label": '{text, size?: "sm" | "md" | "lg"}',
 }
 WIDGETS = ("button", "toggle", "slider", "presets")
+PANEL_WIDGETS = {"button": "button", "switch": "toggle", "slider": "slider", "select": "presets"}
+"""The widget of each operating component's ``settings.control``."""
 GRID_PX = 20
 """Size of a canvas grid cell in pixels."""
 CANVAS_COLUMNS = 60
 """Columns new panels are placed within (the canvas itself grows as needed)."""
 PANEL_SIZES: dict[str, tuple[int, int]] = {
-    "scope": (30, 14), "digital": (20, 7), "terminal": (24, 12), "trace": (30, 14),
-    "values": (20, 10), "gauge": (10, 9), "timeline": (24, 9), "register": (14, 9),
-    "xy": (14, 14), "detail": (14, 12), "control": (12, 6), "sources": (12, 18),
-    "inspector": (12, 18), "results": (20, 10), "messages": (24, 12), "number": (6, 3),
-    "lamp": (5, 2), "switch": (6, 2), "slider": (10, 3), "button": (5, 2), "label": (8, 2),
+    "scope": (30, 14), "number": (8, 4), "values": (20, 10), "lamp": (10, 3),
+    "terminal": (24, 12), "trace": (30, 14), "button": (6, 2), "switch": (8, 2),
+    "slider": (12, 3), "select": (10, 3), "results": (20, 10), "label": (8, 2), "group": (16, 10),
 }  # fmt: skip
 """Width and height (cells) a new panel of each type gets."""
 
@@ -134,9 +115,17 @@ control_schema = obj(
         .optional()
         .describe("The argument the operator sets (toggle, slider, presets)."),
         "fixed": record(unknown()).default({}).describe("Arguments fixed by the control."),
-        "presets": array(unknown()).optional().describe("Values of param offered as buttons."),
+        "presets": array(unknown()).optional().describe("Values of param offered to pick from."),
+        "labels": array(string(0, 40)).optional().describe("A name per preset, in order."),
+        "on": unknown()
+        .optional()
+        .describe("Toggle: the value sent to switch on; true when absent."),
+        "off": unknown()
+        .optional()
+        .describe("Toggle: the value sent to switch off; false when absent."),
         "min": number().optional().describe("Slider minimum; the parameter's when absent."),
         "max": number().optional().describe("Slider maximum; the parameter's when absent."),
+        "step": number().optional().describe("Slider step; chosen from the range when absent."),
     },
     strict=True,
 )
@@ -213,22 +202,6 @@ operation_schema = discriminated(
                 "op": literal("removeSources").describe("Stop showing streams on a panel."),
                 "panelId": _PANEL_ID,
                 "sources": _SOURCES,
-            },
-            strict=True,
-        ),
-        "addControl": obj(
-            {
-                "op": literal("addControl").describe("Add a control to a control panel."),
-                "panelId": _PANEL_ID,
-                "control": control_schema.describe("The control."),
-            },
-            strict=True,
-        ),
-        "removeControl": obj(
-            {
-                "op": literal("removeControl").describe("Remove a control from a control panel."),
-                "panelId": _PANEL_ID,
-                "controlId": string(1).describe("Control id, from get_monitor."),
             },
             strict=True,
         ),

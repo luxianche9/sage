@@ -7,7 +7,7 @@ import {
   Button, Dialog, DialogBody, DialogContent, DialogFooter, Field, IconButton, Input, Menu, MenuContent,
   MenuItem, MenuSeparator, MenuTrigger, Toolbar, useConfirm, useToast
 } from "../../ui/index.js";
-import { RunOverview, streamUnit, type ConsoleJump, type StreamSource } from "../streams/index.js";
+import { RunOverview, streamUnit, type StreamSource } from "../streams/index.js";
 import { RunControls } from "../testing/EditorToolbar.js";
 import { RunHeader } from "../testing/RunHeader.js";
 import { resultRows } from "../testing/result-rows.js";
@@ -17,11 +17,11 @@ import {
 } from "./layout-tools.js";
 import { useLiveKeepalive, useMonitorTime } from "./monitor-time.js";
 import { Canvas } from "./Canvas.js";
-import { MonitorContext, MonitorTimeContext, type MonitorStaticContextValue, type SelectedFrame } from "./panel-kit.js";
+import { MonitorContext, MonitorTimeContext, type MonitorStaticContextValue } from "./panel-kit.js";
 import { TimebaseControls } from "./TimebaseControls.js";
 import type { BenchRun } from "./use-bench-run.js";
 import { useManualControl } from "./use-manual-control.js";
-import { setFocusedPanel, useMonitorWorkspace, type MonitorWorkspace } from "./use-monitor-workspace.js";
+import { useMonitorWorkspace, type MonitorWorkspace } from "./use-monitor-workspace.js";
 
 /** 编辑布局, owned by the 运行 page: its left column shows the component library and the picked panel. */
 export type CanvasLayout = {
@@ -66,16 +66,11 @@ export function MonitorPane({ bench, layout, stepFocus }: {
   );
   // Only the 运行 page keeps the live feed open: a replay reads the recording.
   useLiveKeepalive(hub, layout ? workspace.streams.map((stream) => stream.key) : []);
-  const [jump, setJump] = useState<ConsoleJump>();
   const [rejudging, setRejudging] = useState(false);
-  const [frame, selectFrame] = useState<SelectedFrame>();
   const editing = Boolean(layout?.editing) && !control.running;
   const activePanelId = layout?.selected;
   const selectPanel = layout?.onSelect;
-  const focus = useCallback((id: string | undefined) => {
-    selectPanel?.(id);
-    setFocusedPanel(id);
-  }, [selectPanel]);
+  const focus = useCallback((id: string | undefined) => { selectPanel?.(id); }, [selectPanel]);
   const results = view.runLog.log?.results;
   const rows = useMemo(() => {
     if (!runId || !results) return [];
@@ -84,25 +79,18 @@ export function MonitorPane({ bench, layout, stepFocus }: {
     return resultRows(results, (hardwareId, streamId) => units.get(`${hardwareId}/${streamId}`) ?? "");
   }, [runId, results, timeline?.streams]);
 
-  const scrollTo = useCallback((tb: number) => setJump((current) => ({ tb, seq: (current?.seq ?? 0) + 1 })), []);
   const zoomStep = useCallback((executionId: string | undefined) => {
     const stepped = stepRange(timeline, executionId);
     if (!stepped) return;
     time.select(stepped);
     const start = timeline?.steps.find((step) => step.executionId === executionId)?.tb0;
-    if (start != null) {
-      time.pick(start);
-      scrollTo(start);
-    }
-  }, [scrollTo, time, timeline]);
+    if (start != null) time.pick(start);
+  }, [time, timeline]);
   // A step picked in the flow beside the canvas.
   const zoomRef = useRef(zoomStep);
   zoomRef.current = zoomStep;
   useEffect(() => { if (stepFocus) zoomRef.current(stepFocus.executionId); }, [stepFocus]);
-  const pick = useCallback((tb: number, scroll: boolean) => {
-    time.pick(tb);
-    if (scroll) scrollTo(tb);
-  }, [scrollTo, time]);
+  const pick = useCallback((tb: number) => { time.pick(tb); }, [time]);
   const refreshRun = () => {
     void client.invalidateQueries({ queryKey: queryKeys.testRun });
   };
@@ -127,8 +115,8 @@ export function MonitorPane({ bench, layout, stepFocus }: {
     success: (message: string) => toast.success(message)
   }), [toast]);
   const context = useMemo<MonitorStaticContextValue>(() => ({
-    workspace, source, bench, rows, jump, pick, zoomStep, control, frame, selectFrame, activePanelId, notify
-  }), [workspace, source, bench, rows, jump, pick, zoomStep, control, frame, selectFrame, activePanelId, notify]);
+    workspace, source, bench, rows, pick, zoomStep, control, notify, readOnly: !layout
+  }), [workspace, source, bench, rows, pick, zoomStep, control, notify, layout]);
 
   const layoutMenu = (labelled: boolean) => (
     <LayoutMenu workspace={workspace} labelled={labelled} onError={(message) => toast.error(message)}
@@ -202,7 +190,7 @@ export function MonitorPane({ bench, layout, stepFocus }: {
           marker={time.marker}
           onSelect={time.select}
           onStep={zoomStep}
-          onPick={(tb) => pick(tb, true)}
+          onPick={pick}
         />
       )}
       {confirmDialog}

@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 
 from sage_backend.contracts.errors import app_error
 from sage_backend.contracts.monitor import (
+    PANEL_WIDGETS,
     SOURCE_TYPES,
     free_frame,
     parse_control,
@@ -26,10 +27,6 @@ if TYPE_CHECKING:
     from sage_backend.projects.project_service import ProjectService
     from sage_backend.projects.protocol_bindings import ProjectProtocols
     from sage_backend.wiring.project_wiring_service import ProjectWiringService
-
-
-ONE_CONTROL = frozenset({"button", "switch", "slider"})
-"""Widgets that hold one control in ``settings.control``."""
 
 
 def _key(channel: Json) -> tuple[str, str]:
@@ -130,11 +127,11 @@ class MonitorApplication:
     async def update(self, context: Json, input: Json) -> Json:
         """Change the canvas: ``panels`` replaces every panel (a generated layout, an import);
         ``operations`` then apply in order (add / remove / update — retitle, settings, move or
-        resize — a panel, add / remove its sources or controls); ``remove`` takes each stream off
+        resize — a panel, add / remove its sources); ``remove`` takes each stream off
         every panel and ``add`` puts it on the first panel that draws its type (never creating
         one). A new panel without a frame goes in the first free spot. A stream must belong to a
         registered device and, once the device's streams are known, be one it declares (or a
-        protocol field) and one the panel can draw; a control must name a tool its device has,
+        protocol field) and one the panel can draw; a binding must name a tool its device has,
         with arguments the tool takes. An Agent's change waits for the operator to confirm it.
         Stays in the project buffer until the project is saved. Returns the canvas."""
         request = parse_monitor_update_input(input)
@@ -198,53 +195,20 @@ class MonitorApplication:
                 )
         elif op == "addSources":
             self._add_sources(panel, change["sources"])
-        elif op == "addControl":
-            if panel["type"] != "control":
-                raise app_error("invalid_argument", f"panel {panel['id']} is not a control panel")
-            controls = list(panel["settings"].get("controls", []))
-            panel["settings"] = self._settings(
-                panel, {**panel["settings"], "controls": [*controls, change["control"]]}
-            )
-        elif op == "removeControl":
-            controls = list(panel["settings"].get("controls", []))
-            kept = [item for item in controls if item.get("id") != change["controlId"]]
-            if len(kept) == len(controls):
-                raise app_error(
-                    "invalid_argument", f"panel {panel['id']} has no control {change['controlId']}"
-                )
-            panel["settings"] = {**panel["settings"], "controls": kept}
         else:
             removed = {_key(item) for item in change["sources"]}
             panel["sources"] = [item for item in panel["sources"] if _key(item) not in removed]
 
     def _settings(self, panel: Json, settings: Json) -> Json:
-        """A control panel's controls, or a one-control widget's control, checked against the
-        tools of their devices, ids filled."""
-        if panel["type"] in ONE_CONTROL and isinstance(settings.get("control"), dict):
-            control = parse_control({"id": "c1", **settings["control"]})
-            self._check_control(control)
-            return {**settings, "control": control}
-        if panel["type"] != "control" or "controls" not in settings:
+        """An operating component's binding, checked against the tools of its device."""
+        widget = PANEL_WIDGETS.get(panel["type"])
+        if widget is None or not isinstance(settings.get("control"), dict):
             return dict(settings)
-        given = settings["controls"]
-        if not isinstance(given, list):
-            raise app_error("invalid_argument", "settings.controls must be a list of controls")
-        controls: list[Json] = []
-        for item in given:
-            control = parse_control(item)
-            self._check_control(control)
-            if not control.get("id"):
-                taken = {entry["id"] for entry in controls} | {
-                    entry.get("id") for entry in given if isinstance(entry, dict)
-                }
-                index = len(controls) + 1
-                while f"c{index}" in taken:
-                    index += 1
-                control["id"] = f"c{index}"
-            if any(entry["id"] == control["id"] for entry in controls):
-                raise app_error("invalid_argument", f"control {control['id']} appears twice")
-            controls.append(control)
-        return {**settings, "controls": controls}
+        control = parse_control({"id": "c1", "widget": widget, **settings["control"]})
+        if control["widget"] != widget:
+            raise app_error("invalid_argument", f"a {panel['type']} takes a {widget} control")
+        self._check_control(control)
+        return {**settings, "control": control}
 
     def _check_control(self, control: Json) -> None:
         hardware = self.catalog.find_hardware(control["hardwareId"])

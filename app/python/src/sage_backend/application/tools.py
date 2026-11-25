@@ -391,13 +391,13 @@ PLATFORM_TOOLS = [
     ),
     _platform(
         "get_monitor",
-        "读取上位机画布（运行页中间的那一整页）上的面板：id、类型、标题、显示的流（sources）、"
-        "设置（settings）和位置 frame {x, y, w, h}（20px 栅格单位）。显示类：scope 示波器、"
-        "digital 数字量、terminal 终端、trace 总线跟踪、values 数值表、gauge 仪表、timeline 状态"
-        "时间线、register 状态字、xy XY 图、detail 报文详情、number 大数字、lamp 指示灯、label "
-        "文字、results 结果、messages 报文；操作类：control 控制面板（settings.controls "
-        "多个控件）、button 按钮 / switch 开关 / slider 滑块（settings.control 一个控件，第一条 "
-        "source 是回读显示的值）。测试运行期间操作员不能手动控制。",
+        "读取上位机画布（运行页中间的那一整页）上的组件：id、类型、标题、显示的流（sources）、"
+        "设置（settings）和位置 frame {x, y, w, h}（20px 栅格单位）。显示类：scope 波形、"
+        "number 数值（数字 / 条形 / 表盘）、values 数值表、lamp 指示灯、terminal 终端、"
+        "trace 报文表、"
+        "results 结果表；操作类：button 按钮、switch 开关、slider 滑块、select 选择"
+        "（settings.control 绑定一个设备工具，第一条 source 是回读显示的值）；版面：label 文字、"
+        "group 分组框。测试运行期间操作员不能手动控制。",
         _EMPTY,
         _MONITOR,
         operation="monitor.get",
@@ -408,10 +408,12 @@ PLATFORM_TOOLS = [
         "operations 按顺序执行：addPanel 新建面板（类型、标题、要显示的流、设置、frame 位置；"
         "不给 frame 就放到第一个空位）、removePanel、updatePanel 改标题、设置或 frame"
         "（移动 / 改大小）、"
-        "addSources / removeSources 给面板加减流、addControl / removeControl 给 control 面板"
-        "加减控件（hardwareId、tool 设备工具名、widget、param、fixed 固定参数、presets）。"
-        "做一个开关 / 滑块 / 按钮：addPanel type switch / slider / button，settings.control 是一个"
-        "控件，sources 放回读它状态的那条流。之后 remove 把流从所有面板去掉，add 把流放到第一个"
+        "addSources / removeSources 给面板加减流。"
+        "做一个开关 / 滑块 / 按钮 / 选择：addPanel type switch / slider / button / select，"
+        "settings.control 是绑定（hardwareId、tool 设备工具名、param 操作员的值填进哪个参数、"
+        "fixed 固定参数；开关可给 on / off 两个状态各发的值，滑块可给 min / max / step，"
+        "选择给 presets 和 labels），开关读回 bits 流的某一位时再给 settings.bit；"
+        "sources 放回读它状态的那条流。之后 remove 把流从所有面板去掉，add 把流放到第一个"
         "能显示它的面板（不会新建面板）。每条流是设备声明的流或协议字段（hardwareId + streamId，"
         "从 monitor_streams 取），且类型要适合面板。save_project 前只在工程缓冲区。"
         "返回修改后的画布。",

@@ -42,6 +42,8 @@ RETAIN_MS = 600_000.0
 MIN_WINDOW_MS = 100.0
 KEEPALIVE_S = 15.0
 PRUNE_S = 5.0
+REVIVE_S = 1.0
+"""How often a feed tries again to open a stream whose device was not loaded at first."""
 FRAME_RECORDS = 2000
 """Records per stream per frame; a new subscriber's backlog is as long."""
 WATERMARK_GRACE_S = 2.0
@@ -141,12 +143,18 @@ class LiveStreams:
             loop = asyncio.get_running_loop()
             cursors = {feed.key: _Cursor() for feed in feeds}
             yield {"t": backend_ms(), "colMs": col, "streams": {}}
-            sent = pruned = loop.time()
+            sent = pruned = revived = loop.time()
             while True:
                 await asyncio.sleep(self.frame_s)
                 if any(feed.store.closed for feed in feeds):
                     return
                 now = backend_ms()
+                if loop.time() - revived >= REVIVE_S:
+                    # A canvas subscribes when the project opens; a device may connect later.
+                    revived = loop.time()
+                    for feed in feeds:
+                        hardware_id, _, stream_id = feed.key.partition("__")
+                        feed.recorder.revive(hardware_id, stream_id)
                 if loop.time() - pruned >= PRUNE_S:
                     pruned = loop.time()
                     for feed in feeds:
@@ -225,6 +233,7 @@ class LiveStreams:
         feed = self.feeds.get(key)
         if feed is not None:
             feed.users += 1
+            feed.recorder.revive(*key.split("__", 1))
             if feed.closing is not None:
                 feed.closing.cancel()
                 feed.closing = None

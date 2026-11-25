@@ -30,5 +30,7 @@ export function canvasExtent(frames: readonly Frame[], margin = 8): { width: num
   return { width: (right + margin) * GRID_PX, height: (bottom + margin) * GRID_PX };
 }
 
-/** Widgets that are small enough to need no title bar of their own. */
-export const BARE_TYPES: ReadonlySet<PanelType> = new Set(["number", "lamp", "switch", "slider", "button", "label"]);
+/** Components small enough to need no title bar of their own: they carry their name inside. */
+export const BARE_TYPES: ReadonlySet<PanelType> = new Set([
+  "number", "lamp", "button", "switch", "slider", "select", "label", "group"
+]);

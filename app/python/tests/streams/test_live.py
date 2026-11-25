@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from collections.abc import AsyncGenerator
 from pathlib import Path
 from typing import Any
@@ -213,4 +214,54 @@ async def test_recent_reads_back_the_buffer_and_latest_the_newest_record(tmp_pat
         assert latest["streams"]["daq__ai0"]["record"]["v"] == 2.5
         with pytest.raises(AppError):
             await live.recent("nokey")
+        await live.close()
+
+
+async def test_a_stream_subscribed_before_its_device_loads_starts_once_it_does(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from sage_backend.streams import live as live_module
+    from sage_backend.streams.source import StreamSources
+
+    monkeypatch.setattr(live_module, "REVIVE_S", 0.05)
+    async with FakeStreamService({"di": "bits"}) as service:
+        loaded: list[Any] = []
+        sources = StreamSources(lambda _hardware_id: loaded[0] if loaded else None)
+        live = LiveStreams(sources, tmp_path, frame_s=0.02, linger_s=0.1)
+        frames = live.subscribe(["daq__di"], width=100, window_ms=10_000)
+        await anext(frames)
+        # The canvas is open before the device is connected: the stream says so, and waits.
+        frame = await until(frames, lambda f: entry(f, "daq__di").get("state"))
+        assert entry(frame, "daq__di")["state"]["state"] == "unavailable"
+        assert live.feeds["daq__di"].recorder.revive("daq", "di") is False
+
+        # The frames only advance while they are read: keep reading them in the background.
+        seen: list[dict[str, Any]] = []
+
+        async def pump() -> None:
+            async for item in frames:
+                if item is not None:
+                    seen.append(item)
+
+        async def soon(ready: Any) -> None:
+            for _ in range(250):
+                if ready():
+                    return
+                await asyncio.sleep(0.02)
+            raise AssertionError("did not happen")
+
+        reader = asyncio.create_task(pump())
+        recorder = live.feeds["daq__di"].recorder
+        loaded.append(service)
+        await soon(lambda: recorder.revive("daq", "di"))
+        # It records from when it is live: what the device published before that is not replayed.
+        await soon(lambda: recorder.store.states("daq__di")[-1]["state"] == "live")
+        service.publish("di", mask=5)
+        await soon(lambda: any(entry(item, "daq__di").get("points") for item in seen))
+        points = [p["mask"] for item in seen for p in entry(item, "daq__di").get("points", [])]
+        assert points[-1] == 5
+        assert recorder.revive("daq", "nope") is False
+        reader.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await reader
         await live.close()

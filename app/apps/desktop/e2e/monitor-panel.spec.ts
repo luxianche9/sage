@@ -74,7 +74,7 @@ test.describe.serial("monitor panel and pin list", () => {
     const panel = page.getByRole("region", { name: "上位机画布" });
     await page.evaluate(async (id) => {
       await window.sage.monitor.update({ input: { operations: [
-        { op: "addPanel", panel: { id: "dio", type: "digital", title: "继电器", sources: [{ hardwareId: id, streamId: "di" }] } },
+        { op: "addPanel", panel: { id: "dio", type: "lamp", title: "继电器", sources: [{ hardwareId: id, streamId: "di" }] } },
         { op: "addPanel", panel: { type: "results" } }
       ] } });
     }, hardwareId);
@@ -115,7 +115,7 @@ test.describe.serial("monitor panel and pin list", () => {
     await page.mouse.up();
     await expect.poll(async () => page.evaluate(async () =>
       (await window.sage.monitor.get()).panels.find((item) => item.id === "dio")?.frame?.w)).toBe(before.w + 2);
-    await panel.getByRole("button", { name: "删除 结果" }).click();
+    await panel.getByRole("button", { name: "删除 结果表" }).click();
     await expect(panel.locator("[data-canvas-item='results']")).toHaveCount(0);
     await page.screenshot({ path: join(artifacts, "workspace.png") });
     await tools.getByRole("button", { name: "完成编辑" }).click();
@@ -125,6 +125,106 @@ test.describe.serial("monitor panel and pin list", () => {
     expect(ids).toEqual(["scope", "dio"]);
   });
 
+  test("binds a switch to a device tool by hand, then operates the device with it", async () => {
+    await showPage(page, "运行");
+    const panel = page.getByRole("region", { name: "上位机画布" });
+    const tools = page.getByRole("toolbar", { name: "画布工具栏" });
+    await tools.getByRole("button", { name: "编辑布局" }).click();
+    const left = page.getByRole("complementary", { name: "编辑布局" });
+    // The library lists the 13 components; a click puts one in the first free spot and opens its properties.
+    await expect(left.getByRole("region", { name: "显示" }).getByRole("button")).toHaveCount(6);
+    await expect(left.getByRole("region", { name: "操作" }).getByRole("button")).toHaveCount(4);
+    await expect(left.getByRole("region", { name: "测试与版面" }).getByRole("button")).toHaveCount(3);
+    await left.getByRole("region", { name: "操作" }).getByRole("button", { name: /^开关/ }).click();
+    const properties = left.getByRole("group", { name: "开关的属性" });
+    await expect(properties).toBeVisible();
+    const added = panel.locator("[data-component='switch']");
+    await expect(added.getByRole("alert")).toContainText("未绑定");
+
+    await properties.getByRole("textbox", { name: "标题" }).fill("输出 2");
+    await properties.getByRole("textbox", { name: "标题" }).press("Enter");
+    // The write half: device, tool, which argument takes the value, the rest fixed. Nothing is guessed.
+    await properties.getByRole("combobox", { name: "设备" }).selectOption({ label: "继电器卡" });
+    await properties.getByRole("combobox", { name: "动作" }).selectOption({ label: "set_level" });
+    await expect(properties.getByRole("status")).toHaveText("还差：选值填进哪个参数");
+    await properties.getByRole("combobox", { name: "值填进哪个参数" }).selectOption("level");
+    await properties.getByRole("textbox", { name: "固定参数 channel" }).fill("2");
+    await properties.getByRole("button", { name: "应用绑定" }).click();
+    await expect(properties.getByRole("status")).toHaveText("已绑定");
+    // The read half: the stream that reports the output, and which of its bits.
+    await properties.getByRole("combobox", { name: "选择数据流" }).selectOption({ label: "继电器卡 / do" });
+    await properties.getByRole("textbox", { name: "读回第几位" }).fill("2");
+    await properties.getByRole("textbox", { name: "读回第几位" }).press("Enter");
+    await page.screenshot({ path: join(artifacts, "binding.png") });
+    await tools.getByRole("button", { name: "完成编辑" }).click();
+
+    // Operated: the knob follows what the device reports back, not the click itself.
+    const knob = panel.getByRole("switch", { name: "输出 2" });
+    await expect(knob).toBeEnabled();
+    await knob.click();
+    await expect(knob).toHaveAttribute("aria-checked", "true", { timeout: 15_000 });
+    await page.screenshot({ path: join(artifacts, "components.png") });
+    await knob.click();
+    await expect(knob).toHaveAttribute("aria-checked", "false", { timeout: 15_000 });
+    // The canvas was open before the device connected: once it has, its sampled inputs show their real
+    // levels (all low here), not "unknown".
+    await expect(panel.getByLabel("DI0 灭")).toBeVisible({ timeout: 20_000 });
+    const stored = await page.evaluate(async () =>
+      (await window.sage.monitor.get()).panels.find((item) => item.type === "switch"));
+    expect(stored?.title).toBe("输出 2");
+    expect(stored?.settings).toMatchObject({
+      bit: 2, control: { tool: "demo_set_level", widget: "toggle", param: "level", fixed: { channel: 2 } }
+    });
+    expect(errors).toEqual([]);
+  });
+
+
+  test("shows the device's live data on the displays, driven from the operating components", async () => {
+    await showPage(page, "运行");
+    const panel = page.getByRole("region", { name: "上位机画布" });
+    const ref = (streamId: string) => ({ hardwareId, streamId });
+    await page.evaluate(async ({ ai0, di, serial, id }) => {
+      await window.sage.monitor.update({ input: { panels: [
+        { id: "group", type: "group", title: "演示板", frame: { x: 0, y: 0, w: 58, h: 30 } },
+        { id: "wave", type: "scope", title: "电压波形", sources: [ai0, di], frame: { x: 1, y: 1, w: 30, h: 13 } },
+        { id: "volts", type: "number", title: "电压", sources: [ai0],
+          settings: { display: "dial", min: 0, max: 5, decimals: 2, hi: 4 }, frame: { x: 32, y: 1, w: 9, h: 7 } },
+        { id: "table", type: "values", title: "数值表", sources: [ai0], frame: { x: 42, y: 1, w: 15, h: 7 } },
+        { id: "mode", type: "select", title: "采集模式", frame: { x: 32, y: 9, w: 12, h: 3 }, settings: { control: {
+          hardwareId: id, tool: "configure", widget: "presets", param: "mode", fixed: {},
+          presets: ["fast", "slow"], labels: ["快", "慢"]
+        } } },
+        { id: "send", type: "button", title: "发送 hi", frame: { x: 45, y: 9, w: 8, h: 3 }, settings: { control: {
+          hardwareId: id, tool: "write_text", widget: "button", fixed: { text: "hi" }
+        } } },
+        { id: "port", type: "terminal", title: "串口", sources: [serial], frame: { x: 1, y: 15, w: 28, h: 13 } },
+        { id: "frames", type: "trace", title: "串口报文", sources: [serial], frame: { x: 30, y: 15, w: 27, h: 13 } },
+        { id: "note", type: "label", settings: { text: "演示设备，全部是模拟数据", size: "sm" },
+          frame: { x: 32, y: 12, w: 20, h: 2 } }
+      ] } });
+    }, { ai0: ref("ai0"), di: ref("di"), serial: ref("serial1"), id: hardwareId });
+
+    // The analog input reads nothing until the device is configured: the value says so, it is not 0.
+    const volts = panel.locator("[data-canvas-item='volts']");
+    await expect(volts).toContainText("—");
+    // 选择 calls the bound tool with the preset picked; the device then samples, and every display follows.
+    await panel.getByRole("combobox", { name: "采集模式" }).selectOption({ label: "慢" });
+    await expect(volts).toContainText("1.25", { timeout: 20_000 });
+    await expect(volts.getByRole("img", { name: "表盘" })).toBeVisible();
+    await expect(panel.getByRole("table", { name: "数值表" })).toContainText("1.25");
+    await expect(panel.getByRole("img", { name: "电压波形" })).toBeVisible();
+    // 按钮 sends on the serial port; the terminal shows what went out and the peer's answer, the frame table too.
+    await panel.getByRole("button", { name: "发送 hi" }).click();
+    const terminal = panel.getByRole("log", { name: "串口" });
+    await expect(terminal).toContainText("hi", { timeout: 20_000 });
+    await expect(terminal).toContainText("OK");
+    const rows = panel.getByRole("table", { name: "串口报文" }).getByRole("row");
+    await expect(rows.filter({ hasText: "68 69" })).toHaveCount(1);
+    await rows.filter({ hasText: "68 69" }).click();
+    await expect(panel.getByRole("list", { name: "逐字节" }).getByRole("listitem")).toHaveCount(2);
+    await page.screenshot({ path: join(artifacts, "gallery.png") });
+    expect(errors).toEqual([]);
+  });
 
   test("shows a run with its steps beside the canvas, and replays it from the records page", async () => {
     await page.evaluate(async () => {

@@ -12,28 +12,28 @@ export interface LayoutStream extends StreamRef {
 type NewPanel = Omit<MonitorPanel, "settings" | "frame"> & { settings: Record<string, unknown>; frame: Frame };
 
 /**
- * A layout made from the data (Rerun's heuristics): measured analog streams on an oscilloscope, every scalar in
- * a values table (setpoints can be set there), lines and relays on a digital panel, status words on a register
- * view, serial ports in a terminal, buses in a trace — each in the first free spot of the canvas. Panels without
- * streams are left out.
+ * A layout made from the data: measured analog streams on one waveform, every scalar in a values table, the
+ * lines of every bits stream as lamps, a terminal per serial port and a frame table per bus — each in the
+ * first free spot of the canvas. Only displays: what operates the hardware is bound by hand.
  */
 export function generatedLayout(streams: readonly LayoutStream[]): NewPanel[] {
   const ref = ({ hardwareId, streamId }: LayoutStream): StreamRef => ({ hardwareId, streamId });
-  const of = (test: (stream: LayoutStream) => boolean) => streams.filter(test).map(ref);
-  const measured = of((item) => (item.type === "block" || item.type === "scalar")
-    && item.declaration?.kind !== "setpoint");
-  const scalars = of((item) => item.type === "block" || item.type === "scalar");
-  const codes = of((item) => item.type === "bits" && item.declaration?.display === "code");
-  const lines = of((item) => item.type === "bits" && item.declaration?.display !== "code");
-  const serial = of((item) => item.type === "bytes");
-  const buses = of((item) => item.type === "frames");
+  const of = (test: (stream: LayoutStream) => boolean) => streams.filter(test);
+  const analog = of((item) => item.type === "block" || item.type === "scalar");
+  const measured = analog.filter((item) => item.declaration?.kind !== "setpoint");
+  const name = (item: LayoutStream) => item.declaration?.label || item.streamId;
   const panels: Omit<NewPanel, "frame">[] = [
-    { id: "scope", type: "scope", title: "示波器", sources: measured, settings: {} },
-    { id: "values", type: "values", title: "数值", sources: scalars, settings: {} },
-    { id: "digital", type: "digital", title: "数字量", sources: lines, settings: {} },
-    { id: "register", type: "register", title: "状态字", sources: codes, settings: {} },
-    { id: "terminal", type: "terminal", title: "串口", sources: serial, settings: {} },
-    { id: "trace", type: "trace", title: "总线跟踪", sources: buses, settings: { mode: "time" } }
+    { id: "scope", type: "scope", title: "波形", sources: measured.map(ref), settings: {} },
+    { id: "values", type: "values", title: "数值表", sources: analog.map(ref), settings: {} },
+    ...of((item) => item.type === "bits").map((item, index): Omit<NewPanel, "frame"> => ({
+      id: `lamp-${index + 1}`, type: "lamp", title: name(item), sources: [ref(item)], settings: {}
+    })),
+    ...of((item) => item.type === "bytes").map((item, index): Omit<NewPanel, "frame"> => ({
+      id: `terminal-${index + 1}`, type: "terminal", title: name(item), sources: [ref(item)], settings: {}
+    })),
+    ...of((item) => item.type === "frames").map((item, index): Omit<NewPanel, "frame"> => ({
+      id: `trace-${index + 1}`, type: "trace", title: name(item), sources: [ref(item)], settings: {}
+    }))
   ];
   return placedPanels(panels.filter((panel) => panel.sources.length));
 }

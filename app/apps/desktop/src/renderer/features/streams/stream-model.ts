@@ -736,9 +736,3 @@ const KIND_ORDER: Record<EntryKind, number> = { event: 0, step: 1, call: 2, bus:
 export function compareEntries(a: ConsoleEntry, b: ConsoleEntry): number {
   return a.tb - b.tb || KIND_ORDER[a.kind] - KIND_ORDER[b.kind] || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 }
-
-/** Scroll the console to the first entry at or after `tb`; `seq` makes repeated jumps to one instant count. */
-export interface ConsoleJump {
-  tb: number;
-  seq: number;
-}

@@ -1,23 +1,19 @@
 import { useCallback, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  monitorChannels, PANEL_SOURCE_TYPES, placedPanels, type ControlWidget, type Frame, type Monitor, type MonitorControl,
-  type MonitorPanel, type MonitorUpdateInput, type PanelType, type StreamRef
+  monitorChannels, placedPanels, type Frame, type Monitor, type MonitorPanel, type MonitorUpdateInput,
+  type PanelType, type StreamRef
 } from "@sage/contracts/monitor";
 import type { DeviceStream, RunTimeline, StreamDeclaration, StreamInfo } from "@sage/contracts/observability";
 import type { ProjectDocument } from "@sage/contracts/projects";
 import { useMonitorStreams, useProjectDocument } from "../../lib/queries.js";
 import { queryKeys } from "../../lib/query-keys.js";
-import { newControlPanelId, requestControl } from "./control-requests.js";
+import { incrementedCopy, SINGLE_SOURCE, takes } from "./component-model.js";
 
-/** Drag payload of a component from the component bar: the panel type. */
+/** Drag payload of a component from the library: the component type. */
 export const PANEL_MIME = "application/x-sage-panel";
-
-/** The panel last focused in the workspace, where a preset control goes. */
-let focusedPanelId: string | undefined;
-export function setFocusedPanel(id: string | undefined): void {
-  focusedPanelId = id;
-}
+/** Drag payload of a variable from the variable list: `{hardwareId, streamId, type}` as JSON. */
+export const VARIABLE_MIME = "application/x-sage-variable";
 
 const EMPTY: Monitor = { panels: [] };
 
@@ -45,40 +41,6 @@ function declaredStreamInfo(hardwareId: string, stream: DeviceStream | undefined
     states: declaration.rateHz ? ["sampling"] : [],
     declaration
   };
-}
-
-/** Whether a panel of `type` draws a stream of `streamType` (an unknown type: any stream panel). */
-function panelDraws(type: PanelType, streamType: string | undefined): boolean {
-  const takes = PANEL_SOURCE_TYPES[type];
-  return takes.length > 0 && (!streamType || takes.includes(streamType));
-}
-
-export const PANEL_LABELS: Readonly<Record<PanelType, string>> = {
-  scope: "示波器",
-  digital: "数字量",
-  terminal: "终端",
-  trace: "总线跟踪",
-  values: "数值表",
-  gauge: "仪表",
-  timeline: "状态时间线",
-  register: "状态字",
-  xy: "XY 图",
-  detail: "报文详情",
-  control: "控制面板",
-  sources: "数据源",
-  inspector: "属性",
-  results: "结果",
-  messages: "报文",
-  number: "数值",
-  lamp: "指示灯",
-  switch: "开关",
-  slider: "滑块",
-  button: "按钮",
-  label: "文字"
-};
-
-export function panelTitle(panel: Pick<MonitorPanel, "type" | "title">): string {
-  return panel.title || PANEL_LABELS[panel.type];
 }
 
 /**
@@ -138,7 +100,7 @@ export function useMonitorWorkspace(timeline: RunTimeline | undefined) {
   /** The streams a panel shows, in its order, that its type can draw. */
   const streamsOf = useCallback((panel: MonitorPanel): StreamInfo[] => panel.sources.flatMap((ref) => {
     const info = infos.get(streamKey(ref));
-    return info && panelDraws(panel.type, String(info.type)) ? [info] : [];
+    return info && takes(panel.type, String(info.type)) ? [info] : [];
   }), [infos]);
   const typeOf = useCallback((ref: StreamRef) => declared.get(streamKey(ref))?.type, [declared]);
 
@@ -159,30 +121,20 @@ export function useMonitorWorkspace(timeline: RunTimeline | undefined) {
     save({ operations: [{ op: "removePanel", panelId }] }), [save]);
   const updatePanel = useCallback((panelId: string, change: { title?: string; settings?: Record<string, unknown> }) =>
     save({ operations: [{ op: "updatePanel", panelId, ...change }] }), [save]);
-  const addControl = useCallback((panelId: string, control: Omit<MonitorControl, "id">) =>
-    save({ operations: [{ op: "addControl", panelId, control }] }), [save]);
-  const removeControl = useCallback((panelId: string, controlId: string) =>
-    save({ operations: [{ op: "removeControl", panelId, controlId }] }), [save]);
-  /**
-   * A control picked in the components panel: a button, switch or slider widget of its own (it asks what to
-   * call when it is set up); presets go into the control panel last focused, else the first one, else a new
-   * one made for them.
-   */
-  const addControlWidget = useCallback((widget: ControlWidget) => {
-    if (widget !== "presets") {
-      addPanel(widget === "toggle" ? "switch" : widget);
-      return;
-    }
-    const controls = monitor.panels.filter((panel) => panel.type === "control");
-    const target = controls.find((panel) => panel.id === focusedPanelId) ?? controls[0];
-    if (target) {
-      requestControl(target.id, widget);
-      return;
-    }
-    const id = newControlPanelId();
-    addPanel("control", [], undefined, id);
-    requestControl(id, widget);
-  }, [monitor.panels, addPanel]);
+  /** Shows a stream on a component: added to it, or in place of the one stream it shows. */
+  const show = useCallback((panel: MonitorPanel, ref: StreamRef) => {
+    if (!SINGLE_SOURCE.has(panel.type)) { addTo(panel.id, ref); return; }
+    save({ operations: [
+      ...(panel.sources.length ? [{ op: "removeSources" as const, panelId: panel.id, sources: panel.sources }] : []),
+      { op: "addSources" as const, panelId: panel.id, sources: [ref] }
+    ] });
+  }, [addTo, save]);
+  /** 复制并递增: the next of a row of alike components (see `incrementedCopy`). */
+  const duplicate = useCallback((panelId: string) => {
+    const panel = monitor.panels.find((item) => item.id === panelId);
+    const frame = panel?.frame;
+    if (panel && frame) save({ operations: [{ op: "addPanel", panel: incrementedCopy({ ...panel, frame }) }] });
+  }, [monitor.panels, save]);
   /** Puts a panel's streams in this order (and only these). */
   const setSources = useCallback((panelId: string, sources: StreamRef[]) => {
     const current = monitor.panels.find((panel) => panel.id === panelId)?.sources ?? [];
@@ -211,11 +163,10 @@ export function useMonitorWorkspace(timeline: RunTimeline | undefined) {
     removePanel,
     move,
     updatePanel,
-    addControl,
-    removeControl,
+    show,
+    duplicate,
     replace,
     setSources,
-    addControlWidget,
     devices: devices.data ?? [],
     declarationOf: (ref: StreamRef) => declared.get(streamKey(ref)),
     error: update.error
